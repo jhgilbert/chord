@@ -1,35 +1,88 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useMemo, useState } from "react";
+import { getOrCreateSession } from "./session";
+import {
+  createTodo,
+  removeTodo,
+  subscribeTodos,
+  toggleTodo,
+  type Todo,
+} from "./todos";
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const { sessionId, displayName } = useMemo(() => getOrCreateSession(), []);
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [text, setText] = useState("");
+
+  useEffect(() => {
+    const unsub = subscribeTodos(setTodos);
+    return () => unsub();
+  }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
+    <div
+      style={{
+        maxWidth: 720,
+        margin: "40px auto",
+        fontFamily: "system-ui, sans-serif",
+      }}
+    >
+      <h1>Shared TODOs</h1>
+      <p>
+        You are: <b>{displayName}</b> (<code>{sessionId}</code>)
       </p>
-    </>
-  )
-}
 
-export default App
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+          const t = text.trim();
+          if (!t) return;
+          setText("");
+          await createTodo(t, sessionId, displayName);
+        }}
+        style={{ display: "flex", gap: 8 }}
+      >
+        <input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Add a todo…"
+          style={{ flex: 1, padding: 10 }}
+        />
+        <button type="submit" style={{ padding: "10px 14px" }}>
+          Add
+        </button>
+      </form>
+
+      <ul style={{ listStyle: "none", padding: 0, marginTop: 20 }}>
+        {todos.map((t) => (
+          <li
+            key={t.id}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "10px 0",
+              borderBottom: "1px solid #eee",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={t.done}
+              onChange={(e) => toggleTodo(t.id, e.target.checked)}
+            />
+            <div style={{ flex: 1 }}>
+              <div style={{ textDecoration: t.done ? "line-through" : "none" }}>
+                {t.text}
+              </div>
+              <div style={{ fontSize: 12, opacity: 0.7 }}>
+                by {t.createdByName}
+              </div>
+            </div>
+            <button onClick={() => removeTodo(t.id)} aria-label="Delete">
+              ✕
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
