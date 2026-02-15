@@ -811,6 +811,7 @@ function CollabRoute() {
   const [reactionFilter, setReactionFilter] = useState<
     "All" | "Agreed" | "Disagreed" | "Not reacted"
   >("All");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [draggedNoteId, setDraggedNoteId] = useState<string | null>(null);
   const [editingPrompt, setEditingPrompt] = useState(false);
@@ -1180,6 +1181,13 @@ function CollabRoute() {
     });
   }
 
+  // Apply sort order (notes are fetched in ascending order by default)
+  // Inbox always shows oldest first for stable queue processing
+  const effectiveSortOrder = filter === "Inbox" ? "asc" : sortOrder;
+  if (effectiveSortOrder === "desc") {
+    visibleNotes = [...visibleNotes].reverse();
+  }
+
   const handleGroupNotes = async (parentId: string, childId: string) => {
     if (!isHost) return;
     if (parentId === childId) return;
@@ -1432,6 +1440,17 @@ function CollabRoute() {
               <option value="Agreed">Agreed</option>
               <option value="Disagreed">Disagreed</option>
               <option value="Not reacted">Not reacted</option>
+            </select>
+            <select
+              value={filter === "Inbox" ? "asc" : sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
+              className={styles.filterDropdown}
+              data-active={sortOrder === "asc"}
+              disabled={filter === "Inbox"}
+              title={filter === "Inbox" ? "Inbox is always sorted oldest first" : undefined}
+            >
+              <option value="desc">Newest first</option>
+              <option value="asc">Oldest first</option>
             </select>
           </div>
           <div className={styles.notesList}>
