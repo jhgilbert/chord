@@ -1,6 +1,6 @@
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "./App.module.css";
 import {
   Navigate,
@@ -9,7 +9,7 @@ import {
   useNavigate,
   useParams,
 } from "react-router-dom";
-import { getOrCreateSession } from "./session";
+import { getSession, isLoggedIn, login } from "./session";
 import {
   createNote,
   editNote,
@@ -24,6 +24,7 @@ import {
 import {
   endCollaboration,
   pauseCollaboration,
+  resumeCollaboration,
   startCollaboration,
   subscribeCollaboration,
   updatePrompt,
@@ -31,6 +32,77 @@ import {
 } from "./collaborations";
 
 const NOTE_TYPES: NoteType[] = ["Question", "Requirement", "Comment"];
+
+function LoginScreen() {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+
+  // If already logged in, redirect to home
+  useEffect(() => {
+    if (isLoggedIn()) {
+      navigate("/", { replace: true });
+    }
+  }, [navigate]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!firstName.trim() || !lastName.trim()) return;
+
+    setIsLoading(true);
+    try {
+      await login(firstName.trim(), lastName.trim());
+      navigate("/", { replace: true });
+    } catch (error) {
+      console.error("Login failed:", error);
+      alert("Login failed. Please try again.");
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className={styles.loginScreen}>
+      <h1 className={styles.loginTitle}>Welcome to Chord</h1>
+      <p className={styles.loginSubtitle}>Please enter your name to continue</p>
+      <form onSubmit={handleSubmit} className={styles.loginForm}>
+        <div className={styles.loginField}>
+          <label className={styles.loginLabel}>First name</label>
+          <input
+            type="text"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            className={styles.loginInput}
+            placeholder="Jen"
+            disabled={isLoading}
+            required
+          />
+        </div>
+        <div className={styles.loginField}>
+          <label className={styles.loginLabel}>Last name</label>
+          <input
+            type="text"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            className={styles.loginInput}
+            placeholder="Gilbert"
+            disabled={isLoading}
+            required
+          />
+        </div>
+        <div className={styles.loginActions}>
+          <button
+            type="submit"
+            className={styles.loginSubmit}
+            disabled={isLoading}
+          >
+            {isLoading ? "Signing in..." : "Continue"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
 
 function NoteTypePanel({
   label,
@@ -351,16 +423,26 @@ function StickyNote({
 }
 
 function StartScreen() {
-  const { sessionId, displayName } = useMemo(() => getOrCreateSession(), []);
-  const [prompt, setPrompt] = useState("");
   const navigate = useNavigate();
+  const session = getSession();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!session) {
+      navigate("/login", { replace: true });
+    }
+  }, [session, navigate]);
+
+  const [prompt, setPrompt] = useState("");
+
+  if (!session) return null;
 
   const handleStart = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const isEmpty = prompt === "" || prompt === "<p><br></p>";
     if (isEmpty) return;
     const id = crypto.randomUUID();
-    await startCollaboration(id, sessionId, displayName, prompt);
+    await startCollaboration(id, session.userId, session.displayName, prompt);
     navigate(`/collabs/${id}`, { replace: true });
   };
 
@@ -368,7 +450,7 @@ function StartScreen() {
     <div className={styles.startScreen}>
       <h1 className={styles.startScreenTitle}>Chord</h1>
       <p className={styles.startScreenUser}>
-        You are: <b>{displayName}</b>
+        You are: <b>{session.displayName}</b>
       </p>
       <form onSubmit={handleStart} className={styles.startScreenForm}>
         <label className={styles.startScreenLabel}>
@@ -392,7 +474,16 @@ function StartScreen() {
 
 function CollabRoute() {
   const { id } = useParams<{ id: string }>();
-  const { sessionId, displayName } = useMemo(() => getOrCreateSession(), []);
+  const navigate = useNavigate();
+  const session = getSession();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!session) {
+      navigate("/login", { replace: true });
+    }
+  }, [session, navigate]);
+
   const [collab, setCollab] = useState<Collaboration | null | undefined>(
     undefined,
   );
@@ -422,9 +513,32 @@ function CollabRoute() {
   }, [id]);
 
   if (!id) return <Navigate to="/start" replace />;
+  if (!session) return null;
   if (collab === undefined) return null;
   if (collab === null) {
     return <div className={styles.notFound}>Collaboration not found.</div>;
+  }
+
+  const isHost = collab.startedBy === session.userId;
+
+  // If collaboration is stopped, show resume screen
+  if (!collab.active) {
+    return (
+      <div className={styles.stoppedScreen}>
+        <h1 className={styles.stoppedTitle}>Collaboration Stopped</h1>
+        <p className={styles.stoppedMessage}>
+          This collaboration was stopped by <b>{collab.startedByName}</b>.
+        </p>
+        {isHost && (
+          <button
+            onClick={() => resumeCollaboration(collab.id)}
+            className={styles.resumeButton}
+          >
+            Resume collaboration
+          </button>
+        )}
+      </div>
+    );
   }
 
   // Build noteGroups map from notes data
@@ -442,33 +556,39 @@ function CollabRoute() {
     children.forEach((id) => allChildIds.add(id));
   }
 
+  // Calculate inbox count
+  const inboxCount = notes.filter(
+    (n) =>
+      n.createdBy !== session.userId &&
+      !n.reactions?.[session.userId] &&
+      !allChildIds.has(n.id),
+  ).length;
+
   let visibleNotes =
     filter === "All"
       ? notes
       : filter === "Inbox"
         ? notes.filter(
             (n) =>
-              n.createdBy !== sessionId &&
-              !n.reactions?.[sessionId] &&
+              n.createdBy !== session.userId &&
+              !n.reactions?.[session.userId] &&
               !allChildIds.has(n.id),
           )
         : filter === "Mine"
-          ? notes.filter((n) => n.createdBy === sessionId)
+          ? notes.filter((n) => n.createdBy === session.userId)
           : notes.filter((n) => n.type === filter);
 
   // Apply reaction filter
   if (reactionFilter !== "All") {
     visibleNotes = visibleNotes.filter((n) => {
-      const myReaction = n.reactions?.[sessionId] ?? null;
+      const myReaction = n.reactions?.[session.userId] ?? null;
       if (reactionFilter === "Agreed") return myReaction === "agree";
       if (reactionFilter === "Disagreed") return myReaction === "disagree";
       if (reactionFilter === "Not reacted")
-        return n.createdBy !== sessionId && !myReaction;
+        return n.createdBy !== session.userId && !myReaction;
       return true;
     });
   }
-
-  const isHost = collab.startedBy === sessionId;
 
   const handleGroupNotes = async (parentId: string, childId: string) => {
     if (!isHost) return;
@@ -537,15 +657,15 @@ function CollabRoute() {
             Started by <b>{collab.startedByName}</b>
           </span>
           <span className={styles.collabHeaderUser}>
-            You are: <b>{displayName}</b>
+            You are: <b>{session.displayName}</b>
           </span>
         </div>
         <div className={styles.collabHeaderActions}>
-          {!collab.active && <span className={styles.badgeEnded}>Ended</span>}
+          {!collab.active && <span className={styles.badgeStopped}>Stopped</span>}
           {collab.paused && collab.active && (
             <span className={styles.badgePaused}>Input paused</span>
           )}
-          {collab.startedBy === sessionId && collab.active && (
+          {collab.startedBy === session.userId && collab.active && (
             <>
               <button
                 onClick={() => pauseCollaboration(collab.id, !collab.paused)}
@@ -558,7 +678,7 @@ function CollabRoute() {
                 onClick={() => endCollaboration(collab.id)}
                 className={styles.buttonEnd}
               >
-                End collaboration
+                Stop collaboration
               </button>
             </>
           )}
@@ -571,7 +691,7 @@ function CollabRoute() {
           <div className={styles.promptCard}>
             <div className={styles.promptHeader}>
               <div className={styles.promptLabel}>Prompt</div>
-              {collab.startedBy === sessionId && !editingPrompt && (
+              {collab.startedBy === session.userId && !editingPrompt && (
                 <button
                   onClick={() => {
                     setEditingPrompt(true);
@@ -621,8 +741,8 @@ function CollabRoute() {
             )}
           </div>
           {!collab.active ? (
-            <div className={styles.messageEnded}>
-              This collaboration has ended.
+            <div className={styles.messageStopped}>
+              This collaboration has been stopped.
             </div>
           ) : collab.paused ? (
             <div className={styles.messagePaused}>
@@ -636,7 +756,7 @@ function CollabRoute() {
                 isOpen={openType === type}
                 onToggle={() => setOpenType(openType === type ? null : type)}
                 onSubmit={(html) =>
-                  createNote(collab.id, type, html, sessionId, displayName)
+                  createNote(collab.id, type, html, session.userId, session.displayName)
                 }
               />
             ))
@@ -652,7 +772,7 @@ function CollabRoute() {
                 className={styles.filterButton}
                 data-active={filter === t}
               >
-                {t}
+                {t === "Inbox" ? `Inbox (${inboxCount})` : t}
               </button>
             ))}
             <select
@@ -696,12 +816,12 @@ function CollabRoute() {
                 <StickyNote
                   note={n}
                   collaborationId={collab.id}
-                  sessionId={sessionId}
+                  sessionId={session.userId}
                   canDelete={
-                    !collab.paused && collab.active && n.createdBy === sessionId
+                    !collab.paused && collab.active && n.createdBy === session.userId
                   }
                   canReact={
-                    !collab.paused && collab.active && n.createdBy !== sessionId
+                    !collab.paused && collab.active && n.createdBy !== session.userId
                   }
                   paused={!!collab.paused}
                   onDelete={() => removeNote(collab.id, n.id)}
@@ -719,7 +839,7 @@ function CollabRoute() {
                   canUngroup={isHost && isGrouped}
                   onUngroup={() => setGroupedUnder(collab.id, n.id, null)}
                   canEdit={
-                    !collab.paused && collab.active && n.createdBy === sessionId
+                    !collab.paused && collab.active && n.createdBy === session.userId
                   }
                 />
                 {isParent && !isGrouped && (
@@ -741,6 +861,7 @@ function CollabRoute() {
 export default function App() {
   return (
     <Routes>
+      <Route path="/login" element={<LoginScreen />} />
       <Route path="/" element={<StartScreen />} />
       <Route path="/collabs/:id" element={<CollabRoute />} />
       <Route path="*" element={<Navigate to="/" replace />} />

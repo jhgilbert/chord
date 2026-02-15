@@ -289,6 +289,129 @@
   cursor: default;
 }
 
+/* LoginScreen */
+.loginScreen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: system-ui, sans-serif;
+  padding: 40px 20px;
+  box-sizing: border-box;
+}
+
+.loginTitle {
+  margin: 0 0 8px;
+  font-size: 32px;
+}
+
+.loginSubtitle {
+  margin: 0 0 32px;
+  opacity: 0.6;
+  font-size: 16px;
+}
+
+.loginForm {
+  width: 100%;
+  max-width: 400px;
+}
+
+.loginField {
+  margin-bottom: 20px;
+}
+
+.loginLabel {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.loginInput {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 15px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  box-sizing: border-box;
+  font-family: system-ui, sans-serif;
+}
+
+.loginInput:focus {
+  outline: none;
+  border-color: #111;
+}
+
+.loginInput:disabled {
+  background: #f3f4f6;
+  cursor: not-allowed;
+}
+
+.loginActions {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.loginSubmit {
+  padding: 12px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  background: #111;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.loginSubmit:hover:not(:disabled) {
+  background: #333;
+}
+
+.loginSubmit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* StoppedScreen */
+.stoppedScreen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: system-ui, sans-serif;
+  padding: 40px 20px;
+  box-sizing: border-box;
+}
+
+.stoppedTitle {
+  margin: 0 0 12px;
+  font-size: 32px;
+}
+
+.stoppedMessage {
+  margin: 0 0 32px;
+  opacity: 0.7;
+  font-size: 16px;
+}
+
+.resumeButton {
+  padding: 12px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  background: #111;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.resumeButton:hover {
+  background: #333;
+}
+
 /* StartScreen */
 .startScreen {
   display: flex;
@@ -383,7 +506,7 @@
   align-items: center;
 }
 
-.badgeEnded {
+.badgeStopped {
   font-size: 12px;
   font-weight: 600;
   color: #6b7280;
@@ -518,7 +641,7 @@
   color: #1a1a1a;
 }
 
-.messageEnded {
+.messageStopped {
   font-size: 13px;
   color: #6b7280;
   background: #f3f4f6;
