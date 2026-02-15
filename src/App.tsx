@@ -18,7 +18,7 @@ import {
   type Collaboration,
 } from "./collaborations";
 
-const NOTE_TYPES: NoteType[] = ["Question", "Requirement"];
+const NOTE_TYPES: NoteType[] = ["Question", "Requirement", "Comment"];
 
 function NoteTypePanel({
   label,

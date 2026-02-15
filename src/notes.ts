@@ -12,7 +12,7 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase";
 
-export type NoteType = "Question" | "Requirement";
+export type NoteType = "Question" | "Requirement" | "Comment";
 
 export type Reaction = "agree" | "disagree";
 
