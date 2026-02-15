@@ -1,3 +1,17 @@
+/* Host only label */
+.hostOnlyLabel {
+  margin-top: 24px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6b7280;
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
 /* NoteTypePanel */
 .noteTypePanel {
   border: 1px solid #d1d5db;

@@ -1725,19 +1725,38 @@ function CollabRoute() {
               Input is paused. New notes cannot be added.
             </div>
           ) : (
-            allowedNoteTypes
-              .filter((type) => type !== "Host note" || isHost)
-              .map((type) => (
-                <NoteTypePanel
-                  key={type}
-                  label={type}
-                  isOpen={openType === type}
-                  onToggle={() => setOpenType(openType === type ? null : type)}
-                  onSubmit={(html, assignee, dueDate) =>
-                    createNote(collab.id, type, html, session.userId, session.displayName, assignee, dueDate)
-                  }
-                />
-              ))
+            <>
+              {/* Participant note types */}
+              {allowedNoteTypes
+                .filter((type) => type !== "Host note")
+                .map((type) => (
+                  <NoteTypePanel
+                    key={type}
+                    label={type}
+                    isOpen={openType === type}
+                    onToggle={() => setOpenType(openType === type ? null : type)}
+                    onSubmit={(html, assignee, dueDate) =>
+                      createNote(collab.id, type, html, session.userId, session.displayName, assignee, dueDate)
+                    }
+                  />
+                ))}
+
+              {/* Host-only note types */}
+              {isHost && allowedNoteTypes.includes("Host note") && (
+                <>
+                  <div className={styles.hostOnlyLabel}>Host only</div>
+                  <NoteTypePanel
+                    key="Host note"
+                    label="Host note"
+                    isOpen={openType === "Host note"}
+                    onToggle={() => setOpenType(openType === "Host note" ? null : "Host note")}
+                    onSubmit={(html, assignee, dueDate) =>
+                      createNote(collab.id, "Host note", html, session.userId, session.displayName, assignee, dueDate)
+                    }
+                  />
+                </>
+              )}
+            </>
           )}
         </aside>
 
