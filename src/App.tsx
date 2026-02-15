@@ -374,8 +374,7 @@ function StickyNote({
   };
 
   const getReactionOpacity = (r: Reaction) => {
-    if (paused) return counts[r] > 0 ? 1 : 0.25;
-    return hovered || myReaction === r ? 1 : 0;
+    return 1;
   };
 
   const handleEdit = () => {
@@ -487,16 +486,6 @@ function StickyNote({
             }
       }
     >
-      {canDelete && (
-        <button
-          onClick={onDelete}
-          aria-label="Delete note"
-          className={styles.stickyNoteDelete}
-          style={{ color }}
-        >
-          ✕
-        </button>
-      )}
       {canUngroup && (
         <button
           onClick={onUngroup}
@@ -506,40 +495,12 @@ function StickyNote({
           Ungroup
         </button>
       )}
-      {((!paused && !isResponding && (note.createdBy !== sessionId || (note.responses && note.responses.length > 0))) ||
+      {((!paused && !isResponding) ||
         ((canReact || paused) && note.createdBy !== sessionId) ||
-        canArchive) && (
+        canArchive ||
+        canDelete ||
+        (canEdit && !isEditing)) && (
         <div className={styles.stickyNoteActions}>
-          {canArchive && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleArchive(collaborationId, note.id, !!note.archived);
-              }}
-              className={styles.actionButton}
-              data-active={false}
-              style={{ opacity: hovered ? 1 : 0 }}
-              aria-label={note.archived ? "Unarchive" : "Archive"}
-              title={note.archived ? "Unarchive" : "Archive"}
-            >
-              {note.archived ? "📂" : "🗄️"}
-            </button>
-          )}
-          {!paused && !isResponding && (note.createdBy !== sessionId || (note.responses && note.responses.length > 0)) && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsResponding(true);
-                onRespondingChange?.(true);
-              }}
-              className={styles.actionButton}
-              data-active={false}
-              style={{ opacity: hovered ? 1 : 0 }}
-              aria-label="Add response"
-            >
-              💬 {note.responses && note.responses.length > 0 && <span>{note.responses.length}</span>}
-            </button>
-          )}
           {(canReact || paused) && note.createdBy !== sessionId && (
             <>
               <button
@@ -562,6 +523,60 @@ function StickyNote({
               </button>
             </>
           )}
+          {!paused && !isResponding && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsResponding(true);
+                onRespondingChange?.(true);
+              }}
+              className={styles.actionButton}
+              data-active={false}
+              aria-label="Add response"
+            >
+              💬 {note.responses && note.responses.length > 0 && <span>{note.responses.length}</span>}
+            </button>
+          )}
+          {canEdit && !isEditing && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEdit();
+              }}
+              className={styles.actionButton}
+              data-active={false}
+              aria-label="Edit note"
+            >
+              ✏️
+            </button>
+          )}
+          {canDelete && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+              className={styles.actionButton}
+              data-active={false}
+              aria-label="Delete note"
+            >
+              🗑️
+            </button>
+          )}
+          {canArchive && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleArchive(collaborationId, note.id, !!note.archived);
+              }}
+              className={styles.actionButton}
+              data-active={false}
+              aria-label={note.archived ? "Unarchive" : "Archive"}
+              title={note.archived ? "Unarchive" : "Archive"}
+            >
+              {note.archived ? "📂" : "🗄️"}
+            </button>
+          )}
         </div>
       )}
       <div className={styles.stickyNoteBadges}>
@@ -570,18 +585,6 @@ function StickyNote({
           <span className={styles.badgeYou}>You</span>
         )}
         {paused && <span className={styles.badgeName}>{note.createdByName}</span>}
-        {canEdit && !isEditing && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleEdit();
-            }}
-            className={styles.badgeEdit}
-            aria-label="Edit note"
-          >
-            Edit
-          </button>
-        )}
         <span className={styles.badgeTimestamp}>
           {note.createdAt && typeof note.createdAt === 'object' && 'seconds' in note.createdAt
             ? getRelativeTime((note.createdAt as { seconds: number }).seconds * 1000)
@@ -701,7 +704,6 @@ function StickyNote({
                   }
 
                   const getResponseReactionOpacity = (r: Reaction) => {
-                    if (paused) return responseCounts[r] > 0 ? 1 : 0.25;
                     return 1;
                   };
 
