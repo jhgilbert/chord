@@ -38,6 +38,14 @@ import {
 
 const NOTE_TYPES: NoteType[] = ["Question", "Statement", "Recommendation", "Requirement", "Action item", "Host note", "Positive feedback", "Constructive feedback"];
 
+const NOTE_TYPE_EXAMPLES: Partial<Record<NoteType, string>> = {
+  "Question": "How should we ...?",
+  "Statement": "I don't like ...",
+  "Recommendation": "We should ...",
+  "Positive feedback": "I liked ...",
+  "Constructive feedback": "I struggled with ...",
+};
+
 function LoginScreen() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -136,6 +144,8 @@ function NoteTypePanel({
 
   const isActionItem = label === "Action item";
 
+  const exampleText = NOTE_TYPE_EXAMPLES[label];
+
   return (
     <div className={styles.noteTypePanel}>
       <button
@@ -144,7 +154,10 @@ function NoteTypePanel({
         className={styles.noteTypePanelButton}
         data-open={isOpen}
       >
-        {label}
+        <span>{label}</span>
+        {exampleText && (
+          <span className={styles.noteTypePanelExample}>{exampleText}</span>
+        )}
         <span className={styles.noteTypePanelArrow}>{isOpen ? "▲" : "▼"}</span>
       </button>
 
@@ -882,7 +895,7 @@ function CollabRoute() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [openType, setOpenType] = useState<NoteType | null>(null);
   const [filter, setFilter] = useState<NoteType | "All" | "Inbox" | "Mine" | "Archived">(
-    "All",
+    "Mine",
   );
   const [reactionFilter, setReactionFilter] = useState<
     "All" | "Agreed" | "Disagreed" | "Not reacted"
@@ -1579,14 +1592,14 @@ function CollabRoute() {
 
         <main className={styles.collabMain}>
           <div className={styles.filterBar}>
-            {(["All", "Inbox", "Mine", "Archived"] as const).map((t) => (
+            {(["Mine", "All", "Inbox", "Archived"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setFilter(t)}
                 className={styles.filterButton}
                 data-active={filter === t}
               >
-                {t === "Inbox" ? `Inbox (${inboxCount})` : t === "Archived" ? `Archived (${archivedCount})` : t}
+                {t === "Mine" ? "Your notes" : t === "Inbox" ? `Inbox (${inboxCount})` : t === "Archived" ? `Archived (${archivedCount})` : t}
               </button>
             ))}
             <select

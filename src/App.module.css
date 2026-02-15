@@ -28,6 +28,15 @@
   color: #111;
 }
 
+.noteTypePanelExample {
+  font-size: 12px;
+  font-style: italic;
+  opacity: 0.5;
+  margin-left: auto;
+  margin-right: 12px;
+  font-weight: 400;
+}
+
 .noteTypePanelArrow {
   font-size: 12px;
   opacity: 0.6;
