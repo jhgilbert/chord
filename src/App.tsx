@@ -534,10 +534,10 @@ function StickyNote({
         </div>
       )}
       <div className={styles.stickyNoteBadges}>
+        <span className={styles.badgeType} style={{ backgroundColor: NOTE_TYPE_COLORS[note.type] }}>{note.type}</span>
         {note.createdBy === sessionId && (
           <span className={styles.badgeYou}>You</span>
         )}
-        <span className={styles.badgeType}>{note.type}</span>
         {paused && <span className={styles.badgeName}>{note.createdByName}</span>}
         {canEdit && !isEditing && (
           <button

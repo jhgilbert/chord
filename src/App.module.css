@@ -127,25 +127,23 @@
 
 /* StickyNote */
 .stickyNote {
-  background: #fef9c3;
-  border-radius: 4px;
-  box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.18), 1px 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1.5px solid transparent;
-  border-left: 6px solid; /* Color set via inline style */
-  padding: 18px 20px 12px 20px;
+  background: #ffffff;
+  border-radius: 0;
+  border: none;
+  border-left: 4px solid; /* Color set via inline style */
+  padding: 0 16px 2px 10px;
+  margin-bottom: 4px;
   position: relative;
   color: #1a1a1a;
 }
 
 .stickyNote[data-own="true"] {
-  border-right-color: #4ade80;
-  border-top-color: #4ade80;
-  border-bottom-color: #4ade80;
+  /* No additional border for own notes */
 }
 
 .stickyNote[data-grouped="true"] {
   border-left: 6px solid #111;
-  background: #fef7cd;
+  background: #f9fafb;
 }
 
 .stickyNoteDelete {
@@ -196,7 +194,7 @@
 }
 
 .badgeYou {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -207,18 +205,17 @@
 }
 
 .badgeType {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background: #111;
   color: #fff;
   border-radius: 3px;
   padding: 2px 6px;
 }
 
 .badgeName {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
   opacity: 0.6;
 }
