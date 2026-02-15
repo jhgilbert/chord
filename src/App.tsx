@@ -207,6 +207,7 @@ function StickyNote({
   onUngroup,
   canEdit,
   canArchive,
+  onRespondingChange,
 }: {
   note: Note;
   collaborationId: string;
@@ -226,6 +227,7 @@ function StickyNote({
   onUngroup?: () => void;
   canEdit?: boolean;
   canArchive?: boolean;
+  onRespondingChange?: (isResponding: boolean) => void;
 }) {
   const [hovered, setHovered] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -311,6 +313,7 @@ function StickyNote({
       );
       setResponseContent("");
       setIsResponding(false);
+      onRespondingChange?.(false);
     } catch (error) {
       console.error("Failed to add response:", error);
       alert("Failed to add response. Check console for details.");
@@ -320,6 +323,7 @@ function StickyNote({
   const handleCancelResponse = () => {
     setIsResponding(false);
     setResponseContent("");
+    onRespondingChange?.(false);
   };
 
   return (
@@ -395,6 +399,7 @@ function StickyNote({
               onClick={(e) => {
                 e.stopPropagation();
                 setIsResponding(true);
+                onRespondingChange?.(true);
               }}
               className={styles.actionButton}
               data-active={false}
@@ -711,6 +716,7 @@ function CollabRoute() {
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [promptValue, setPromptValue] = useState("");
   const [showNoteTypeSettings, setShowNoteTypeSettings] = useState(false);
+  const [respondingToNoteId, setRespondingToNoteId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -728,7 +734,14 @@ function CollabRoute() {
   if (!session) return null;
   if (collab === undefined) return null;
   if (collab === null) {
-    return <div className={styles.notFound}>Collaboration not found.</div>;
+    return (
+      <div className={styles.notFound}>
+        <p>Collaboration not found.</p>
+        <button onClick={() => navigate("/")} className={styles.homeButton}>
+          Go to Home
+        </button>
+      </div>
+    );
   }
 
   const isHost = collab.startedBy === session.userId;
@@ -1012,7 +1025,7 @@ function CollabRoute() {
               (n) =>
                 n.createdBy !== session.userId &&
                 !n.reactions?.[session.userId] &&
-                !allChildIds.has(n.id) &&
+                (!allChildIds.has(n.id) || n.id === respondingToNoteId) &&
                 !n.archived,
             )
           : filter === "Mine"
@@ -1060,8 +1073,8 @@ function CollabRoute() {
   }> = [];
 
   for (const note of visibleNotes) {
-    // Skip if this note is a child of another note
-    if (allChildIds.has(note.id)) continue;
+    // Skip if this note is a child of another note, unless user is responding to it
+    if (allChildIds.has(note.id) && note.id !== respondingToNoteId) continue;
 
     // Add parent note
     const children = noteGroups.get(note.id) || [];
@@ -1315,6 +1328,9 @@ function CollabRoute() {
                     !collab.paused && collab.active && n.createdBy === session.userId
                   }
                   canArchive={isHost && collab.active}
+                  onRespondingChange={(isResponding) =>
+                    setRespondingToNoteId(isResponding ? n.id : null)
+                  }
                 />
                 {isParent && !isGrouped && (
                   <div className={styles.groupIndicator}>
