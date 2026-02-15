@@ -92,6 +92,7 @@ function StickyNote({
   sessionId,
   canDelete,
   canReact,
+  frozen,
   onDelete,
 }: {
   note: Note;
@@ -99,13 +100,18 @@ function StickyNote({
   sessionId: string;
   canDelete: boolean;
   canReact: boolean;
+  frozen: boolean;
   onDelete: () => void;
 }) {
   const [hovered, setHovered] = useState(false);
   const myReaction: Reaction | null = note.reactions?.[sessionId] ?? null;
 
   const counts = { agree: 0, disagree: 0 };
-  if (myReaction) counts[myReaction] = 1;
+  if (frozen) {
+    for (const r of Object.values(note.reactions ?? {})) counts[r]++;
+  } else if (myReaction) {
+    counts[myReaction] = 1;
+  }
 
   const handleReaction = (r: Reaction) => {
     setReaction(collaborationId, note.id, sessionId, myReaction === r ? null : r);
@@ -119,9 +125,9 @@ function StickyNote({
     fontSize: 13,
     border: "1px solid",
     borderRadius: 20,
-    cursor: "pointer",
+    cursor: frozen ? "default" : "pointer",
     transition: "opacity 0.15s",
-    opacity: hovered || myReaction === r ? 1 : 0,
+    opacity: frozen ? (counts[r] > 0 ? 1 : 0.25) : hovered || myReaction === r ? 1 : 0,
     background: myReaction === r ? "#111" : "transparent",
     color: myReaction === r ? "#fff" : "#555",
     borderColor: myReaction === r ? "#111" : "#bbb",
@@ -184,12 +190,12 @@ function StickyNote({
         dangerouslySetInnerHTML={{ __html: note.content }}
         style={{ lineHeight: 1.6 }}
       />
-      {canReact && (
+      {(canReact || frozen) && note.createdBy !== sessionId && (
         <div style={{ display: "flex", gap: 6, marginTop: 12 }}>
-          <button onClick={() => handleReaction("agree")} style={reactionBtn("agree")}>
+          <button onClick={canReact ? () => handleReaction("agree") : undefined} style={reactionBtn("agree")}>
             👍 {counts.agree > 0 && <span>{counts.agree}</span>}
           </button>
-          <button onClick={() => handleReaction("disagree")} style={reactionBtn("disagree")}>
+          <button onClick={canReact ? () => handleReaction("disagree") : undefined} style={reactionBtn("disagree")}>
             👎 {counts.disagree > 0 && <span>{counts.disagree}</span>}
           </button>
         </div>
@@ -449,6 +455,7 @@ function CollabRoute() {
                 sessionId={sessionId}
                 canDelete={!collab.frozen && collab.active && n.createdBy === sessionId}
                 canReact={!collab.frozen && collab.active && n.createdBy !== sessionId}
+                frozen={!!collab.frozen}
                 onDelete={() => removeNote(collab.id, n.id)}
               />
             ))}
