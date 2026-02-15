@@ -34,7 +34,7 @@ import {
   type Collaboration,
 } from "./collaborations";
 
-const NOTE_TYPES: NoteType[] = ["Question", "Requirement", "Comment", "Idea", "Action item"];
+const NOTE_TYPES: NoteType[] = ["Question", "Requirement", "Statement", "Recommendation", "Action item"];
 
 function LoginScreen() {
   const [firstName, setFirstName] = useState("");
@@ -714,9 +714,6 @@ function CollabRoute() {
       md += `**Started by:** ${collab.startedByName}\n\n`;
       md += `---\n\n`;
 
-      // Separate action items for top section, but keep all notes for chronological section
-      const actionItems = notes.filter(n => n.type === "Action item");
-
       // Helper function to render a note
       const renderNote = (note: Note, idx: number) => {
         // Strip HTML from note content
@@ -767,15 +764,23 @@ function CollabRoute() {
         md += `---\n\n`;
       };
 
-      // Render action items first for quick reference
-      if (actionItems.length > 0) {
-        md += `## Action Items (${actionItems.length})\n\n`;
-        actionItems.forEach((note, idx) => renderNote(note, idx));
-      }
+      // Render each note type in its own section
+      // Order: Action items, Requirements, Recommendations, Statements, Questions
+      const noteTypeOrder: NoteType[] = ["Action item", "Requirement", "Recommendation", "Statement", "Question"];
 
-      // Then render all notes in chronological order (including action items)
+      noteTypeOrder.forEach(noteType => {
+        const notesOfType = notes.filter(n => n.type === noteType);
+        if (notesOfType.length > 0) {
+          // Pluralize the section name
+          const sectionName = noteType === "Action item" ? "Action Items" : noteType + "s";
+          md += `## ${sectionName} (${notesOfType.length})\n\n`;
+          notesOfType.forEach((note, idx) => renderNote(note, idx));
+        }
+      });
+
+      // Then render all notes in chronological order
       if (notes.length > 0) {
-        md += `## Notes (${notes.length})\n\n`;
+        md += `## Collaboration Timeline (${notes.length})\n\n`;
         notes.forEach((note, idx) => renderNote(note, idx));
       }
 
