@@ -1,6 +1,7 @@
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { useEffect, useMemo, useState } from "react";
+import { Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom";
 import { getOrCreateSession } from "./session";
 import {
   createNote,
@@ -15,7 +16,7 @@ import {
   endCollaboration,
   freezeCollaboration,
   startCollaboration,
-  subscribeActiveCollaboration,
+  subscribeCollaboration,
   type Collaboration,
 } from "./collaborations";
 
@@ -197,20 +198,18 @@ function StickyNote({
   );
 }
 
-function StartScreen({
-  sessionId,
-  displayName,
-}: {
-  sessionId: string;
-  displayName: string;
-}) {
+function StartScreen() {
+  const { sessionId, displayName } = useMemo(() => getOrCreateSession(), []);
   const [prompt, setPrompt] = useState("");
+  const navigate = useNavigate();
 
   const handleStart = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const isEmpty = prompt === "" || prompt === "<p><br></p>";
     if (isEmpty) return;
-    await startCollaboration(sessionId, displayName, prompt);
+    const id = crypto.randomUUID();
+    await startCollaboration(id, sessionId, displayName, prompt);
+    navigate(`/collabs/${id}`, { replace: true });
   };
 
   return (
@@ -230,10 +229,7 @@ function StartScreen({
       <p style={{ margin: "0 0 24px", opacity: 0.6, fontSize: 14 }}>
         You are: <b>{displayName}</b>
       </p>
-      <form
-        onSubmit={handleStart}
-        style={{ width: "100%", maxWidth: 600 }}
-      >
+      <form onSubmit={handleStart} style={{ width: "100%", maxWidth: 600 }}>
         <label
           style={{ display: "block", fontWeight: 600, marginBottom: 8, fontSize: 14 }}
         >
@@ -267,35 +263,41 @@ function StartScreen({
   );
 }
 
-function CollabView({
-  collab,
-  sessionId,
-  displayName,
-}: {
-  collab: Collaboration;
-  sessionId: string;
-  displayName: string;
-}) {
+function CollabRoute() {
+  const { id } = useParams<{ id: string }>();
+  const { sessionId, displayName } = useMemo(() => getOrCreateSession(), []);
+  const [collab, setCollab] = useState<Collaboration | null | undefined>(undefined);
   const [notes, setNotes] = useState<Note[]>([]);
   const [openType, setOpenType] = useState<NoteType | null>(null);
   const [filter, setFilter] = useState<NoteType | "All">("All");
 
   useEffect(() => {
-    const unsub = subscribeNotes(collab.id, setNotes);
+    if (!id) return;
+    const unsub = subscribeCollaboration(id, setCollab);
     return () => unsub();
-  }, [collab.id]);
+  }, [id]);
 
-  const visibleNotes =
-    filter === "All" ? notes : notes.filter((n) => n.type === filter);
+  useEffect(() => {
+    if (!id) return;
+    const unsub = subscribeNotes(id, setNotes);
+    return () => unsub();
+  }, [id]);
+
+  if (!id) return <Navigate to="/start" replace />;
+  if (collab === undefined) return null;
+  if (collab === null) {
+    return (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", fontFamily: "system-ui, sans-serif" }}>
+        Collaboration not found.
+      </div>
+    );
+  }
+
+  const visibleNotes = filter === "All" ? notes : notes.filter((n) => n.type === filter);
 
   return (
-    <div
-      style={{
-        margin: "0 20px 40px",
-        fontFamily: "system-ui, sans-serif",
-      }}
-    >
-      {/* Header bar */}
+    <div style={{ margin: "0 20px 40px", fontFamily: "system-ui, sans-serif" }}>
+      {/* Header */}
       <div
         style={{
           display: "flex",
@@ -309,19 +311,24 @@ function CollabView({
         <div>
           <span style={{ fontWeight: 700, fontSize: 18 }}>Chord</span>
           <span style={{ marginLeft: 16, fontSize: 13, opacity: 0.6 }}>
-            Collaboration started by <b>{collab.startedByName}</b>
+            Started by <b>{collab.startedByName}</b>
           </span>
           <span style={{ marginLeft: 16, fontSize: 12, opacity: 0.5 }}>
             You are: <b>{displayName}</b>
           </span>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          {collab.frozen && (
+          {!collab.active && (
+            <span style={{ fontSize: 12, fontWeight: 600, color: "#6b7280", background: "#f3f4f6", border: "1px solid #d1d5db", borderRadius: 4, padding: "3px 8px" }}>
+              Ended
+            </span>
+          )}
+          {collab.frozen && collab.active && (
             <span style={{ fontSize: 12, fontWeight: 600, color: "#b45309", background: "#fef3c7", border: "1px solid #fcd34d", borderRadius: 4, padding: "3px 8px" }}>
               Input frozen
             </span>
           )}
-          {collab.startedBy === sessionId && (
+          {collab.startedBy === sessionId && collab.active && (
             <>
               <button
                 onClick={() => freezeCollaboration(collab.id, !collab.frozen)}
@@ -385,7 +392,11 @@ function CollabView({
               style={{ fontSize: 14, lineHeight: 1.6, color: "#1a1a1a" }}
             />
           </div>
-          {collab.frozen ? (
+          {!collab.active ? (
+            <div style={{ fontSize: 13, color: "#6b7280", background: "#f3f4f6", border: "1px solid #d1d5db", borderRadius: 6, padding: "10px 14px" }}>
+              This collaboration has ended.
+            </div>
+          ) : collab.frozen ? (
             <div style={{ fontSize: 13, color: "#92400e", background: "#fef3c7", border: "1px solid #fcd34d", borderRadius: 6, padding: "10px 14px" }}>
               Input is frozen. New notes cannot be added.
             </div>
@@ -432,8 +443,8 @@ function CollabView({
                 note={n}
                 collaborationId={collab.id}
                 sessionId={sessionId}
-                canDelete={!collab.frozen && n.createdBy === sessionId}
-                canReact={!collab.frozen && n.createdBy !== sessionId}
+                canDelete={!collab.frozen && collab.active && n.createdBy === sessionId}
+                canReact={!collab.frozen && collab.active && n.createdBy !== sessionId}
                 onDelete={() => removeNote(collab.id, n.id)}
               />
             ))}
@@ -445,32 +456,11 @@ function CollabView({
 }
 
 export default function App() {
-  const { sessionId, displayName } = useMemo(() => getOrCreateSession(), []);
-  const [activeCollab, setActiveCollab] = useState<
-    Collaboration | null | undefined
-  >(undefined);
-
-  useEffect(() => {
-    const unsub = subscribeActiveCollaboration(setActiveCollab);
-    return () => unsub();
-  }, []);
-
-  if (activeCollab === undefined) return null;
-
-  if (activeCollab === null) {
-    return (
-      <StartScreen
-        sessionId={sessionId}
-        displayName={displayName}
-      />
-    );
-  }
-
   return (
-    <CollabView
-      collab={activeCollab}
-      sessionId={sessionId}
-      displayName={displayName}
-    />
+    <Routes>
+      <Route path="/" element={<StartScreen />} />
+      <Route path="/collabs/:id" element={<CollabRoute />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }

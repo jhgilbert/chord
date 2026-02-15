@@ -1,13 +1,9 @@
 import {
-  addDoc,
-  collection,
-  limit,
-  onSnapshot,
-  query,
-  serverTimestamp,
-  updateDoc,
   doc,
-  where,
+  onSnapshot,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
 } from "firebase/firestore";
 import { db } from "./firebase";
 
@@ -21,28 +17,26 @@ export type Collaboration = {
   frozen?: boolean;
 };
 
-const collabsCol = collection(db, "collaborations");
-
-export function subscribeActiveCollaboration(
+export function subscribeCollaboration(
+  id: string,
   cb: (collab: Collaboration | null) => void,
 ) {
-  const q = query(collabsCol, where("active", "==", true), limit(1));
-  return onSnapshot(q, (snap) => {
-    if (snap.empty) {
+  return onSnapshot(doc(db, "collaborations", id), (snap) => {
+    if (!snap.exists()) {
       cb(null);
     } else {
-      const d = snap.docs[0];
-      cb({ id: d.id, ...(d.data() as Omit<Collaboration, "id">) });
+      cb({ id: snap.id, ...(snap.data() as Omit<Collaboration, "id">) });
     }
   });
 }
 
 export async function startCollaboration(
+  id: string,
   sessionId: string,
   displayName: string,
   prompt: string,
 ) {
-  await addDoc(collabsCol, {
+  await setDoc(doc(db, "collaborations", id), {
     prompt,
     startedBy: sessionId,
     startedByName: displayName,
