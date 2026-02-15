@@ -2095,7 +2095,7 @@ function CollabRoute() {
                 className={styles.buttonPause}
                 data-paused={collab.paused}
               >
-                {collab.paused ? "Resume input" : "Pause input"}
+                {collab.paused ? "Resume" : "Pause"}
               </button>
               <button
                 onClick={() => endCollaboration(collab.id)}
@@ -2185,9 +2185,7 @@ function CollabRoute() {
               This collaboration has been stopped.
             </div>
           ) : collab.paused && !isHost ? (
-            <div className={styles.messagePaused}>
-              Input is paused. New notes cannot be added.
-            </div>
+            <div className={styles.messagePaused}>Participation is paused.</div>
           ) : (
             <>
               {/* Participant note types */}
