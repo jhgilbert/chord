@@ -1257,7 +1257,14 @@ function CollabRoute() {
                 </div>
               )}
               <button
-                onClick={() => pauseCollaboration(collab.id, !collab.paused)}
+                onClick={async () => {
+                  const willPause = !collab.paused;
+                  await pauseCollaboration(collab.id, willPause);
+                  const message = willPause
+                    ? "<p>Participant input was paused here.</p>"
+                    : "<p>Participant input was resumed here.</p>";
+                  await createNote(collab.id, "Host note", message, session.userId, session.displayName);
+                }}
                 className={styles.buttonPause}
                 data-paused={collab.paused}
               >
