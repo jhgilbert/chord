@@ -18,10 +18,11 @@
 
 /* NoteTypePanel */
 .noteTypePanel {
-  border: 1px solid #d1d5db;
+  border: 1px solid #e5e7eb;
   border-left: 6px solid; /* Color set via inline style */
   border-radius: 0;
   overflow: hidden;
+  margin-bottom: -1px;
 }
 
 .noteTypePanel[data-disabled="true"] {
@@ -1156,7 +1157,7 @@
 .collabSidebar {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0;
 }
 
 .promptCard {
@@ -1473,9 +1474,4 @@
   border: 1px solid #374151;
   border-radius: 4px;
   cursor: pointer;
-}
-
-/* Hide last button in Quill toolbar */
-:global(.ql-toolbar button:last-child) {
-  display: none;
 }

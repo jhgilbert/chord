@@ -71,6 +71,15 @@ const NOTE_TYPE_COLORS: Record<NoteType, string> = {
   "Host note": "#6b7280", // gray
 };
 
+const QUILL_MODULES = {
+  toolbar: [
+    [{ header: [1, 2, 3, false] }],
+    ["bold", "italic"],
+    [{ list: "bullet" }, { list: "ordered" }],
+    ["link"],
+  ],
+};
+
 function hexToRgba(hex: string, alpha: number): string {
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
@@ -246,6 +255,7 @@ function NoteTypePanel({
             value={value}
             onChange={setValue}
             className={styles.noteTypePanelEditor}
+            modules={QUILL_MODULES}
           />
           {isActionItem && (
             <div className={styles.actionItemFields}>
@@ -738,6 +748,7 @@ function StickyNote({
             value={editContent}
             onChange={setEditContent}
             className={styles.editEditor}
+            modules={QUILL_MODULES}
           />
           <div className={styles.editActions}>
             <button
@@ -935,6 +946,7 @@ function StickyNote({
                   value={responseContent}
                   onChange={setResponseContent}
                   className={styles.responseEditor}
+                  modules={QUILL_MODULES}
                 />
                 <div className={styles.responseActions}>
                   <button
@@ -1036,6 +1048,7 @@ function StartScreen() {
           value={prompt}
           onChange={setPrompt}
           className={styles.startScreenEditor}
+          modules={QUILL_MODULES}
         />
         <div className={styles.noteTypesSelection}>
           <label className={styles.noteTypesLabel}>Allowed note types</label>
@@ -2142,6 +2155,7 @@ function CollabRoute() {
                   value={promptValue}
                   onChange={setPromptValue}
                   className={styles.promptEditor}
+                  modules={QUILL_MODULES}
                 />
                 <div className={styles.promptActions}>
                   <button
