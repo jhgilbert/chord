@@ -958,6 +958,7 @@ function CollabRoute() {
   const [respondingToNoteId, setRespondingToNoteId] = useState<string | null>(null);
   const [summaryFormat, setSummaryFormat] = useState<'html' | 'markdown'>('html');
   const noteTypeSettingsRef = useRef<HTMLDivElement>(null);
+  const noteTypeFilterRef = useRef<HTMLDivElement>(null);
 
   // Close note type settings dropdown when clicking outside
   useEffect(() => {
@@ -972,6 +973,20 @@ function CollabRoute() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showNoteTypeSettings]);
+
+  // Close note type filter dropdown when clicking outside
+  useEffect(() => {
+    if (!showNoteTypeFilter) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (noteTypeFilterRef.current && !noteTypeFilterRef.current.contains(event.target as Node)) {
+        setShowNoteTypeFilter(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showNoteTypeFilter]);
 
   useEffect(() => {
     if (!id) return;
@@ -1717,7 +1732,7 @@ function CollabRoute() {
         <aside className={styles.collabSidebar}>
           <div className={styles.promptCard}>
             <div className={styles.promptHeader}>
-              <div className={styles.promptLabel}>Prompt</div>
+              <div className={styles.promptLabel}>Collaboration prompt</div>
               {collab.startedBy === session.userId && !editingPrompt && (
                 <button
                   onClick={() => {
@@ -1849,7 +1864,7 @@ function CollabRoute() {
                 {t === "Mine" ? "Your notes" : t === "Inbox" ? `Inbox (${inboxCount})` : t === "Archived" ? `Archived (${archivedCount})` : t}
               </button>
             ))}
-            <div className={styles.noteTypeFilterContainer}>
+            <div ref={noteTypeFilterRef} className={styles.noteTypeFilterContainer}>
               <button
                 onClick={() => setShowNoteTypeFilter(!showNoteTypeFilter)}
                 className={styles.filterButton}

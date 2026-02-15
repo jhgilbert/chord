@@ -1134,10 +1134,12 @@
 
 .noteTypeFilterContainer {
   position: relative;
+  display: inline-block;
   margin-left: 24px;
 }
 
 .sortOrderContainer {
+  display: inline-block;
   margin-left: 8px;
 }
 
