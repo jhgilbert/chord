@@ -987,13 +987,7 @@ function CollabRoute() {
         return 0;
       };
 
-      // Helper to format timestamp as string
-      const formatTimestamp = (time: unknown): string => {
-        const timestamp = getTimestamp(time);
-        return timestamp > 0 ? new Date(timestamp).toLocaleString() : "Unknown time";
-      };
-
-      // Build prompts array with timestamps
+      // Build prompts array with timestamps for getPromptForNote helper
       const allPrompts: (PromptVersion & { timestampMs: number })[] = [
         ...(collab.promptHistory || []).map(p => ({
           ...p,
@@ -1042,17 +1036,35 @@ function CollabRoute() {
 
         // Reactions
         if (note.reactions && Object.keys(note.reactions).length > 0) {
-          const reactionCounts = { agree: 0, disagree: 0 };
-          Object.values(note.reactions).forEach(r => reactionCounts[r]++);
-          html += `<p><strong>Reactions:</strong> `;
-          if (reactionCounts.agree > 0) html += `👍 ${reactionCounts.agree} `;
-          if (reactionCounts.disagree > 0) html += `👎 ${reactionCounts.disagree}`;
+          const agreedNames: string[] = [];
+          const disagreedNames: string[] = [];
+
+          Object.entries(note.reactions).forEach(([sessionId, reaction]) => {
+            // Find the name for this sessionId
+            let name = sessionId;
+            const noteByUser = notes.find(n => n.createdBy === sessionId);
+            if (noteByUser) {
+              name = noteByUser.createdBy === collab.startedBy ? `${noteByUser.createdByName} (host)` : noteByUser.createdByName;
+            }
+
+            if (reaction === 'agree') {
+              agreedNames.push(name);
+            } else if (reaction === 'disagree') {
+              disagreedNames.push(name);
+            }
+          });
+
+          html += `<h4>Reactions</h4>`;
+          html += `<p>`;
+          if (agreedNames.length > 0) html += `Agreed (${agreedNames.length}): ${agreedNames.join(', ')} `;
+          if (disagreedNames.length > 0) html += `Disagreed (${disagreedNames.length}): ${disagreedNames.join(', ')}`;
           html += `</p>`;
         }
 
         // Responses
         if (note.responses && note.responses.length > 0) {
-          html += `<p><strong>Responses (${note.responses.length}):</strong></p><ul>`;
+          html += `<h4>Responses (${note.responses.length})</h4>`;
+          html += `<ul>`;
           note.responses.forEach(response => {
             const timestamp = response.createdAt
               ? new Date(response.createdAt as number).toLocaleString()
@@ -1078,46 +1090,83 @@ function CollabRoute() {
         html += `<hr>`;
       };
 
-      // Render prompt sections with notes grouped by type
-      const noteTypeOrder: NoteType[] = [
-        "Action item",
-        "Requirement",
-        "Recommendation",
-        "Statement",
-        "Question",
-        "Positive feedback",
-        "Constructive feedback"
-      ];
-
-      allPrompts.forEach((prompt, promptIdx) => {
-        // Determine time range for this prompt
-        const startTime = prompt.timestampMs;
-        const endTime = promptIdx < allPrompts.length - 1 ? allPrompts[promptIdx + 1].timestampMs : Infinity;
-
-        // Get notes created during this prompt's period
-        const promptNotes = notes.filter(note => {
-          const noteTime = getTimestamp(note.createdAt);
-          return noteTime >= startTime && noteTime < endTime;
-        });
-
-        // Only render this prompt section if it has notes
-        if (promptNotes.length > 0) {
-          html += `<h2>Prompt ${promptIdx + 1}</h2>`;
-          html += `<p><em>${formatTimestamp(prompt.timestamp)}</em></p>`;
-          html += `<div>${prompt.prompt}</div>`;
-          html += `<hr>`;
-
-          // Group notes by type and render
-          noteTypeOrder.forEach(noteType => {
-            const notesOfType = promptNotes.filter(n => n.type === noteType);
-            if (notesOfType.length > 0) {
-              const sectionName = noteType === "Action item" ? "Action items" : noteType + "s";
-              html += `<h3>${sectionName} (${notesOfType.length})</h3>`;
-              notesOfType.forEach((note, idx) => renderNoteHTML(note, idx));
-            }
-          });
+      // Key takeaways section - as tables
+      const getPromptForNote = (note: Note): string => {
+        const noteTime = getTimestamp(note.createdAt);
+        for (let i = 0; i < allPrompts.length; i++) {
+          const startTime = allPrompts[i].timestampMs;
+          const endTime = i < allPrompts.length - 1 ? allPrompts[i + 1].timestampMs : Infinity;
+          if (noteTime >= startTime && noteTime < endTime) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = allPrompts[i].prompt;
+            return tempDiv.textContent || tempDiv.innerText || '';
+          }
         }
-      });
+        return '';
+      };
+
+      const actionItems = notes.filter(n => n.type === "Action item");
+      const requirements = notes.filter(n => n.type === "Requirement");
+      const constructiveFeedback = notes.filter(n => n.type === "Constructive feedback");
+
+      if (actionItems.length > 0 || requirements.length > 0 || constructiveFeedback.length > 0) {
+        html += `<h2>Key Takeaways</h2>`;
+
+        // Action Items table
+        if (actionItems.length > 0) {
+          html += `<h3>Action Items</h3>`;
+          html += `<table border="1" style="width:100%; border-collapse:collapse; margin-bottom:20px;">`;
+          html += `<thead><tr><th>Prompt</th><th>Note</th><th>Author</th><th>Assignee</th><th>Due Date</th></tr></thead>`;
+          html += `<tbody>`;
+          actionItems.forEach(note => {
+            const authorName = note.createdBy === collab.startedBy ? `${note.createdByName} (host)` : note.createdByName;
+            const assignee = note.assignee || '-';
+            const dueDate = note.dueDate ? new Date(note.dueDate).toLocaleDateString() : '-';
+            html += `<tr>`;
+            html += `<td>${getPromptForNote(note)}</td>`;
+            html += `<td>${note.content}</td>`;
+            html += `<td>${authorName}</td>`;
+            html += `<td>${assignee}</td>`;
+            html += `<td>${dueDate}</td>`;
+            html += `</tr>`;
+          });
+          html += `</tbody></table>`;
+        }
+
+        // Requirements table
+        if (requirements.length > 0) {
+          html += `<h3>Requirements</h3>`;
+          html += `<table border="1" style="width:100%; border-collapse:collapse; margin-bottom:20px;">`;
+          html += `<thead><tr><th>Prompt</th><th>Note</th><th>Author</th></tr></thead>`;
+          html += `<tbody>`;
+          requirements.forEach(note => {
+            const authorName = note.createdBy === collab.startedBy ? `${note.createdByName} (host)` : note.createdByName;
+            html += `<tr>`;
+            html += `<td>${getPromptForNote(note)}</td>`;
+            html += `<td>${note.content}</td>`;
+            html += `<td>${authorName}</td>`;
+            html += `</tr>`;
+          });
+          html += `</tbody></table>`;
+        }
+
+        // Constructive Feedback table
+        if (constructiveFeedback.length > 0) {
+          html += `<h3>Constructive Feedback</h3>`;
+          html += `<table border="1" style="width:100%; border-collapse:collapse; margin-bottom:20px;">`;
+          html += `<thead><tr><th>Prompt</th><th>Note</th><th>Author</th></tr></thead>`;
+          html += `<tbody>`;
+          constructiveFeedback.forEach(note => {
+            const authorName = note.createdBy === collab.startedBy ? `${note.createdByName} (host)` : note.createdByName;
+            html += `<tr>`;
+            html += `<td>${getPromptForNote(note)}</td>`;
+            html += `<td>${note.content}</td>`;
+            html += `<td>${authorName}</td>`;
+            html += `</tr>`;
+          });
+          html += `</tbody></table>`;
+        }
+      }
 
       // Render all notes in chronological order
       if (notes.length > 0) {
@@ -1145,13 +1194,7 @@ function CollabRoute() {
         return 0;
       };
 
-      // Helper to format timestamp as string
-      const formatTimestamp = (time: unknown): string => {
-        const timestamp = getTimestamp(time);
-        return timestamp > 0 ? new Date(timestamp).toLocaleString() : "Unknown time";
-      };
-
-      // Build prompts array with timestamps
+      // Build prompts array with timestamps for getPromptForNote helper
       const allPrompts: (PromptVersion & { timestampMs: number })[] = [
         ...(collab.promptHistory || []).map(p => ({
           ...p,
@@ -1203,17 +1246,33 @@ function CollabRoute() {
 
         // Reactions
         if (note.reactions && Object.keys(note.reactions).length > 0) {
-          const reactionCounts = { agree: 0, disagree: 0 };
-          Object.values(note.reactions).forEach(r => reactionCounts[r]++);
-          md += `**Reactions:** `;
-          if (reactionCounts.agree > 0) md += `👍 ${reactionCounts.agree} `;
-          if (reactionCounts.disagree > 0) md += `👎 ${reactionCounts.disagree}`;
+          const agreedNames: string[] = [];
+          const disagreedNames: string[] = [];
+
+          Object.entries(note.reactions).forEach(([sessionId, reaction]) => {
+            // Find the name for this sessionId
+            let name = sessionId;
+            const noteByUser = notes.find(n => n.createdBy === sessionId);
+            if (noteByUser) {
+              name = noteByUser.createdBy === collab.startedBy ? `${noteByUser.createdByName} (host)` : noteByUser.createdByName;
+            }
+
+            if (reaction === 'agree') {
+              agreedNames.push(name);
+            } else if (reaction === 'disagree') {
+              disagreedNames.push(name);
+            }
+          });
+
+          md += `#### Reactions\n\n`;
+          if (agreedNames.length > 0) md += `Agreed (${agreedNames.length}): ${agreedNames.join(', ')} `;
+          if (disagreedNames.length > 0) md += `Disagreed (${disagreedNames.length}): ${disagreedNames.join(', ')}`;
           md += `\n\n`;
         }
 
         // Responses
         if (note.responses && note.responses.length > 0) {
-          md += `**Responses (${note.responses.length}):**\n\n`;
+          md += `#### Responses (${note.responses.length})\n\n`;
           note.responses.forEach(response => {
             tempDiv.innerHTML = response.content;
             const responseText = tempDiv.textContent || tempDiv.innerText || '';
@@ -1243,50 +1302,74 @@ function CollabRoute() {
         md += `---\n\n`;
       };
 
-      // Render prompt sections with notes grouped by type
-      const noteTypeOrder: NoteType[] = [
-        "Action item",
-        "Requirement",
-        "Recommendation",
-        "Statement",
-        "Question",
-        "Positive feedback",
-        "Constructive feedback"
-      ];
-
-      allPrompts.forEach((prompt, promptIdx) => {
-        // Determine time range for this prompt
-        const startTime = prompt.timestampMs;
-        const endTime = promptIdx < allPrompts.length - 1 ? allPrompts[promptIdx + 1].timestampMs : Infinity;
-
-        // Get notes created during this prompt's period
-        const promptNotes = notes.filter(note => {
-          const noteTime = getTimestamp(note.createdAt);
-          return noteTime >= startTime && noteTime < endTime;
-        });
-
-        // Only render this prompt section if it has notes
-        if (promptNotes.length > 0) {
-          md += `## Prompt ${promptIdx + 1}\n\n`;
-          md += `*${formatTimestamp(prompt.timestamp)}*\n\n`;
-
-          // Strip HTML from prompt for markdown
-          tempDiv.innerHTML = prompt.prompt;
-          const promptText = tempDiv.textContent || tempDiv.innerText || '';
-          md += `${promptText}\n\n`;
-          md += `---\n\n`;
-
-          // Group notes by type and render
-          noteTypeOrder.forEach(noteType => {
-            const notesOfType = promptNotes.filter(n => n.type === noteType);
-            if (notesOfType.length > 0) {
-              const sectionName = noteType === "Action item" ? "Action items" : noteType + "s";
-              md += `### ${sectionName} (${notesOfType.length})\n\n`;
-              notesOfType.forEach((note, idx) => renderNote(note, idx));
-            }
-          });
+      // Key takeaways section - as tables
+      const getPromptForNote = (note: Note): string => {
+        const noteTime = getTimestamp(note.createdAt);
+        for (let i = 0; i < allPrompts.length; i++) {
+          const startTime = allPrompts[i].timestampMs;
+          const endTime = i < allPrompts.length - 1 ? allPrompts[i + 1].timestampMs : Infinity;
+          if (noteTime >= startTime && noteTime < endTime) {
+            tempDiv.innerHTML = allPrompts[i].prompt;
+            return tempDiv.textContent || tempDiv.innerText || '';
+          }
         }
-      });
+        return '';
+      };
+
+      const actionItems = notes.filter(n => n.type === "Action item");
+      const requirements = notes.filter(n => n.type === "Requirement");
+      const constructiveFeedback = notes.filter(n => n.type === "Constructive feedback");
+
+      if (actionItems.length > 0 || requirements.length > 0 || constructiveFeedback.length > 0) {
+        md += `## Key Takeaways\n\n`;
+
+        // Action Items table
+        if (actionItems.length > 0) {
+          md += `### Action Items\n\n`;
+          md += `| Prompt | Note | Author | Assignee | Due Date |\n`;
+          md += `|--------|------|--------|----------|----------|\n`;
+          actionItems.forEach(note => {
+            tempDiv.innerHTML = note.content;
+            const noteText = (tempDiv.textContent || tempDiv.innerText || '').replace(/\|/g, '\\|').replace(/\n/g, ' ');
+            const authorName = note.createdBy === collab.startedBy ? `${note.createdByName} (host)` : note.createdByName;
+            const promptText = getPromptForNote(note).replace(/\|/g, '\\|').replace(/\n/g, ' ');
+            const assignee = note.assignee || '-';
+            const dueDate = note.dueDate ? new Date(note.dueDate).toLocaleDateString() : '-';
+            md += `| ${promptText} | ${noteText} | ${authorName} | ${assignee} | ${dueDate} |\n`;
+          });
+          md += `\n`;
+        }
+
+        // Requirements table
+        if (requirements.length > 0) {
+          md += `### Requirements\n\n`;
+          md += `| Prompt | Note | Author |\n`;
+          md += `|--------|------|--------|\n`;
+          requirements.forEach(note => {
+            tempDiv.innerHTML = note.content;
+            const noteText = (tempDiv.textContent || tempDiv.innerText || '').replace(/\|/g, '\\|').replace(/\n/g, ' ');
+            const authorName = note.createdBy === collab.startedBy ? `${note.createdByName} (host)` : note.createdByName;
+            const promptText = getPromptForNote(note).replace(/\|/g, '\\|').replace(/\n/g, ' ');
+            md += `| ${promptText} | ${noteText} | ${authorName} |\n`;
+          });
+          md += `\n`;
+        }
+
+        // Constructive Feedback table
+        if (constructiveFeedback.length > 0) {
+          md += `### Constructive Feedback\n\n`;
+          md += `| Prompt | Note | Author |\n`;
+          md += `|--------|------|--------|\n`;
+          constructiveFeedback.forEach(note => {
+            tempDiv.innerHTML = note.content;
+            const noteText = (tempDiv.textContent || tempDiv.innerText || '').replace(/\|/g, '\\|').replace(/\n/g, ' ');
+            const authorName = note.createdBy === collab.startedBy ? `${note.createdByName} (host)` : note.createdByName;
+            const promptText = getPromptForNote(note).replace(/\|/g, '\\|').replace(/\n/g, ' ');
+            md += `| ${promptText} | ${noteText} | ${authorName} |\n`;
+          });
+          md += `\n`;
+        }
+      }
 
       // Render all notes in chronological order
       if (notes.length > 0) {
