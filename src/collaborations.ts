@@ -18,6 +18,7 @@ export type Collaboration = {
   startedByName: string;
   startedAt?: unknown;
   active: boolean;
+  frozen?: boolean;
 };
 
 const collabsCol = collection(db, "collaborations");
@@ -52,4 +53,8 @@ export async function startCollaboration(
 
 export async function endCollaboration(id: string) {
   await updateDoc(doc(db, "collaborations", id), { active: false });
+}
+
+export async function freezeCollaboration(id: string, frozen: boolean) {
+  await updateDoc(doc(db, "collaborations", id), { frozen });
 }

@@ -13,6 +13,7 @@ import {
 } from "./notes";
 import {
   endCollaboration,
+  freezeCollaboration,
   startCollaboration,
   subscribeActiveCollaboration,
   type Collaboration,
@@ -314,23 +315,47 @@ function CollabView({
             You are: <b>{displayName}</b>
           </span>
         </div>
-        {collab.startedBy === sessionId && (
-          <button
-            onClick={() => endCollaboration(collab.id)}
-            style={{
-              padding: "6px 14px",
-              fontSize: 13,
-              background: "#dc2626",
-              color: "#fff",
-              border: "none",
-              borderRadius: 4,
-              cursor: "pointer",
-              fontWeight: 600,
-            }}
-          >
-            End collaboration
-          </button>
-        )}
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          {collab.frozen && (
+            <span style={{ fontSize: 12, fontWeight: 600, color: "#b45309", background: "#fef3c7", border: "1px solid #fcd34d", borderRadius: 4, padding: "3px 8px" }}>
+              Input frozen
+            </span>
+          )}
+          {collab.startedBy === sessionId && (
+            <>
+              <button
+                onClick={() => freezeCollaboration(collab.id, !collab.frozen)}
+                style={{
+                  padding: "6px 14px",
+                  fontSize: 13,
+                  background: collab.frozen ? "#fff" : "#374151",
+                  color: collab.frozen ? "#374151" : "#fff",
+                  border: "1px solid #374151",
+                  borderRadius: 4,
+                  cursor: "pointer",
+                  fontWeight: 600,
+                }}
+              >
+                {collab.frozen ? "Unfreeze input" : "Freeze input"}
+              </button>
+              <button
+                onClick={() => endCollaboration(collab.id)}
+                style={{
+                  padding: "6px 14px",
+                  fontSize: 13,
+                  background: "#dc2626",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 4,
+                  cursor: "pointer",
+                  fontWeight: 600,
+                }}
+              >
+                End collaboration
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Two-column layout */}
@@ -360,17 +385,23 @@ function CollabView({
               style={{ fontSize: 14, lineHeight: 1.6, color: "#1a1a1a" }}
             />
           </div>
-          {NOTE_TYPES.map((type) => (
-            <NoteTypePanel
-              key={type}
-              label={type}
-              isOpen={openType === type}
-              onToggle={() => setOpenType(openType === type ? null : type)}
-              onSubmit={(html) =>
-                createNote(collab.id, type, html, sessionId, displayName)
-              }
-            />
-          ))}
+          {collab.frozen ? (
+            <div style={{ fontSize: 13, color: "#92400e", background: "#fef3c7", border: "1px solid #fcd34d", borderRadius: 6, padding: "10px 14px" }}>
+              Input is frozen. New notes cannot be added.
+            </div>
+          ) : (
+            NOTE_TYPES.map((type) => (
+              <NoteTypePanel
+                key={type}
+                label={type}
+                isOpen={openType === type}
+                onToggle={() => setOpenType(openType === type ? null : type)}
+                onSubmit={(html) =>
+                  createNote(collab.id, type, html, sessionId, displayName)
+                }
+              />
+            ))
+          )}
         </aside>
 
         <main>
@@ -401,8 +432,8 @@ function CollabView({
                 note={n}
                 collaborationId={collab.id}
                 sessionId={sessionId}
-                canDelete={n.createdBy === sessionId}
-                canReact={n.createdBy !== sessionId}
+                canDelete={!collab.frozen && n.createdBy === sessionId}
+                canReact={!collab.frozen && n.createdBy !== sessionId}
                 onDelete={() => removeNote(collab.id, n.id)}
               />
             ))}
