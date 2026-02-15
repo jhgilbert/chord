@@ -1,0 +1,473 @@
+/* NoteTypePanel */
+.noteTypePanel {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.noteTypePanelButton {
+  width: 100%;
+  padding: 10px 14px;
+  text-align: left;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.noteTypePanelButton[data-open="true"] {
+  background: #111;
+  color: #fff;
+}
+
+.noteTypePanelButton[data-open="false"] {
+  background: #f9fafb;
+  color: #111;
+}
+
+.noteTypePanelArrow {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.noteTypePanelForm {
+  padding: 10px;
+  background: #fff;
+}
+
+.noteTypePanelEditor {
+  background: #fff;
+  color: #111;
+}
+
+.noteTypePanelActions {
+  margin-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.noteTypePanelSubmit {
+  padding: 8px 16px;
+}
+
+/* StickyNote */
+.stickyNote {
+  background: #fef9c3;
+  border-radius: 4px;
+  box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.18), 1px 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1.5px solid transparent;
+  padding: 18px 20px;
+  position: relative;
+  color: #1a1a1a;
+}
+
+.stickyNote[data-own="true"] {
+  border-color: #4ade80;
+}
+
+.stickyNoteDelete {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0;
+  color: #1a1a1a;
+  transition: opacity 0.15s;
+  opacity: 0;
+}
+
+.stickyNote:hover .stickyNoteDelete {
+  opacity: 0.45;
+}
+
+.stickyNoteBadges {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.badgeYou {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: #4ade80;
+  color: #14532d;
+  border-radius: 3px;
+  padding: 2px 6px;
+}
+
+.badgeType {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: #111;
+  color: #fff;
+  border-radius: 3px;
+  padding: 2px 6px;
+}
+
+.badgeName {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.6;
+}
+
+.stickyNoteContent {
+  line-height: 1.6;
+}
+
+.stickyNoteReactions {
+  display: flex;
+  gap: 6px;
+  position: absolute;
+  top: 10px;
+  right: 12px;
+}
+
+.reactionButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: 13px;
+  border: 1px solid;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.reactionButton[data-active="true"] {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
+
+.reactionButton[data-active="false"] {
+  background: transparent;
+  color: #555;
+  border-color: #bbb;
+}
+
+.reactionButton[data-paused="true"] {
+  cursor: default;
+}
+
+/* StartScreen */
+.startScreen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: system-ui, sans-serif;
+  padding: 40px 20px;
+  box-sizing: border-box;
+}
+
+.startScreenTitle {
+  margin: 0 0 4px;
+}
+
+.startScreenUser {
+  margin: 0 0 24px;
+  opacity: 0.6;
+  font-size: 14px;
+}
+
+.startScreenForm {
+  width: 100%;
+  max-width: 600px;
+}
+
+.startScreenLabel {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.startScreenEditor {
+  background: #fff;
+  color: #111;
+}
+
+.startScreenActions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.startScreenSubmit {
+  padding: 10px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  background: #111;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* CollabRoute */
+.collabContainer {
+  margin: 0 20px 40px;
+  font-family: system-ui, sans-serif;
+}
+
+.collabHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 24px;
+}
+
+.collabHeaderTitle {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.collabHeaderMeta {
+  margin-left: 16px;
+  font-size: 13px;
+  opacity: 0.6;
+}
+
+.collabHeaderUser {
+  margin-left: 16px;
+  font-size: 12px;
+  opacity: 0.5;
+}
+
+.collabHeaderActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.badgeEnded {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 3px 8px;
+}
+
+.badgePaused {
+  font-size: 12px;
+  font-weight: 600;
+  color: #b45309;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 4px;
+  padding: 3px 8px;
+}
+
+.buttonPause {
+  padding: 6px 14px;
+  font-size: 13px;
+  border: 1px solid #374151;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.buttonPause[data-paused="true"] {
+  background: #fff;
+  color: #374151;
+}
+
+.buttonPause[data-paused="false"] {
+  background: #374151;
+  color: #fff;
+}
+
+.buttonEnd {
+  padding: 6px 14px;
+  font-size: 13px;
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.collabLayout {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 0 24px;
+  min-height: calc(100vh - 120px);
+}
+
+.collabSidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.promptCard {
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 14px 16px;
+  margin-bottom: 4px;
+  background: #f9fafb;
+}
+
+.promptHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.promptLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.5;
+}
+
+.promptEditButton {
+  font-size: 11px;
+  padding: 2px 8px;
+  background: transparent;
+  border: 1px solid #d1d5db;
+  border-radius: 3px;
+  cursor: pointer;
+  color: #555;
+}
+
+.promptEditor {
+  background: #fff;
+  color: #111;
+  margin-bottom: 8px;
+}
+
+.promptActions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.promptCancel {
+  font-size: 12px;
+  padding: 4px 12px;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #555;
+}
+
+.promptSave {
+  font-size: 12px;
+  padding: 4px 12px;
+  background: #111;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.promptContent {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #1a1a1a;
+}
+
+.messageEnded {
+  font-size: 13px;
+  color: #6b7280;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 10px 14px;
+}
+
+.messagePaused {
+  font-size: 13px;
+  color: #92400e;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 6px;
+  padding: 10px 14px;
+}
+
+.collabMain {
+}
+
+.filterBar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+  align-items: center;
+}
+
+.filterButton {
+  padding: 5px 12px;
+  font-size: 13px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.filterButton[data-active="true"] {
+  font-weight: 600;
+  background: #111;
+  color: #fff;
+}
+
+.filterButton[data-active="false"] {
+  font-weight: 400;
+  background: #f3f4f6;
+  color: #555;
+}
+
+.filterDropdown {
+  padding: 5px 10px;
+  font-size: 13px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.filterDropdown[data-active="true"] {
+  background: #111;
+  color: #fff;
+  font-weight: 600;
+}
+
+.filterDropdown[data-active="false"] {
+  background: #f3f4f6;
+  color: #555;
+  font-weight: 400;
+}
+
+.notesList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.notFound {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-family: system-ui, sans-serif;
+}

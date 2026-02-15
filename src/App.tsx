@@ -1,6 +1,7 @@
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { useEffect, useMemo, useState } from "react";
+import styles from "./App.module.css";
 import {
   Navigate,
   Route,
@@ -51,54 +52,27 @@ function NoteTypePanel({
   };
 
   return (
-    <div
-      style={{
-        border: "1px solid #d1d5db",
-        borderRadius: 6,
-        overflow: "hidden",
-      }}
-    >
+    <div className={styles.noteTypePanel}>
       <button
         type="button"
         onClick={onToggle}
-        style={{
-          width: "100%",
-          padding: "10px 14px",
-          textAlign: "left",
-          background: isOpen ? "#111" : "#f9fafb",
-          color: isOpen ? "#fff" : "#111",
-          border: "none",
-          cursor: "pointer",
-          fontWeight: 600,
-          fontSize: 14,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
+        className={styles.noteTypePanelButton}
+        data-open={isOpen}
       >
         {label}
-        <span style={{ fontSize: 12, opacity: 0.6 }}>{isOpen ? "▲" : "▼"}</span>
+        <span className={styles.noteTypePanelArrow}>{isOpen ? "▲" : "▼"}</span>
       </button>
 
       {isOpen && (
-        <form
-          onSubmit={handleSubmit}
-          style={{ padding: 10, background: "#fff" }}
-        >
+        <form onSubmit={handleSubmit} className={styles.noteTypePanelForm}>
           <ReactQuill
             theme="snow"
             value={value}
             onChange={setValue}
-            style={{ background: "#fff", color: "#111" }}
+            className={styles.noteTypePanelEditor}
           />
-          <div
-            style={{
-              marginTop: 8,
-              display: "flex",
-              justifyContent: "flex-end",
-            }}
-          >
-            <button type="submit" style={{ padding: "8px 16px" }}>
+          <div className={styles.noteTypePanelActions}>
+            <button type="submit" className={styles.noteTypePanelSubmit}>
               Post note
             </button>
           </div>
@@ -144,125 +118,60 @@ function StickyNote({
     );
   };
 
-  const reactionBtn = (r: Reaction): React.CSSProperties => ({
-    display: "flex",
-    alignItems: "center",
-    gap: 4,
-    padding: "3px 8px",
-    fontSize: 13,
-    border: "1px solid",
-    borderRadius: 20,
-    cursor: paused ? "default" : "pointer",
-    transition: "opacity 0.15s",
-    opacity: paused
-      ? counts[r] > 0
-        ? 1
-        : 0.25
-      : hovered || myReaction === r
-        ? 1
-        : 0,
-    background: myReaction === r ? "#111" : "transparent",
-    color: myReaction === r ? "#fff" : "#555",
-    borderColor: myReaction === r ? "#111" : "#bbb",
-  });
+  const getReactionOpacity = (r: Reaction) => {
+    if (paused) return counts[r] > 0 ? 1 : 0.25;
+    return hovered || myReaction === r ? 1 : 0;
+  };
 
   return (
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      style={{
-        background: "#fef9c3",
-        borderRadius: 4,
-        boxShadow: "3px 3px 10px rgba(0,0,0,0.18), 1px 1px 3px rgba(0,0,0,0.1)",
-        border: note.createdBy === sessionId ? "1.5px solid #4ade80" : "1.5px solid transparent",
-        padding: "18px 20px",
-        position: "relative",
-        color: "#1a1a1a",
-      }}
+      className={styles.stickyNote}
+      data-own={note.createdBy === sessionId}
     >
       {canDelete && (
         <button
           onClick={onDelete}
           aria-label="Delete note"
-          style={{
-            position: "absolute",
-            top: 10,
-            right: 12,
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            fontSize: 16,
-            opacity: hovered ? 0.45 : 0,
-            padding: 0,
-            color: "#1a1a1a",
-            transition: "opacity 0.15s",
-          }}
+          className={styles.stickyNoteDelete}
         >
           ✕
         </button>
       )}
-      <div
-        style={{
-          display: "flex",
-          gap: 8,
-          alignItems: "center",
-          marginBottom: 10,
-        }}
-      >
-        {note.createdBy === sessionId && (
-          <span
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              background: "#4ade80",
-              color: "#14532d",
-              borderRadius: 3,
-              padding: "2px 6px",
-            }}
-          >
-            You
-          </span>
-        )}
-        <span
-          style={{
-            fontSize: 11,
-            fontWeight: 700,
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-            background: "#111",
-            color: "#fff",
-            borderRadius: 3,
-            padding: "2px 6px",
-          }}
-        >
-          {note.type}
-        </span>
-        <span style={{ fontSize: 12, fontWeight: 600, opacity: 0.6 }}>
-          {note.createdByName}
-        </span>
-      </div>
-      <div
-        dangerouslySetInnerHTML={{ __html: note.content }}
-        style={{ lineHeight: 1.6 }}
-      />
       {(canReact || paused) && note.createdBy !== sessionId && (
-        <div style={{ display: "flex", gap: 6, marginTop: 12 }}>
+        <div className={styles.stickyNoteReactions}>
           <button
             onClick={canReact ? () => handleReaction("agree") : undefined}
-            style={reactionBtn("agree")}
+            className={styles.reactionButton}
+            data-active={myReaction === "agree"}
+            data-paused={paused}
+            style={{ opacity: getReactionOpacity("agree") }}
           >
             👍 {counts.agree > 0 && <span>{counts.agree}</span>}
           </button>
           <button
             onClick={canReact ? () => handleReaction("disagree") : undefined}
-            style={reactionBtn("disagree")}
+            className={styles.reactionButton}
+            data-active={myReaction === "disagree"}
+            data-paused={paused}
+            style={{ opacity: getReactionOpacity("disagree") }}
           >
             👎 {counts.disagree > 0 && <span>{counts.disagree}</span>}
           </button>
         </div>
       )}
+      <div className={styles.stickyNoteBadges}>
+        {note.createdBy === sessionId && (
+          <span className={styles.badgeYou}>You</span>
+        )}
+        <span className={styles.badgeType}>{note.type}</span>
+        <span className={styles.badgeName}>{note.createdByName}</span>
+      </div>
+      <div
+        dangerouslySetInnerHTML={{ __html: note.content }}
+        className={styles.stickyNoteContent}
+      />
     </div>
   );
 }
@@ -282,55 +191,23 @@ function StartScreen() {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "100vh",
-        fontFamily: "system-ui, sans-serif",
-        padding: "40px 20px",
-        boxSizing: "border-box",
-      }}
-    >
-      <h1 style={{ margin: "0 0 4px" }}>Chord</h1>
-      <p style={{ margin: "0 0 24px", opacity: 0.6, fontSize: 14 }}>
+    <div className={styles.startScreen}>
+      <h1 className={styles.startScreenTitle}>Chord</h1>
+      <p className={styles.startScreenUser}>
         You are: <b>{displayName}</b>
       </p>
-      <form onSubmit={handleStart} style={{ width: "100%", maxWidth: 600 }}>
-        <label
-          style={{
-            display: "block",
-            fontWeight: 600,
-            marginBottom: 8,
-            fontSize: 14,
-          }}
-        >
+      <form onSubmit={handleStart} className={styles.startScreenForm}>
+        <label className={styles.startScreenLabel}>
           Collaboration prompt
         </label>
         <ReactQuill
           theme="snow"
           value={prompt}
           onChange={setPrompt}
-          style={{ background: "#fff", color: "#111" }}
+          className={styles.startScreenEditor}
         />
-        <div
-          style={{ marginTop: 12, display: "flex", justifyContent: "flex-end" }}
-        >
-          <button
-            type="submit"
-            style={{
-              padding: "10px 24px",
-              fontSize: 15,
-              fontWeight: 600,
-              background: "#111",
-              color: "#fff",
-              border: "none",
-              borderRadius: 6,
-              cursor: "pointer",
-            }}
-          >
+        <div className={styles.startScreenActions}>
+          <button type="submit" className={styles.startScreenSubmit}>
             Start collaboration
           </button>
         </div>
@@ -350,6 +227,9 @@ function CollabRoute() {
   const [filter, setFilter] = useState<NoteType | "All" | "Inbox" | "Mine">(
     "All",
   );
+  const [reactionFilter, setReactionFilter] = useState<
+    "All" | "Agreed" | "Disagreed" | "Not reacted"
+  >("All");
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [promptValue, setPromptValue] = useState("");
 
@@ -368,22 +248,10 @@ function CollabRoute() {
   if (!id) return <Navigate to="/start" replace />;
   if (collab === undefined) return null;
   if (collab === null) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "100vh",
-          fontFamily: "system-ui, sans-serif",
-        }}
-      >
-        Collaboration not found.
-      </div>
-    );
+    return <div className={styles.notFound}>Collaboration not found.</div>;
   }
 
-  const visibleNotes =
+  let visibleNotes =
     filter === "All"
       ? notes
       : filter === "Inbox"
@@ -394,88 +262,48 @@ function CollabRoute() {
           ? notes.filter((n) => n.createdBy === sessionId)
           : notes.filter((n) => n.type === filter);
 
+  // Apply reaction filter
+  if (reactionFilter !== "All") {
+    visibleNotes = visibleNotes.filter((n) => {
+      const myReaction = n.reactions?.[sessionId] ?? null;
+      if (reactionFilter === "Agreed") return myReaction === "agree";
+      if (reactionFilter === "Disagreed") return myReaction === "disagree";
+      if (reactionFilter === "Not reacted")
+        return n.createdBy !== sessionId && !myReaction;
+      return true;
+    });
+  }
+
   return (
-    <div style={{ margin: "0 20px 40px", fontFamily: "system-ui, sans-serif" }}>
+    <div className={styles.collabContainer}>
       {/* Header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "12px 0",
-          borderBottom: "1px solid #e5e7eb",
-          marginBottom: 24,
-        }}
-      >
+      <div className={styles.collabHeader}>
         <div>
-          <span style={{ fontWeight: 700, fontSize: 18 }}>Chord</span>
-          <span style={{ marginLeft: 16, fontSize: 13, opacity: 0.6 }}>
+          <span className={styles.collabHeaderTitle}>Chord</span>
+          <span className={styles.collabHeaderMeta}>
             Started by <b>{collab.startedByName}</b>
           </span>
-          <span style={{ marginLeft: 16, fontSize: 12, opacity: 0.5 }}>
+          <span className={styles.collabHeaderUser}>
             You are: <b>{displayName}</b>
           </span>
         </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          {!collab.active && (
-            <span
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: "#6b7280",
-                background: "#f3f4f6",
-                border: "1px solid #d1d5db",
-                borderRadius: 4,
-                padding: "3px 8px",
-              }}
-            >
-              Ended
-            </span>
-          )}
+        <div className={styles.collabHeaderActions}>
+          {!collab.active && <span className={styles.badgeEnded}>Ended</span>}
           {collab.paused && collab.active && (
-            <span
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: "#b45309",
-                background: "#fef3c7",
-                border: "1px solid #fcd34d",
-                borderRadius: 4,
-                padding: "3px 8px",
-              }}
-            >
-              Input paused
-            </span>
+            <span className={styles.badgePaused}>Input paused</span>
           )}
           {collab.startedBy === sessionId && collab.active && (
             <>
               <button
                 onClick={() => pauseCollaboration(collab.id, !collab.paused)}
-                style={{
-                  padding: "6px 14px",
-                  fontSize: 13,
-                  background: collab.paused ? "#fff" : "#374151",
-                  color: collab.paused ? "#374151" : "#fff",
-                  border: "1px solid #374151",
-                  borderRadius: 4,
-                  cursor: "pointer",
-                  fontWeight: 600,
-                }}
+                className={styles.buttonPause}
+                data-paused={collab.paused}
               >
                 {collab.paused ? "Resume input" : "Pause input"}
               </button>
               <button
                 onClick={() => endCollaboration(collab.id)}
-                style={{
-                  padding: "6px 14px",
-                  fontSize: 13,
-                  background: "#dc2626",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 4,
-                  cursor: "pointer",
-                  fontWeight: 600,
-                }}
+                className={styles.buttonEnd}
               >
                 End collaboration
               </button>
@@ -485,58 +313,18 @@ function CollabRoute() {
       </div>
 
       {/* Two-column layout */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "380px 1fr",
-          gap: "0 24px",
-          minHeight: "calc(100vh - 120px)",
-        }}
-      >
-        <aside style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <div
-            style={{
-              border: "1px solid #e5e7eb",
-              borderRadius: 6,
-              padding: "14px 16px",
-              marginBottom: 4,
-              background: "#f9fafb",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 8,
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                  opacity: 0.5,
-                }}
-              >
-                Prompt
-              </div>
+      <div className={styles.collabLayout}>
+        <aside className={styles.collabSidebar}>
+          <div className={styles.promptCard}>
+            <div className={styles.promptHeader}>
+              <div className={styles.promptLabel}>Prompt</div>
               {collab.startedBy === sessionId && !editingPrompt && (
                 <button
                   onClick={() => {
                     setEditingPrompt(true);
                     setPromptValue(collab.prompt);
                   }}
-                  style={{
-                    fontSize: 11,
-                    padding: "2px 8px",
-                    background: "transparent",
-                    border: "1px solid #d1d5db",
-                    borderRadius: 3,
-                    cursor: "pointer",
-                    color: "#555",
-                  }}
+                  className={styles.promptEditButton}
                 >
                   Edit
                 </button>
@@ -548,23 +336,15 @@ function CollabRoute() {
                   theme="snow"
                   value={promptValue}
                   onChange={setPromptValue}
-                  style={{ background: "#fff", color: "#111", marginBottom: 8 }}
+                  className={styles.promptEditor}
                 />
-                <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
+                <div className={styles.promptActions}>
                   <button
                     onClick={() => {
                       setEditingPrompt(false);
                       setPromptValue("");
                     }}
-                    style={{
-                      fontSize: 12,
-                      padding: "4px 12px",
-                      background: "#fff",
-                      border: "1px solid #d1d5db",
-                      borderRadius: 4,
-                      cursor: "pointer",
-                      color: "#555",
-                    }}
+                    className={styles.promptCancel}
                   >
                     Cancel
                   </button>
@@ -574,16 +354,7 @@ function CollabRoute() {
                       setEditingPrompt(false);
                       setPromptValue("");
                     }}
-                    style={{
-                      fontSize: 12,
-                      padding: "4px 12px",
-                      background: "#111",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: 4,
-                      cursor: "pointer",
-                      fontWeight: 600,
-                    }}
+                    className={styles.promptSave}
                   >
                     Save
                   </button>
@@ -592,34 +363,16 @@ function CollabRoute() {
             ) : (
               <div
                 dangerouslySetInnerHTML={{ __html: collab.prompt }}
-                style={{ fontSize: 14, lineHeight: 1.6, color: "#1a1a1a" }}
+                className={styles.promptContent}
               />
             )}
           </div>
           {!collab.active ? (
-            <div
-              style={{
-                fontSize: 13,
-                color: "#6b7280",
-                background: "#f3f4f6",
-                border: "1px solid #d1d5db",
-                borderRadius: 6,
-                padding: "10px 14px",
-              }}
-            >
+            <div className={styles.messageEnded}>
               This collaboration has ended.
             </div>
           ) : collab.paused ? (
-            <div
-              style={{
-                fontSize: 13,
-                color: "#92400e",
-                background: "#fef3c7",
-                border: "1px solid #fcd34d",
-                borderRadius: 6,
-                padding: "10px 14px",
-              }}
-            >
+            <div className={styles.messagePaused}>
               Input is paused. New notes cannot be added.
             </div>
           ) : (
@@ -637,22 +390,14 @@ function CollabRoute() {
           )}
         </aside>
 
-        <main>
-          <div style={{ display: "flex", gap: 6, marginBottom: 16, alignItems: "center" }}>
+        <main className={styles.collabMain}>
+          <div className={styles.filterBar}>
             {(["All", "Inbox", "Mine"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setFilter(t)}
-                style={{
-                  padding: "5px 12px",
-                  fontSize: 13,
-                  fontWeight: filter === t ? 600 : 400,
-                  background: filter === t ? "#111" : "#f3f4f6",
-                  color: filter === t ? "#fff" : "#555",
-                  border: "1px solid #d1d5db",
-                  borderRadius: 4,
-                  cursor: "pointer",
-                }}
+                className={styles.filterButton}
+                data-active={filter === t}
               >
                 {t}
               </button>
@@ -660,24 +405,33 @@ function CollabRoute() {
             <select
               value={NOTE_TYPES.includes(filter as NoteType) ? filter : "All"}
               onChange={(e) => setFilter(e.target.value as typeof filter)}
-              style={{
-                padding: "5px 10px",
-                fontSize: 13,
-                border: "1px solid #d1d5db",
-                borderRadius: 4,
-                background: NOTE_TYPES.includes(filter as NoteType) ? "#111" : "#f3f4f6",
-                color: NOTE_TYPES.includes(filter as NoteType) ? "#fff" : "#555",
-                cursor: "pointer",
-                fontWeight: NOTE_TYPES.includes(filter as NoteType) ? 600 : 400,
-              }}
+              className={styles.filterDropdown}
+              data-active={NOTE_TYPES.includes(filter as NoteType)}
             >
               <option value="All">All note types</option>
               {NOTE_TYPES.map((t) => (
-                <option key={t} value={t}>{t}</option>
+                <option key={t} value={t}>
+                  {t}
+                </option>
               ))}
             </select>
+            <select
+              value={reactionFilter}
+              onChange={(e) =>
+                setReactionFilter(
+                  e.target.value as typeof reactionFilter,
+                )
+              }
+              className={styles.filterDropdown}
+              data-active={reactionFilter !== "All"}
+            >
+              <option value="All">All reactions</option>
+              <option value="Agreed">Agreed</option>
+              <option value="Disagreed">Disagreed</option>
+              <option value="Not reacted">Not reacted</option>
+            </select>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div className={styles.notesList}>
             {visibleNotes.map((n) => (
               <StickyNote
                 key={n.id}
