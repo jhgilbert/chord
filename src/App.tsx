@@ -1717,6 +1717,7 @@ function StatsRoute() {
     userId: string;
     displayName: string;
     lastActivityTime: number;
+    contributionCount: number;
   };
 
   const userMap = new Map<string, UserActivity>();
@@ -1727,11 +1728,13 @@ function StatsRoute() {
       userMap.set(note.createdBy, {
         userId: note.createdBy,
         displayName: note.createdByName,
-        lastActivityTime: 0
+        lastActivityTime: 0,
+        contributionCount: 0
       });
     }
 
     const user = userMap.get(note.createdBy)!;
+    user.contributionCount++; // Count the note
     const noteTime = note.createdAt as unknown as {
       toDate?: () => Date;
       seconds?: number;
@@ -1757,13 +1760,15 @@ function StatsRoute() {
           userMap.set(reactorId, {
             userId: reactorId,
             displayName: reactorId, // We don't have the name for reactors
-            lastActivityTime: timestamp // Use note time as approximation
+            lastActivityTime: timestamp, // Use note time as approximation
+            contributionCount: 0
           });
-        } else {
-          const reactor = userMap.get(reactorId)!;
-          if (timestamp > reactor.lastActivityTime) {
-            reactor.lastActivityTime = timestamp;
-          }
+        }
+
+        const reactor = userMap.get(reactorId)!;
+        reactor.contributionCount++; // Count the reaction
+        if (timestamp > reactor.lastActivityTime) {
+          reactor.lastActivityTime = timestamp;
         }
       });
     }
@@ -1775,11 +1780,13 @@ function StatsRoute() {
           userMap.set(response.createdBy, {
             userId: response.createdBy,
             displayName: response.createdByName,
-            lastActivityTime: 0
+            lastActivityTime: 0,
+            contributionCount: 0
           });
         }
 
         const responder = userMap.get(response.createdBy)!;
+        responder.contributionCount++; // Count the response
         const responseTime = typeof response.createdAt === 'number' ? response.createdAt : 0;
 
         if (responseTime > responder.lastActivityTime) {
@@ -1793,13 +1800,15 @@ function StatsRoute() {
               userMap.set(reactorId, {
                 userId: reactorId,
                 displayName: reactorId,
-                lastActivityTime: responseTime
+                lastActivityTime: responseTime,
+                contributionCount: 0
               });
-            } else {
-              const reactor = userMap.get(reactorId)!;
-              if (responseTime > reactor.lastActivityTime) {
-                reactor.lastActivityTime = responseTime;
-              }
+            }
+
+            const reactor = userMap.get(reactorId)!;
+            reactor.contributionCount++; // Count the reaction
+            if (responseTime > reactor.lastActivityTime) {
+              reactor.lastActivityTime = responseTime;
             }
           });
         }
@@ -1840,6 +1849,7 @@ function StatsRoute() {
             <thead>
               <tr>
                 <th>User</th>
+                <th>Contributions</th>
                 <th>Last Activity</th>
               </tr>
             </thead>
@@ -1847,6 +1857,7 @@ function StatsRoute() {
               {users.map(user => (
                 <tr key={user.userId}>
                   <td>{user.displayName}</td>
+                  <td>{user.contributionCount}</td>
                   <td>{formatTimeAgo(user.lastActivityTime)}</td>
                 </tr>
               ))}
