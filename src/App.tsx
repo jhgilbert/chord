@@ -774,12 +774,14 @@ function StartScreen() {
               {(() => {
                 const discussionPreset: NoteType[] = ["Question", "Statement", "Recommendation"];
                 const retroPreset: NoteType[] = ["Positive feedback", "Constructive feedback"];
+                const qaPreset: NoteType[] = ["Question"];
 
                 const arraysMatch = (a: NoteType[], b: NoteType[]) =>
                   a.length === b.length && a.every(item => b.includes(item)) && b.every(item => a.includes(item));
 
                 const isDiscussionActive = arraysMatch(allowedNoteTypes, discussionPreset);
                 const isRetroActive = arraysMatch(allowedNoteTypes, retroPreset);
+                const isQAActive = arraysMatch(allowedNoteTypes, qaPreset);
 
                 return (
                   <>
@@ -816,6 +818,23 @@ function StartScreen() {
                       }}
                     >
                       🔄 Retro preset
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAllowedNoteTypes(qaPreset)}
+                      style={{
+                        padding: '8px 14px',
+                        fontSize: '14px',
+                        cursor: 'pointer',
+                        border: isQAActive ? '2px solid #0066cc' : '1px solid #0066cc',
+                        borderRadius: '6px',
+                        backgroundColor: isQAActive ? '#0066cc' : '#e6f2ff',
+                        color: isQAActive ? '#ffffff' : '#0066cc',
+                        fontWeight: isQAActive ? '600' : '500',
+                        boxShadow: isQAActive ? '0 2px 4px rgba(0,102,204,0.3)' : 'none'
+                      }}
+                    >
+                      ❓ Q & A preset
                     </button>
                   </>
                 );
