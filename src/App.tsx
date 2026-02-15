@@ -173,6 +173,7 @@ function StickyNote({
         background: "#fef9c3",
         borderRadius: 4,
         boxShadow: "3px 3px 10px rgba(0,0,0,0.18), 1px 1px 3px rgba(0,0,0,0.1)",
+        border: note.createdBy === sessionId ? "1.5px solid #4ade80" : "1.5px solid transparent",
         padding: "18px 20px",
         position: "relative",
         color: "#1a1a1a",
@@ -207,6 +208,22 @@ function StickyNote({
           marginBottom: 10,
         }}
       >
+        {note.createdBy === sessionId && (
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+              background: "#4ade80",
+              color: "#14532d",
+              borderRadius: 3,
+              padding: "2px 6px",
+            }}
+          >
+            You
+          </span>
+        )}
         <span
           style={{
             fontSize: 11,
