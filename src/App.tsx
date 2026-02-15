@@ -38,26 +38,36 @@ import {
   type PromptVersion,
 } from "./collaborations";
 
-const NOTE_TYPES: NoteType[] = ["Question", "Statement", "Recommendation", "Requirement", "Positive feedback", "Constructive feedback", "Action item", "Poll", "Host note"];
+const NOTE_TYPES: NoteType[] = [
+  "Question",
+  "Statement",
+  "Recommendation",
+  "Requirement",
+  "Positive feedback",
+  "Constructive feedback",
+  "Action item",
+  "Poll",
+  "Host note",
+];
 
 const NOTE_TYPE_EXAMPLES: Partial<Record<NoteType, string>> = {
-  "Question": "How should we ...?",
-  "Statement": "I don't like ...",
-  "Recommendation": "We should ...",
-  "Requirement": "The solution must ...",
+  Question: "How should we ...?",
+  Statement: "I don't like ...",
+  Recommendation: "We should ...",
+  Requirement: "The solution must ...",
   "Positive feedback": "I liked ...",
   "Constructive feedback": "I struggled with ...",
 };
 
 const NOTE_TYPE_COLORS: Record<NoteType, string> = {
-  "Question": "#fbbf24", // yellow
-  "Statement": "#a855f7", // purple
-  "Recommendation": "#fb923c", // orange
-  "Requirement": "#3b82f6", // blue
+  Question: "#fbbf24", // yellow
+  Statement: "#a855f7", // purple
+  Recommendation: "#fb923c", // orange
+  Requirement: "#3b82f6", // blue
   "Action item": "#ec4899", // pink
   "Positive feedback": "#10b981", // green
   "Constructive feedback": "#ef4444", // red
-  "Poll": "#14b8a6", // teal
+  Poll: "#14b8a6", // teal
   "Host note": "#6b7280", // gray
 };
 
@@ -76,10 +86,10 @@ function getRelativeTime(timestamp: number): string {
   const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
 
-  if (seconds < 60) return `${seconds} second${seconds !== 1 ? 's' : ''} ago`;
-  if (minutes < 60) return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
-  if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
-  return `${days} day${days !== 1 ? 's' : ''} ago`;
+  if (seconds < 60) return `${seconds} second${seconds !== 1 ? "s" : ""} ago`;
+  if (minutes < 60) return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
+  if (hours < 24) return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
+  return `${days} day${days !== 1 ? "s" : ""} ago`;
 }
 
 function LoginScreen() {
@@ -163,7 +173,12 @@ function NoteTypePanel({
   label: NoteType;
   isOpen: boolean;
   onToggle: () => void;
-  onSubmit: (html: string, assignee?: string, dueDate?: string, pollOptions?: string[]) => Promise<void>;
+  onSubmit: (
+    html: string,
+    assignee?: string,
+    dueDate?: string,
+    pollOptions?: string[],
+  ) => Promise<void>;
   disabled?: boolean;
 }) {
   const [value, setValue] = useState("");
@@ -178,10 +193,15 @@ function NoteTypePanel({
 
     // Filter out empty poll options
     const validPollOptions = isPoll
-      ? pollOptions.filter(opt => opt.trim() !== "")
+      ? pollOptions.filter((opt) => opt.trim() !== "")
       : undefined;
 
-    await onSubmit(value, assignee || undefined, dueDate || undefined, validPollOptions);
+    await onSubmit(
+      value,
+      assignee || undefined,
+      dueDate || undefined,
+      validPollOptions,
+    );
     setValue("");
     setAssignee("");
     setDueDate("");
@@ -195,7 +215,11 @@ function NoteTypePanel({
   const color = NOTE_TYPE_COLORS[label];
 
   return (
-    <div className={styles.noteTypePanel} data-disabled={disabled} style={{ borderLeftColor: color }}>
+    <div
+      className={styles.noteTypePanel}
+      data-disabled={disabled}
+      style={{ borderLeftColor: color }}
+    >
       <button
         type="button"
         onClick={disabled ? undefined : onToggle}
@@ -208,7 +232,11 @@ function NoteTypePanel({
         {exampleText && (
           <span className={styles.noteTypePanelExample}>{exampleText}</span>
         )}
-        {!disabled && <span className={styles.noteTypePanelArrow}>{isOpen ? "▲" : "▼"}</span>}
+        {!disabled && (
+          <span className={styles.noteTypePanelArrow}>
+            {isOpen ? "▲" : "▼"}
+          </span>
+        )}
       </button>
 
       {isOpen && !disabled && (
@@ -261,7 +289,9 @@ function NoteTypePanel({
                     <button
                       type="button"
                       onClick={() => {
-                        const newOptions = pollOptions.filter((_, i) => i !== index);
+                        const newOptions = pollOptions.filter(
+                          (_, i) => i !== index,
+                        );
                         setPollOptions(newOptions);
                       }}
                       className={styles.pollOptionRemove}
@@ -336,7 +366,13 @@ function ResponseItem({
             className={styles.responseReactionButton}
             data-active={myReaction === "agree"}
             data-paused={paused}
-            style={{ opacity: paused ? getReactionOpacity("agree") : (hovered || myReaction === "agree" ? 1 : 0) }}
+            style={{
+              opacity: paused
+                ? getReactionOpacity("agree")
+                : hovered || myReaction === "agree"
+                  ? 1
+                  : 0,
+            }}
           >
             👍 {counts.agree > 0 && <span>{counts.agree}</span>}
           </button>
@@ -345,7 +381,13 @@ function ResponseItem({
             className={styles.responseReactionButton}
             data-active={myReaction === "disagree"}
             data-paused={paused}
-            style={{ opacity: paused ? getReactionOpacity("disagree") : (hovered || myReaction === "disagree" ? 1 : 0) }}
+            style={{
+              opacity: paused
+                ? getReactionOpacity("disagree")
+                : hovered || myReaction === "disagree"
+                  ? 1
+                  : 0,
+            }}
           >
             👎 {counts.disagree > 0 && <span>{counts.disagree}</span>}
           </button>
@@ -531,11 +573,11 @@ function StickyNote({
           ? {
               marginLeft: `${groupDepth * 20}px`,
               borderLeftColor: color,
-              backgroundColor: hovered ? hexToRgba(color, 0.08) : '#ffffff'
+              backgroundColor: hovered ? hexToRgba(color, 0.08) : "#ffffff",
             }
           : {
               borderLeftColor: color,
-              backgroundColor: hovered ? hexToRgba(color, 0.08) : '#ffffff'
+              backgroundColor: hovered ? hexToRgba(color, 0.08) : "#ffffff",
             }
       }
     >
@@ -549,7 +591,8 @@ function StickyNote({
         </button>
       )}
       {((!paused && !isResponding) ||
-        (canReact || paused) ||
+        canReact ||
+        paused ||
         canArchive ||
         canDelete ||
         (canEdit && !isEditing)) && (
@@ -599,7 +642,11 @@ function StickyNote({
           )}
           {note.type !== "Poll" && (
             <button
-              onClick={canReact && note.createdBy !== sessionId ? () => handleReaction("agree") : undefined}
+              onClick={
+                canReact && note.createdBy !== sessionId
+                  ? () => handleReaction("agree")
+                  : undefined
+              }
               className={styles.actionButton}
               data-active={myReaction === "agree"}
               data-paused={paused || note.createdBy === sessionId}
@@ -625,15 +672,26 @@ function StickyNote({
         </div>
       )}
       <div className={styles.stickyNoteBadges}>
-        <span className={styles.badgeType} style={{ backgroundColor: NOTE_TYPE_COLORS[note.type] }}>{note.type}</span>
+        <span
+          className={styles.badgeType}
+          style={{ backgroundColor: NOTE_TYPE_COLORS[note.type] }}
+        >
+          {note.type}
+        </span>
         {note.createdBy === sessionId && !hideYouBadge && (
           <span className={styles.badgeYou}>You</span>
         )}
-        {paused && <span className={styles.badgeName}>{note.createdByName}</span>}
+        {paused && (
+          <span className={styles.badgeName}>{note.createdByName}</span>
+        )}
         <span className={styles.badgeTimestamp}>
-          {note.createdAt && typeof note.createdAt === 'object' && 'seconds' in note.createdAt
-            ? getRelativeTime((note.createdAt as { seconds: number }).seconds * 1000)
-            : ''}
+          {note.createdAt &&
+          typeof note.createdAt === "object" &&
+          "seconds" in note.createdAt
+            ? getRelativeTime(
+                (note.createdAt as { seconds: number }).seconds * 1000,
+              )
+            : ""}
         </span>
       </div>
       {note.type === "Action item" && (note.assignee || note.dueDate) && (
@@ -645,7 +703,8 @@ function StickyNote({
           )}
           {note.dueDate && (
             <div className={styles.actionItemMetaItem}>
-              <strong>Due:</strong> {new Date(note.dueDate).toLocaleDateString()}
+              <strong>Due:</strong>{" "}
+              {new Date(note.dueDate).toLocaleDateString()}
             </div>
           )}
         </div>
@@ -688,9 +747,14 @@ function StickyNote({
           {note.type === "Poll" && note.pollOptions && (
             <div className={styles.pollOptionsDisplay}>
               {note.pollOptions.map((option, index) => {
-                const voteCount = Object.values(note.pollVotes || {}).filter(v => v === index).length;
+                const voteCount = Object.values(note.pollVotes || {}).filter(
+                  (v) => v === index,
+                ).length;
                 const totalVotes = Object.keys(note.pollVotes || {}).length;
-                const percentage = totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0;
+                const percentage =
+                  totalVotes > 0
+                    ? Math.round((voteCount / totalVotes) * 100)
+                    : 0;
                 const userVoted = note.pollVotes?.[sessionId] === index;
                 const showResults = paused;
                 const isPollClosed = !!note.pollClosed;
@@ -701,7 +765,12 @@ function StickyNote({
                     onClick={async (e) => {
                       e.stopPropagation();
                       if (!paused && !isPollClosed) {
-                        await votePoll(collaborationId, note.id, sessionId, index);
+                        await votePoll(
+                          collaborationId,
+                          note.id,
+                          sessionId,
+                          index,
+                        );
                       }
                     }}
                     className={styles.pollOption}
@@ -730,9 +799,7 @@ function StickyNote({
                 </button>
               )}
               {note.pollClosed && (
-                <div className={styles.pollClosedMessage}>
-                  Poll closed
-                </div>
+                <div className={styles.pollClosedMessage}>Poll closed</div>
               )}
             </div>
           )}
@@ -758,7 +825,9 @@ function StickyNote({
                     return (
                       <div key={idx} className={styles.historyVersion}>
                         <div className={styles.historyDivider} />
-                        <div className={styles.historyTimestamp}>{timestamp}</div>
+                        <div className={styles.historyTimestamp}>
+                          {timestamp}
+                        </div>
                         <div
                           dangerouslySetInnerHTML={{ __html: version.content }}
                           className={styles.historyContent}
@@ -780,7 +849,8 @@ function StickyNote({
                 }}
                 className={styles.responsesToggle}
               >
-                {showResponses ? "Hide" : "Show"} {note.responses.length} response
+                {showResponses ? "Hide" : "Show"} {note.responses.length}{" "}
+                response
                 {note.responses.length !== 1 ? "s" : ""}
               </button>
             )}
@@ -791,10 +861,12 @@ function StickyNote({
                     ? new Date(response.createdAt as number).toLocaleString()
                     : "Unknown date";
 
-                  const myResponseReaction: Reaction | null = response.reactions?.[sessionId] ?? null;
+                  const myResponseReaction: Reaction | null =
+                    response.reactions?.[sessionId] ?? null;
                   const responseCounts = { agree: 0, disagree: 0 };
                   if (paused) {
-                    for (const r of Object.values(response.reactions ?? {})) responseCounts[r]++;
+                    for (const r of Object.values(response.reactions ?? {}))
+                      responseCounts[r]++;
                   } else if (myResponseReaction) {
                     responseCounts[myResponseReaction] = 1;
                   }
@@ -883,16 +955,20 @@ function StartScreen() {
   }, [session, navigate]);
 
   const [prompt, setPrompt] = useState("");
-  const [allowedNoteTypes, setAllowedNoteTypes] = useState<NoteType[]>(["Question", "Statement", "Recommendation"]);
+  const [allowedNoteTypes, setAllowedNoteTypes] = useState<NoteType[]>([
+    "Question",
+    "Statement",
+    "Recommendation",
+  ]);
 
   if (!session) return null;
 
   const handleStart = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // Check if prompt is empty by stripping HTML and checking text content
-    const tempDiv = document.createElement('div');
+    const tempDiv = document.createElement("div");
     tempDiv.innerHTML = prompt;
-    const textContent = (tempDiv.textContent || tempDiv.innerText || '').trim();
+    const textContent = (tempDiv.textContent || tempDiv.innerText || "").trim();
     if (!textContent) {
       alert("Please enter a collaboration prompt");
       return;
@@ -903,16 +979,23 @@ function StartScreen() {
     }
     const id = crypto.randomUUID();
     // Always include "Host note" in allowed types
-    const noteTypesWithHostNote = [...allowedNoteTypes, "Host note" as NoteType];
-    await startCollaboration(id, session.userId, session.displayName, prompt, noteTypesWithHostNote);
+    const noteTypesWithHostNote = [
+      ...allowedNoteTypes,
+      "Host note" as NoteType,
+    ];
+    await startCollaboration(
+      id,
+      session.userId,
+      session.displayName,
+      prompt,
+      noteTypesWithHostNote,
+    );
     navigate(`/collabs/${id}`, { replace: true });
   };
 
   const toggleNoteType = (type: NoteType) => {
-    setAllowedNoteTypes(prev =>
-      prev.includes(type)
-        ? prev.filter(t => t !== type)
-        : [...prev, type]
+    setAllowedNoteTypes((prev) =>
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type],
     );
   };
 
@@ -924,7 +1007,7 @@ function StartScreen() {
       </p>
       <form onSubmit={handleStart} className={styles.startScreenForm}>
         <label className={styles.startScreenLabel}>
-          Collaboration prompt <span style={{ color: 'red' }}>*</span>
+          Collaboration prompt <span style={{ color: "red" }}>*</span>
         </label>
         <ReactQuill
           theme="snow"
@@ -934,21 +1017,38 @@ function StartScreen() {
         />
         <div className={styles.noteTypesSelection}>
           <label className={styles.noteTypesLabel}>Allowed note types</label>
-          <div style={{ marginBottom: '16px' }}>
-            <div style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>
+          <div style={{ marginBottom: "16px" }}>
+            <div
+              style={{ fontSize: "13px", color: "#666", marginBottom: "8px" }}
+            >
               Quick presets:
             </div>
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
               {(() => {
-                const discussionPreset: NoteType[] = ["Question", "Statement", "Recommendation"];
-                const retroPreset: NoteType[] = ["Positive feedback", "Constructive feedback"];
+                const discussionPreset: NoteType[] = [
+                  "Question",
+                  "Statement",
+                  "Recommendation",
+                ];
+                const retroPreset: NoteType[] = [
+                  "Positive feedback",
+                  "Constructive feedback",
+                ];
                 const qaPreset: NoteType[] = ["Question"];
 
                 const arraysMatch = (a: NoteType[], b: NoteType[]) =>
-                  a.length === b.length && a.every(item => b.includes(item)) && b.every(item => a.includes(item));
+                  a.length === b.length &&
+                  a.every((item) => b.includes(item)) &&
+                  b.every((item) => a.includes(item));
 
-                const isDiscussionActive = arraysMatch(allowedNoteTypes, discussionPreset);
-                const isRetroActive = arraysMatch(allowedNoteTypes, retroPreset);
+                const isDiscussionActive = arraysMatch(
+                  allowedNoteTypes,
+                  discussionPreset,
+                );
+                const isRetroActive = arraysMatch(
+                  allowedNoteTypes,
+                  retroPreset,
+                );
                 const isQAActive = arraysMatch(allowedNoteTypes, qaPreset);
 
                 return (
@@ -957,15 +1057,21 @@ function StartScreen() {
                       type="button"
                       onClick={() => setAllowedNoteTypes(discussionPreset)}
                       style={{
-                        padding: '8px 14px',
-                        fontSize: '14px',
-                        cursor: 'pointer',
-                        border: isDiscussionActive ? '2px solid #0066cc' : '1px solid #0066cc',
-                        borderRadius: '6px',
-                        backgroundColor: isDiscussionActive ? '#0066cc' : '#e6f2ff',
-                        color: isDiscussionActive ? '#ffffff' : '#0066cc',
-                        fontWeight: isDiscussionActive ? '600' : '500',
-                        boxShadow: isDiscussionActive ? '0 2px 4px rgba(0,102,204,0.3)' : 'none'
+                        padding: "8px 14px",
+                        fontSize: "14px",
+                        cursor: "pointer",
+                        border: isDiscussionActive
+                          ? "2px solid #0066cc"
+                          : "1px solid #0066cc",
+                        borderRadius: "6px",
+                        backgroundColor: isDiscussionActive
+                          ? "#0066cc"
+                          : "#e6f2ff",
+                        color: isDiscussionActive ? "#ffffff" : "#0066cc",
+                        fontWeight: isDiscussionActive ? "600" : "500",
+                        boxShadow: isDiscussionActive
+                          ? "0 2px 4px rgba(0,102,204,0.3)"
+                          : "none",
                       }}
                     >
                       📋 Discussion preset
@@ -974,15 +1080,19 @@ function StartScreen() {
                       type="button"
                       onClick={() => setAllowedNoteTypes(retroPreset)}
                       style={{
-                        padding: '8px 14px',
-                        fontSize: '14px',
-                        cursor: 'pointer',
-                        border: isRetroActive ? '2px solid #0066cc' : '1px solid #0066cc',
-                        borderRadius: '6px',
-                        backgroundColor: isRetroActive ? '#0066cc' : '#e6f2ff',
-                        color: isRetroActive ? '#ffffff' : '#0066cc',
-                        fontWeight: isRetroActive ? '600' : '500',
-                        boxShadow: isRetroActive ? '0 2px 4px rgba(0,102,204,0.3)' : 'none'
+                        padding: "8px 14px",
+                        fontSize: "14px",
+                        cursor: "pointer",
+                        border: isRetroActive
+                          ? "2px solid #0066cc"
+                          : "1px solid #0066cc",
+                        borderRadius: "6px",
+                        backgroundColor: isRetroActive ? "#0066cc" : "#e6f2ff",
+                        color: isRetroActive ? "#ffffff" : "#0066cc",
+                        fontWeight: isRetroActive ? "600" : "500",
+                        boxShadow: isRetroActive
+                          ? "0 2px 4px rgba(0,102,204,0.3)"
+                          : "none",
                       }}
                     >
                       🔄 Retro preset
@@ -991,15 +1101,19 @@ function StartScreen() {
                       type="button"
                       onClick={() => setAllowedNoteTypes(qaPreset)}
                       style={{
-                        padding: '8px 14px',
-                        fontSize: '14px',
-                        cursor: 'pointer',
-                        border: isQAActive ? '2px solid #0066cc' : '1px solid #0066cc',
-                        borderRadius: '6px',
-                        backgroundColor: isQAActive ? '#0066cc' : '#e6f2ff',
-                        color: isQAActive ? '#ffffff' : '#0066cc',
-                        fontWeight: isQAActive ? '600' : '500',
-                        boxShadow: isQAActive ? '0 2px 4px rgba(0,102,204,0.3)' : 'none'
+                        padding: "8px 14px",
+                        fontSize: "14px",
+                        cursor: "pointer",
+                        border: isQAActive
+                          ? "2px solid #0066cc"
+                          : "1px solid #0066cc",
+                        borderRadius: "6px",
+                        backgroundColor: isQAActive ? "#0066cc" : "#e6f2ff",
+                        color: isQAActive ? "#ffffff" : "#0066cc",
+                        fontWeight: isQAActive ? "600" : "500",
+                        boxShadow: isQAActive
+                          ? "0 2px 4px rgba(0,102,204,0.3)"
+                          : "none",
                       }}
                     >
                       ❓ Q & A preset
@@ -1010,7 +1124,7 @@ function StartScreen() {
             </div>
           </div>
           <div className={styles.noteTypesCheckboxes}>
-            {NOTE_TYPES.filter(type => type !== "Host note").map(type => (
+            {NOTE_TYPES.filter((type) => type !== "Host note").map((type) => (
               <label key={type} className={styles.noteTypeCheckbox}>
                 <input
                   type="checkbox"
@@ -1052,7 +1166,9 @@ function CollabRoute() {
   const [filter, setFilter] = useState<"All" | "Inbox" | "Mine" | "Archived">(
     "Mine",
   );
-  const [selectedNoteTypes, setSelectedNoteTypes] = useState<Set<NoteType>>(new Set(NOTE_TYPES));
+  const [selectedNoteTypes, setSelectedNoteTypes] = useState<Set<NoteType>>(
+    new Set(NOTE_TYPES),
+  );
   const [showNoteTypeFilter, setShowNoteTypeFilter] = useState(false);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
@@ -1060,8 +1176,12 @@ function CollabRoute() {
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [promptValue, setPromptValue] = useState("");
   const [showNoteTypeSettings, setShowNoteTypeSettings] = useState(false);
-  const [respondingToNoteId, setRespondingToNoteId] = useState<string | null>(null);
-  const [summaryFormat, setSummaryFormat] = useState<'html' | 'markdown'>('html');
+  const [respondingToNoteId, setRespondingToNoteId] = useState<string | null>(
+    null,
+  );
+  const [summaryFormat, setSummaryFormat] = useState<"html" | "markdown">(
+    "html",
+  );
   const noteTypeSettingsRef = useRef<HTMLDivElement>(null);
   const noteTypeFilterRef = useRef<HTMLDivElement>(null);
 
@@ -1070,7 +1190,10 @@ function CollabRoute() {
     if (!showNoteTypeSettings) return;
 
     const handleClickOutside = (event: MouseEvent) => {
-      if (noteTypeSettingsRef.current && !noteTypeSettingsRef.current.contains(event.target as Node)) {
+      if (
+        noteTypeSettingsRef.current &&
+        !noteTypeSettingsRef.current.contains(event.target as Node)
+      ) {
         setShowNoteTypeSettings(false);
       }
     };
@@ -1084,7 +1207,10 @@ function CollabRoute() {
     if (!showNoteTypeFilter) return;
 
     const handleClickOutside = (event: MouseEvent) => {
-      if (noteTypeFilterRef.current && !noteTypeFilterRef.current.contains(event.target as Node)) {
+      if (
+        noteTypeFilterRef.current &&
+        !noteTypeFilterRef.current.contains(event.target as Node)
+      ) {
         setShowNoteTypeFilter(false);
       }
     };
@@ -1110,7 +1236,9 @@ function CollabRoute() {
     if (notes.length === 0) return;
 
     const existingTypes = new Set(notes.map((note) => note.type));
-    const newTypes = Array.from(existingTypes).filter((type) => !selectedNoteTypes.has(type));
+    const newTypes = Array.from(existingTypes).filter(
+      (type) => !selectedNoteTypes.has(type),
+    );
 
     if (newTypes.length > 0) {
       const newSet = new Set(selectedNoteTypes);
@@ -1136,21 +1264,23 @@ function CollabRoute() {
   const isHost = collab.startedBy === session.userId;
 
   // Get allowed note types for this collaboration, sorted by NOTE_TYPES order
-  const allowedNoteTypes = (collab.allowedNoteTypes || NOTE_TYPES).sort((a, b) => {
-    const indexA = NOTE_TYPES.indexOf(a);
-    const indexB = NOTE_TYPES.indexOf(b);
-    return indexA - indexB;
-  });
+  const allowedNoteTypes = (collab.allowedNoteTypes || NOTE_TYPES).sort(
+    (a, b) => {
+      const indexA = NOTE_TYPES.indexOf(a);
+      const indexB = NOTE_TYPES.indexOf(b);
+      return indexA - indexB;
+    },
+  );
 
   // Get note types that actually exist in the notes
   const existingNoteTypes = allowedNoteTypes.filter((type) =>
-    notes.some((note) => note.type === type)
+    notes.some((note) => note.type === type),
   );
 
   const toggleNoteTypeInCollab = async (type: NoteType, enable: boolean) => {
     const newAllowedTypes = enable
       ? [...allowedNoteTypes, type]
-      : allowedNoteTypes.filter(t => t !== type);
+      : allowedNoteTypes.filter((t) => t !== type);
 
     await updateAllowedNoteTypes(collab.id, newAllowedTypes);
 
@@ -1158,14 +1288,20 @@ function CollabRoute() {
     const message = enable
       ? `<p>The note type "${type}" was enabled.</p>`
       : `<p>The note type "${type}" was disabled.</p>`;
-    await createNote(collab.id, "Host note", message, session.userId, session.displayName);
+    await createNote(
+      collab.id,
+      "Host note",
+      message,
+      session.userId,
+      session.displayName,
+    );
   };
 
   // If collaboration is stopped, show summary screen
   if (!collab.active) {
     // Generate Markdown summary
     const generateHTML = () => {
-      let html = '';
+      let html = "";
 
       // Helper to get timestamp from Firestore or number
       const getTimestamp = (time: unknown): number => {
@@ -1176,26 +1312,31 @@ function CollabRoute() {
         };
         if (ts.toDate) return ts.toDate().getTime();
         if (ts.seconds) return ts.seconds * 1000;
-        if (typeof time === 'number') return time;
+        if (typeof time === "number") return time;
         return 0;
       };
 
       // Build prompts array with timestamps for getPromptForNote helper
       const allPrompts: (PromptVersion & { timestampMs: number })[] = [
-        ...(collab.promptHistory || []).map(p => ({
+        ...(collab.promptHistory || []).map((p) => ({
           ...p,
-          timestampMs: getTimestamp(p.timestamp)
+          timestampMs: getTimestamp(p.timestamp),
         })),
         {
           prompt: collab.prompt,
           timestamp: collab.promptUpdatedAt || collab.startedAt || Date.now(),
-          timestampMs: getTimestamp(collab.promptUpdatedAt || collab.startedAt || Date.now())
-        }
+          timestampMs: getTimestamp(
+            collab.promptUpdatedAt || collab.startedAt || Date.now(),
+          ),
+        },
       ].sort((a, b) => a.timestampMs - b.timestampMs);
 
       // Helper function to render a note in HTML
       const renderNoteHTML = (note: Note, idx: number) => {
-        const authorName = note.createdBy === collab.startedBy && note.type !== "Host note" ? `${note.createdByName} (host)` : note.createdByName;
+        const authorName =
+          note.createdBy === collab.startedBy && note.type !== "Host note"
+            ? `${note.createdByName} (host)`
+            : note.createdByName;
         let timestamp = "Unknown time";
         if (note.createdAt) {
           // Handle Firestore Timestamp objects
@@ -1217,7 +1358,8 @@ function CollabRoute() {
         // Action item metadata
         if (note.type === "Action item" && (note.assignee || note.dueDate)) {
           html += `<p>`;
-          if (note.assignee) html += `<strong>Assignee:</strong> ${note.assignee}<br>`;
+          if (note.assignee)
+            html += `<strong>Assignee:</strong> ${note.assignee}<br>`;
           if (note.dueDate) {
             const dueDate = new Date(note.dueDate).toLocaleDateString();
             html += `<strong>Due date:</strong> ${dueDate}<br>`;
@@ -1235,22 +1377,27 @@ function CollabRoute() {
           Object.entries(note.reactions).forEach(([sessionId, reaction]) => {
             // Find the name for this sessionId
             let name = sessionId;
-            const noteByUser = notes.find(n => n.createdBy === sessionId);
+            const noteByUser = notes.find((n) => n.createdBy === sessionId);
             if (noteByUser) {
-              name = noteByUser.createdBy === collab.startedBy ? `${noteByUser.createdByName} (host)` : noteByUser.createdByName;
+              name =
+                noteByUser.createdBy === collab.startedBy
+                  ? `${noteByUser.createdByName} (host)`
+                  : noteByUser.createdByName;
             }
 
-            if (reaction === 'agree') {
+            if (reaction === "agree") {
               agreedNames.push(name);
-            } else if (reaction === 'disagree') {
+            } else if (reaction === "disagree") {
               disagreedNames.push(name);
             }
           });
 
           html += `<h4>Reactions</h4>`;
           html += `<p>`;
-          if (agreedNames.length > 0) html += `Agreed (${agreedNames.length}): ${agreedNames.join(', ')} `;
-          if (disagreedNames.length > 0) html += `Disagreed (${disagreedNames.length}): ${disagreedNames.join(', ')}`;
+          if (agreedNames.length > 0)
+            html += `Agreed (${agreedNames.length}): ${agreedNames.join(", ")} `;
+          if (disagreedNames.length > 0)
+            html += `Disagreed (${disagreedNames.length}): ${disagreedNames.join(", ")}`;
           html += `</p>`;
         }
 
@@ -1258,11 +1405,14 @@ function CollabRoute() {
         if (note.responses && note.responses.length > 0) {
           html += `<h4>Responses (${note.responses.length})</h4>`;
           html += `<ul>`;
-          note.responses.forEach(response => {
+          note.responses.forEach((response) => {
             const timestamp = response.createdAt
               ? new Date(response.createdAt as number).toLocaleString()
               : "Unknown time";
-            const responseAuthorName = response.createdBy === collab.startedBy ? `${response.createdByName} (host)` : response.createdByName;
+            const responseAuthorName =
+              response.createdBy === collab.startedBy
+                ? `${response.createdByName} (host)`
+                : response.createdByName;
             html += `<li><strong>${responseAuthorName}</strong> (${timestamp}): <div style="display:inline">${response.content}</div></li>`;
           });
           html += `</ul>`;
@@ -1270,7 +1420,7 @@ function CollabRoute() {
 
         // Edit history
         if (note.editHistory && note.editHistory.length > 0) {
-          html += `<p><strong>Edit History (${note.editHistory.length} version${note.editHistory.length !== 1 ? 's' : ''}):</strong></p><ol>`;
+          html += `<p><strong>Edit History (${note.editHistory.length} version${note.editHistory.length !== 1 ? "s" : ""}):</strong></p><ol>`;
           note.editHistory.forEach((version) => {
             const timestamp = version.editedAt
               ? new Date(version.editedAt as number).toLocaleString()
@@ -1288,21 +1438,30 @@ function CollabRoute() {
         const noteTime = getTimestamp(note.createdAt);
         for (let i = 0; i < allPrompts.length; i++) {
           const startTime = allPrompts[i].timestampMs;
-          const endTime = i < allPrompts.length - 1 ? allPrompts[i + 1].timestampMs : Infinity;
+          const endTime =
+            i < allPrompts.length - 1
+              ? allPrompts[i + 1].timestampMs
+              : Infinity;
           if (noteTime >= startTime && noteTime < endTime) {
-            const tempDiv = document.createElement('div');
+            const tempDiv = document.createElement("div");
             tempDiv.innerHTML = allPrompts[i].prompt;
-            return tempDiv.textContent || tempDiv.innerText || '';
+            return tempDiv.textContent || tempDiv.innerText || "";
           }
         }
-        return '';
+        return "";
       };
 
-      const actionItems = notes.filter(n => n.type === "Action item");
-      const requirements = notes.filter(n => n.type === "Requirement");
-      const constructiveFeedback = notes.filter(n => n.type === "Constructive feedback");
+      const actionItems = notes.filter((n) => n.type === "Action item");
+      const requirements = notes.filter((n) => n.type === "Requirement");
+      const constructiveFeedback = notes.filter(
+        (n) => n.type === "Constructive feedback",
+      );
 
-      if (actionItems.length > 0 || requirements.length > 0 || constructiveFeedback.length > 0) {
+      if (
+        actionItems.length > 0 ||
+        requirements.length > 0 ||
+        constructiveFeedback.length > 0
+      ) {
         html += `<h2>Key Takeaways</h2>`;
 
         // Action Items table
@@ -1311,10 +1470,15 @@ function CollabRoute() {
           html += `<table border="1" style="width:100%; border-collapse:collapse; margin-bottom:20px;">`;
           html += `<thead><tr><th style="padding: 8px 12px;">Prompt</th><th style="padding: 8px 12px;">Note</th><th style="padding: 8px 12px;">Author</th><th style="padding: 8px 12px;">Assignee</th><th style="padding: 8px 12px;">Due Date</th></tr></thead>`;
           html += `<tbody>`;
-          actionItems.forEach(note => {
-            const authorName = note.createdBy === collab.startedBy ? `${note.createdByName} (host)` : note.createdByName;
-            const assignee = note.assignee || '-';
-            const dueDate = note.dueDate ? new Date(note.dueDate).toLocaleDateString() : '-';
+          actionItems.forEach((note) => {
+            const authorName =
+              note.createdBy === collab.startedBy
+                ? `${note.createdByName} (host)`
+                : note.createdByName;
+            const assignee = note.assignee || "-";
+            const dueDate = note.dueDate
+              ? new Date(note.dueDate).toLocaleDateString()
+              : "-";
             html += `<tr>`;
             html += `<td style="padding: 8px 12px;">${getPromptForNote(note)}</td>`;
             html += `<td style="padding: 8px 12px;">${note.content}</td>`;
@@ -1332,8 +1496,11 @@ function CollabRoute() {
           html += `<table border="1" style="width:100%; border-collapse:collapse; margin-bottom:20px;">`;
           html += `<thead><tr><th style="padding: 8px 12px;">Prompt</th><th style="padding: 8px 12px;">Note</th><th style="padding: 8px 12px;">Author</th></tr></thead>`;
           html += `<tbody>`;
-          requirements.forEach(note => {
-            const authorName = note.createdBy === collab.startedBy ? `${note.createdByName} (host)` : note.createdByName;
+          requirements.forEach((note) => {
+            const authorName =
+              note.createdBy === collab.startedBy
+                ? `${note.createdByName} (host)`
+                : note.createdByName;
             html += `<tr>`;
             html += `<td style="padding: 8px 12px;">${getPromptForNote(note)}</td>`;
             html += `<td style="padding: 8px 12px;">${note.content}</td>`;
@@ -1349,8 +1516,11 @@ function CollabRoute() {
           html += `<table border="1" style="width:100%; border-collapse:collapse; margin-bottom:20px;">`;
           html += `<thead><tr><th style="padding: 8px 12px;">Prompt</th><th style="padding: 8px 12px;">Note</th><th style="padding: 8px 12px;">Author</th></tr></thead>`;
           html += `<tbody>`;
-          constructiveFeedback.forEach(note => {
-            const authorName = note.createdBy === collab.startedBy ? `${note.createdByName} (host)` : note.createdByName;
+          constructiveFeedback.forEach((note) => {
+            const authorName =
+              note.createdBy === collab.startedBy
+                ? `${note.createdByName} (host)`
+                : note.createdByName;
             html += `<tr>`;
             html += `<td style="padding: 8px 12px;">${getPromptForNote(note)}</td>`;
             html += `<td style="padding: 8px 12px;">${note.content}</td>`;
@@ -1371,8 +1541,8 @@ function CollabRoute() {
     };
 
     const generateMarkdown = () => {
-      let md = '';
-      const tempDiv = document.createElement('div');
+      let md = "";
+      const tempDiv = document.createElement("div");
 
       // Helper to get timestamp from Firestore or number
       const getTimestamp = (time: unknown): number => {
@@ -1383,30 +1553,35 @@ function CollabRoute() {
         };
         if (ts.toDate) return ts.toDate().getTime();
         if (ts.seconds) return ts.seconds * 1000;
-        if (typeof time === 'number') return time;
+        if (typeof time === "number") return time;
         return 0;
       };
 
       // Build prompts array with timestamps for getPromptForNote helper
       const allPrompts: (PromptVersion & { timestampMs: number })[] = [
-        ...(collab.promptHistory || []).map(p => ({
+        ...(collab.promptHistory || []).map((p) => ({
           ...p,
-          timestampMs: getTimestamp(p.timestamp)
+          timestampMs: getTimestamp(p.timestamp),
         })),
         {
           prompt: collab.prompt,
           timestamp: collab.promptUpdatedAt || collab.startedAt || Date.now(),
-          timestampMs: getTimestamp(collab.promptUpdatedAt || collab.startedAt || Date.now())
-        }
+          timestampMs: getTimestamp(
+            collab.promptUpdatedAt || collab.startedAt || Date.now(),
+          ),
+        },
       ].sort((a, b) => a.timestampMs - b.timestampMs);
 
       // Helper function to render a note
       const renderNote = (note: Note, idx: number) => {
         // Strip HTML from note content
         tempDiv.innerHTML = note.content;
-        const noteText = tempDiv.textContent || tempDiv.innerText || '';
+        const noteText = tempDiv.textContent || tempDiv.innerText || "";
 
-        const authorName = note.createdBy === collab.startedBy && note.type !== "Host note" ? `${note.createdByName} (host)` : note.createdByName;
+        const authorName =
+          note.createdBy === collab.startedBy && note.type !== "Host note"
+            ? `${note.createdByName} (host)`
+            : note.createdByName;
         let timestamp = "Unknown time";
         if (note.createdAt) {
           // Handle Firestore Timestamp objects
@@ -1445,34 +1620,42 @@ function CollabRoute() {
           Object.entries(note.reactions).forEach(([sessionId, reaction]) => {
             // Find the name for this sessionId
             let name = sessionId;
-            const noteByUser = notes.find(n => n.createdBy === sessionId);
+            const noteByUser = notes.find((n) => n.createdBy === sessionId);
             if (noteByUser) {
-              name = noteByUser.createdBy === collab.startedBy ? `${noteByUser.createdByName} (host)` : noteByUser.createdByName;
+              name =
+                noteByUser.createdBy === collab.startedBy
+                  ? `${noteByUser.createdByName} (host)`
+                  : noteByUser.createdByName;
             }
 
-            if (reaction === 'agree') {
+            if (reaction === "agree") {
               agreedNames.push(name);
-            } else if (reaction === 'disagree') {
+            } else if (reaction === "disagree") {
               disagreedNames.push(name);
             }
           });
 
           md += `#### Reactions\n\n`;
-          if (agreedNames.length > 0) md += `Agreed (${agreedNames.length}): ${agreedNames.join(', ')} `;
-          if (disagreedNames.length > 0) md += `Disagreed (${disagreedNames.length}): ${disagreedNames.join(', ')}`;
+          if (agreedNames.length > 0)
+            md += `Agreed (${agreedNames.length}): ${agreedNames.join(", ")} `;
+          if (disagreedNames.length > 0)
+            md += `Disagreed (${disagreedNames.length}): ${disagreedNames.join(", ")}`;
           md += `\n\n`;
         }
 
         // Responses
         if (note.responses && note.responses.length > 0) {
           md += `#### Responses (${note.responses.length})\n\n`;
-          note.responses.forEach(response => {
+          note.responses.forEach((response) => {
             tempDiv.innerHTML = response.content;
-            const responseText = tempDiv.textContent || tempDiv.innerText || '';
+            const responseText = tempDiv.textContent || tempDiv.innerText || "";
             const timestamp = response.createdAt
               ? new Date(response.createdAt as number).toLocaleString()
               : "Unknown time";
-            const responseAuthorName = response.createdBy === collab.startedBy ? `${response.createdByName} (host)` : response.createdByName;
+            const responseAuthorName =
+              response.createdBy === collab.startedBy
+                ? `${response.createdByName} (host)`
+                : response.createdByName;
             md += `- **${responseAuthorName}** (${timestamp}): ${responseText}\n`;
           });
           md += `\n`;
@@ -1480,10 +1663,10 @@ function CollabRoute() {
 
         // Edit history
         if (note.editHistory && note.editHistory.length > 0) {
-          md += `**Edit History (${note.editHistory.length} version${note.editHistory.length !== 1 ? 's' : ''}):**\n\n`;
+          md += `**Edit History (${note.editHistory.length} version${note.editHistory.length !== 1 ? "s" : ""}):**\n\n`;
           note.editHistory.forEach((version, vIdx) => {
             tempDiv.innerHTML = version.content;
-            const versionText = tempDiv.textContent || tempDiv.innerText || '';
+            const versionText = tempDiv.textContent || tempDiv.innerText || "";
             const timestamp = version.editedAt
               ? new Date(version.editedAt as number).toLocaleString()
               : "Unknown time";
@@ -1500,20 +1683,29 @@ function CollabRoute() {
         const noteTime = getTimestamp(note.createdAt);
         for (let i = 0; i < allPrompts.length; i++) {
           const startTime = allPrompts[i].timestampMs;
-          const endTime = i < allPrompts.length - 1 ? allPrompts[i + 1].timestampMs : Infinity;
+          const endTime =
+            i < allPrompts.length - 1
+              ? allPrompts[i + 1].timestampMs
+              : Infinity;
           if (noteTime >= startTime && noteTime < endTime) {
             tempDiv.innerHTML = allPrompts[i].prompt;
-            return tempDiv.textContent || tempDiv.innerText || '';
+            return tempDiv.textContent || tempDiv.innerText || "";
           }
         }
-        return '';
+        return "";
       };
 
-      const actionItems = notes.filter(n => n.type === "Action item");
-      const requirements = notes.filter(n => n.type === "Requirement");
-      const constructiveFeedback = notes.filter(n => n.type === "Constructive feedback");
+      const actionItems = notes.filter((n) => n.type === "Action item");
+      const requirements = notes.filter((n) => n.type === "Requirement");
+      const constructiveFeedback = notes.filter(
+        (n) => n.type === "Constructive feedback",
+      );
 
-      if (actionItems.length > 0 || requirements.length > 0 || constructiveFeedback.length > 0) {
+      if (
+        actionItems.length > 0 ||
+        requirements.length > 0 ||
+        constructiveFeedback.length > 0
+      ) {
         md += `## Key Takeaways\n\n`;
 
         // Action Items table
@@ -1521,13 +1713,22 @@ function CollabRoute() {
           md += `### Action Items\n\n`;
           md += `| Prompt | Note | Author | Assignee | Due Date |\n`;
           md += `|--------|------|--------|----------|----------|\n`;
-          actionItems.forEach(note => {
+          actionItems.forEach((note) => {
             tempDiv.innerHTML = note.content;
-            const noteText = (tempDiv.textContent || tempDiv.innerText || '').replace(/\|/g, '\\|').replace(/\n/g, ' ');
-            const authorName = note.createdBy === collab.startedBy ? `${note.createdByName} (host)` : note.createdByName;
-            const promptText = getPromptForNote(note).replace(/\|/g, '\\|').replace(/\n/g, ' ');
-            const assignee = note.assignee || '-';
-            const dueDate = note.dueDate ? new Date(note.dueDate).toLocaleDateString() : '-';
+            const noteText = (tempDiv.textContent || tempDiv.innerText || "")
+              .replace(/\|/g, "\\|")
+              .replace(/\n/g, " ");
+            const authorName =
+              note.createdBy === collab.startedBy
+                ? `${note.createdByName} (host)`
+                : note.createdByName;
+            const promptText = getPromptForNote(note)
+              .replace(/\|/g, "\\|")
+              .replace(/\n/g, " ");
+            const assignee = note.assignee || "-";
+            const dueDate = note.dueDate
+              ? new Date(note.dueDate).toLocaleDateString()
+              : "-";
             md += `| ${promptText} | ${noteText} | ${authorName} | ${assignee} | ${dueDate} |\n`;
           });
           md += `\n`;
@@ -1538,11 +1739,18 @@ function CollabRoute() {
           md += `### Requirements\n\n`;
           md += `| Prompt | Note | Author |\n`;
           md += `|--------|------|--------|\n`;
-          requirements.forEach(note => {
+          requirements.forEach((note) => {
             tempDiv.innerHTML = note.content;
-            const noteText = (tempDiv.textContent || tempDiv.innerText || '').replace(/\|/g, '\\|').replace(/\n/g, ' ');
-            const authorName = note.createdBy === collab.startedBy ? `${note.createdByName} (host)` : note.createdByName;
-            const promptText = getPromptForNote(note).replace(/\|/g, '\\|').replace(/\n/g, ' ');
+            const noteText = (tempDiv.textContent || tempDiv.innerText || "")
+              .replace(/\|/g, "\\|")
+              .replace(/\n/g, " ");
+            const authorName =
+              note.createdBy === collab.startedBy
+                ? `${note.createdByName} (host)`
+                : note.createdByName;
+            const promptText = getPromptForNote(note)
+              .replace(/\|/g, "\\|")
+              .replace(/\n/g, " ");
             md += `| ${promptText} | ${noteText} | ${authorName} |\n`;
           });
           md += `\n`;
@@ -1553,11 +1761,18 @@ function CollabRoute() {
           md += `### Constructive Feedback\n\n`;
           md += `| Prompt | Note | Author |\n`;
           md += `|--------|------|--------|\n`;
-          constructiveFeedback.forEach(note => {
+          constructiveFeedback.forEach((note) => {
             tempDiv.innerHTML = note.content;
-            const noteText = (tempDiv.textContent || tempDiv.innerText || '').replace(/\|/g, '\\|').replace(/\n/g, ' ');
-            const authorName = note.createdBy === collab.startedBy ? `${note.createdByName} (host)` : note.createdByName;
-            const promptText = getPromptForNote(note).replace(/\|/g, '\\|').replace(/\n/g, ' ');
+            const noteText = (tempDiv.textContent || tempDiv.innerText || "")
+              .replace(/\|/g, "\\|")
+              .replace(/\n/g, " ");
+            const authorName =
+              note.createdBy === collab.startedBy
+                ? `${note.createdByName} (host)`
+                : note.createdByName;
+            const promptText = getPromptForNote(note)
+              .replace(/\|/g, "\\|")
+              .replace(/\n/g, " ");
             md += `| ${promptText} | ${noteText} | ${authorName} |\n`;
           });
           md += `\n`;
@@ -1595,31 +1810,35 @@ function CollabRoute() {
             <div className={styles.summaryControls}>
               <div className={styles.formatToggle}>
                 <button
-                  onClick={() => setSummaryFormat('html')}
+                  onClick={() => setSummaryFormat("html")}
                   className={styles.formatButton}
-                  data-active={summaryFormat === 'html'}
+                  data-active={summaryFormat === "html"}
                 >
                   HTML
                 </button>
                 <button
-                  onClick={() => setSummaryFormat('markdown')}
+                  onClick={() => setSummaryFormat("markdown")}
                   className={styles.formatButton}
-                  data-active={summaryFormat === 'markdown'}
+                  data-active={summaryFormat === "markdown"}
                 >
                   Markdown
                 </button>
               </div>
               <button
                 onClick={async () => {
-                  if (summaryFormat === 'markdown') {
+                  if (summaryFormat === "markdown") {
                     await navigator.clipboard.writeText(generateMarkdown());
-                    alert('Copied Markdown to clipboard!');
+                    alert("Copied Markdown to clipboard!");
                   } else {
                     const html = generateHTML();
-                    const blob = new Blob([html], { type: 'text/html' });
-                    const clipboardItem = new ClipboardItem({ 'text/html': blob });
+                    const blob = new Blob([html], { type: "text/html" });
+                    const clipboardItem = new ClipboardItem({
+                      "text/html": blob,
+                    });
                     await navigator.clipboard.write([clipboardItem]);
-                    alert('Copied HTML to clipboard! Paste into Google Docs to preserve formatting.');
+                    alert(
+                      "Copied HTML to clipboard! Paste into Google Docs to preserve formatting.",
+                    );
                   }
                 }}
                 className={styles.copyButton}
@@ -1628,10 +1847,13 @@ function CollabRoute() {
               </button>
             </div>
           </div>
-          {summaryFormat === 'markdown' ? (
+          {summaryFormat === "markdown" ? (
             <pre className={styles.summaryContent}>{generateMarkdown()}</pre>
           ) : (
-            <div className={styles.summaryContent} dangerouslySetInnerHTML={{ __html: generateHTML() }} />
+            <div
+              className={styles.summaryContent}
+              dangerouslySetInnerHTML={{ __html: generateHTML() }}
+            />
           )}
         </div>
       </div>
@@ -1672,25 +1894,28 @@ function CollabRoute() {
       : filter === "All"
         ? notes.filter((n) => !n.archived && selectedNoteTypes.has(n.type))
         : filter === "Inbox"
-          ? notes.filter(
-              (n) => {
-                // For polls, only remove from inbox if user has voted or poll is closed
-                const hasInteracted = n.type === "Poll"
-                  ? (n.pollVotes?.[session.userId] !== undefined || n.pollClosed)
+          ? notes.filter((n) => {
+              // For polls, only remove from inbox if user has voted or poll is closed
+              const hasInteracted =
+                n.type === "Poll"
+                  ? n.pollVotes?.[session.userId] !== undefined || n.pollClosed
                   : n.reactions?.[session.userId];
 
-                return (
-                  n.createdBy !== session.userId &&
-                  !hasInteracted &&
-                  (!allChildIds.has(n.id) || n.id === respondingToNoteId) &&
-                  !n.archived &&
-                  n.type !== "Host note" &&
-                  selectedNoteTypes.has(n.type)
-                );
-              },
-            )
-          : notes.filter((n) => n.createdBy === session.userId && !n.archived && selectedNoteTypes.has(n.type));
-
+              return (
+                n.createdBy !== session.userId &&
+                !hasInteracted &&
+                (!allChildIds.has(n.id) || n.id === respondingToNoteId) &&
+                !n.archived &&
+                n.type !== "Host note" &&
+                selectedNoteTypes.has(n.type)
+              );
+            })
+          : notes.filter(
+              (n) =>
+                n.createdBy === session.userId &&
+                !n.archived &&
+                selectedNoteTypes.has(n.type),
+            );
 
   // Apply sort order (notes are fetched in ascending order by default)
   // Inbox always shows oldest first for stable queue processing
@@ -1770,13 +1995,18 @@ function CollabRoute() {
           </span>
         </div>
         <div className={styles.collabHeaderActions}>
-          {!collab.active && <span className={styles.badgeStopped}>Stopped</span>}
+          {!collab.active && (
+            <span className={styles.badgeStopped}>Stopped</span>
+          )}
           {collab.paused && collab.active && (
             <span className={styles.badgePaused}>Input paused</span>
           )}
           {collab.startedBy === session.userId && collab.active && (
             <>
-              <div className={styles.noteTypeSettingsContainer} ref={noteTypeSettingsRef}>
+              <div
+                className={styles.noteTypeSettingsContainer}
+                ref={noteTypeSettingsRef}
+              >
                 <button
                   onClick={() => setShowNoteTypeSettings(!showNoteTypeSettings)}
                   className={styles.buttonNoteTypes}
@@ -1788,24 +2018,33 @@ function CollabRoute() {
                     <div className={styles.noteTypeSettingsHeader}>
                       Note types:
                     </div>
-                    {NOTE_TYPES.filter(type => type !== "Host note").map(type => {
-                      const isEnabled = allowedNoteTypes.includes(type);
-                      return (
-                        <label
-                          key={type}
-                          className={styles.noteTypeSettingsOption}
-                          style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', padding: '6px 8px' }}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isEnabled}
-                            onChange={() => toggleNoteTypeInCollab(type, !isEnabled)}
-                            style={{ marginRight: '8px' }}
-                          />
-                          <span>{type}</span>
-                        </label>
-                      );
-                    })}
+                    {NOTE_TYPES.filter((type) => type !== "Host note").map(
+                      (type) => {
+                        const isEnabled = allowedNoteTypes.includes(type);
+                        return (
+                          <label
+                            key={type}
+                            className={styles.noteTypeSettingsOption}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              cursor: "pointer",
+                              padding: "6px 8px",
+                            }}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isEnabled}
+                              onChange={() =>
+                                toggleNoteTypeInCollab(type, !isEnabled)
+                              }
+                              style={{ marginRight: "8px" }}
+                            />
+                            <span>{type}</span>
+                          </label>
+                        );
+                      },
+                    )}
                   </div>
                 )}
               </div>
@@ -1820,9 +2059,15 @@ function CollabRoute() {
                   const willPause = !collab.paused;
                   await pauseCollaboration(collab.id, willPause);
                   const message = willPause
-                    ? "<p>Participant input was paused here.</p>"
-                    : "<p>Participant input was resumed here.</p>";
-                  await createNote(collab.id, "Host note", message, session.userId, session.displayName);
+                    ? "<p>Participant input was paused.</p>"
+                    : "<p>Participant input was resumed.</p>";
+                  await createNote(
+                    collab.id,
+                    "Host note",
+                    message,
+                    session.userId,
+                    session.displayName,
+                  );
                 }}
                 className={styles.buttonPause}
                 data-paused={collab.paused}
@@ -1882,12 +2127,20 @@ function CollabRoute() {
                         collab.id,
                         promptValue,
                         collab.prompt,
-                        collab.promptUpdatedAt || collab.startedAt || Date.now(),
-                        collab.promptHistory
+                        collab.promptUpdatedAt ||
+                          collab.startedAt ||
+                          Date.now(),
+                        collab.promptHistory,
                       );
                       // Create a host note documenting the prompt change
                       const message = `<p>The prompt was updated to:</p>${promptValue}`;
-                      await createNote(collab.id, "Host note", message, session.userId, session.displayName);
+                      await createNote(
+                        collab.id,
+                        "Host note",
+                        message,
+                        session.userId,
+                        session.displayName,
+                      );
                       setEditingPrompt(false);
                       setPromptValue("");
                     }}
@@ -1917,15 +2170,31 @@ function CollabRoute() {
               {/* Participant note types */}
               <div className={styles.sectionLabel}>Add a note</div>
               {allowedNoteTypes
-                .filter((type) => type !== "Host note" && type !== "Action item" && type !== "Poll")
+                .filter(
+                  (type) =>
+                    type !== "Host note" &&
+                    type !== "Action item" &&
+                    type !== "Poll",
+                )
                 .map((type) => (
                   <NoteTypePanel
                     key={type}
                     label={type}
                     isOpen={openType === type}
-                    onToggle={() => setOpenType(openType === type ? null : type)}
+                    onToggle={() =>
+                      setOpenType(openType === type ? null : type)
+                    }
                     onSubmit={(html, assignee, dueDate, pollOptions) =>
-                      createNote(collab.id, type, html, session.userId, session.displayName, assignee, dueDate, pollOptions)
+                      createNote(
+                        collab.id,
+                        type,
+                        html,
+                        session.userId,
+                        session.displayName,
+                        assignee,
+                        dueDate,
+                        pollOptions,
+                      )
                     }
                   />
                 ))}
@@ -1936,9 +2205,20 @@ function CollabRoute() {
                 key="Action item"
                 label="Action item"
                 isOpen={openType === "Action item"}
-                onToggle={() => setOpenType(openType === "Action item" ? null : "Action item")}
+                onToggle={() =>
+                  setOpenType(openType === "Action item" ? null : "Action item")
+                }
                 onSubmit={(html, assignee, dueDate, pollOptions) =>
-                  createNote(collab.id, "Action item", html, session.userId, session.displayName, assignee, dueDate, pollOptions)
+                  createNote(
+                    collab.id,
+                    "Action item",
+                    html,
+                    session.userId,
+                    session.displayName,
+                    assignee,
+                    dueDate,
+                    pollOptions,
+                  )
                 }
                 disabled={!isHost}
               />
@@ -1946,9 +2226,20 @@ function CollabRoute() {
                 key="Poll"
                 label="Poll"
                 isOpen={openType === "Poll"}
-                onToggle={() => setOpenType(openType === "Poll" ? null : "Poll")}
+                onToggle={() =>
+                  setOpenType(openType === "Poll" ? null : "Poll")
+                }
                 onSubmit={(html, assignee, dueDate, pollOptions) =>
-                  createNote(collab.id, "Poll", html, session.userId, session.displayName, assignee, dueDate, pollOptions)
+                  createNote(
+                    collab.id,
+                    "Poll",
+                    html,
+                    session.userId,
+                    session.displayName,
+                    assignee,
+                    dueDate,
+                    pollOptions,
+                  )
                 }
                 disabled={!isHost}
               />
@@ -1957,9 +2248,20 @@ function CollabRoute() {
                   key="Host note"
                   label="Host note"
                   isOpen={openType === "Host note"}
-                  onToggle={() => setOpenType(openType === "Host note" ? null : "Host note")}
+                  onToggle={() =>
+                    setOpenType(openType === "Host note" ? null : "Host note")
+                  }
                   onSubmit={(html, assignee, dueDate, pollOptions) =>
-                    createNote(collab.id, "Host note", html, session.userId, session.displayName, assignee, dueDate, pollOptions)
+                    createNote(
+                      collab.id,
+                      "Host note",
+                      html,
+                      session.userId,
+                      session.displayName,
+                      assignee,
+                      dueDate,
+                      pollOptions,
+                    )
                   }
                   disabled={!isHost}
                 />
@@ -1978,10 +2280,19 @@ function CollabRoute() {
                 data-active={filter === t}
                 data-filter={t}
               >
-                {t === "Mine" ? "Your notes" : t === "Inbox" ? `Inbox (${inboxCount})` : t === "Archived" ? `Archived (${archivedCount})` : t}
+                {t === "Mine"
+                  ? "Your notes"
+                  : t === "Inbox"
+                    ? `Inbox (${inboxCount})`
+                    : t === "Archived"
+                      ? `Archived (${archivedCount})`
+                      : t}
               </button>
             ))}
-            <div ref={noteTypeFilterRef} className={styles.noteTypeFilterContainer}>
+            <div
+              ref={noteTypeFilterRef}
+              className={styles.noteTypeFilterContainer}
+            >
               <button
                 onClick={() => setShowNoteTypeFilter(!showNoteTypeFilter)}
                 className={styles.filterButton}
@@ -2019,7 +2330,11 @@ function CollabRoute() {
                 className={styles.filterButton}
                 data-active={sortOrder === "asc"}
                 disabled={filter === "Inbox"}
-                title={filter === "Inbox" ? "Inbox is always sorted oldest first" : undefined}
+                title={
+                  filter === "Inbox"
+                    ? "Inbox is always sorted oldest first"
+                    : undefined
+                }
               >
                 <option value="desc">Newest first</option>
                 <option value="asc">Oldest first</option>
@@ -2027,62 +2342,70 @@ function CollabRoute() {
             </div>
           </div>
           <div className={styles.notesList}>
-            {displayNotes.map(({ note: n, isGrouped, groupDepth, isParent }) => (
-              <div
-                key={n.id}
-                onClick={
-                  isParent && !isGrouped ? () => toggleGroup(n.id) : undefined
-                }
-                style={{ cursor: isParent && !isGrouped ? "pointer" : undefined }}
-              >
-                <StickyNote
-                  note={n}
-                  collaborationId={collab.id}
-                  sessionId={session.userId}
-                  displayName={session.displayName}
-                  canDelete={
-                    !collab.paused &&
-                    collab.active &&
-                    n.createdBy === session.userId &&
-                    (!n.responses || n.responses.length === 0)
+            {displayNotes.map(
+              ({ note: n, isGrouped, groupDepth, isParent }) => (
+                <div
+                  key={n.id}
+                  onClick={
+                    isParent && !isGrouped ? () => toggleGroup(n.id) : undefined
                   }
-                  canReact={
-                    !collab.paused && collab.active && n.createdBy !== session.userId
-                  }
-                  paused={!!collab.paused}
-                  onDelete={() => removeNote(collab.id, n.id)}
-                  canDrag={isHost && !isGrouped}
-                  onDragStart={() => setDraggedNoteId(n.id)}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={() => {
-                    if (draggedNoteId && draggedNoteId !== n.id) {
-                      handleGroupNotes(n.id, draggedNoteId);
-                      setDraggedNoteId(null);
-                    }
+                  style={{
+                    cursor: isParent && !isGrouped ? "pointer" : undefined,
                   }}
-                  isGrouped={isGrouped}
-                  groupDepth={groupDepth}
-                  canUngroup={isHost && isGrouped}
-                  onUngroup={() => setGroupedUnder(collab.id, n.id, null)}
-                  canEdit={
-                    !collab.paused && collab.active && n.createdBy === session.userId
-                  }
-                  canArchive={isHost && collab.active && !!collab.paused}
-                  onRespondingChange={(isResponding) =>
-                    setRespondingToNoteId(isResponding ? n.id : null)
-                  }
-                  hideYouBadge={filter === "Mine"}
-                  isHost={isHost}
-                />
-                {isParent && !isGrouped && (
-                  <div className={styles.groupIndicator}>
-                    {noteGroups.get(n.id)?.length || 0} grouped note
-                    {(noteGroups.get(n.id)?.length || 0) !== 1 ? "s" : ""}
-                    {expandedGroups.has(n.id) ? " ▲" : " ▼"}
-                  </div>
-                )}
-              </div>
-            ))}
+                >
+                  <StickyNote
+                    note={n}
+                    collaborationId={collab.id}
+                    sessionId={session.userId}
+                    displayName={session.displayName}
+                    canDelete={
+                      !collab.paused &&
+                      collab.active &&
+                      n.createdBy === session.userId &&
+                      (!n.responses || n.responses.length === 0)
+                    }
+                    canReact={
+                      !collab.paused &&
+                      collab.active &&
+                      n.createdBy !== session.userId
+                    }
+                    paused={!!collab.paused}
+                    onDelete={() => removeNote(collab.id, n.id)}
+                    canDrag={isHost && !isGrouped}
+                    onDragStart={() => setDraggedNoteId(n.id)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => {
+                      if (draggedNoteId && draggedNoteId !== n.id) {
+                        handleGroupNotes(n.id, draggedNoteId);
+                        setDraggedNoteId(null);
+                      }
+                    }}
+                    isGrouped={isGrouped}
+                    groupDepth={groupDepth}
+                    canUngroup={isHost && isGrouped}
+                    onUngroup={() => setGroupedUnder(collab.id, n.id, null)}
+                    canEdit={
+                      !collab.paused &&
+                      collab.active &&
+                      n.createdBy === session.userId
+                    }
+                    canArchive={isHost && collab.active && !!collab.paused}
+                    onRespondingChange={(isResponding) =>
+                      setRespondingToNoteId(isResponding ? n.id : null)
+                    }
+                    hideYouBadge={filter === "Mine"}
+                    isHost={isHost}
+                  />
+                  {isParent && !isGrouped && (
+                    <div className={styles.groupIndicator}>
+                      {noteGroups.get(n.id)?.length || 0} grouped note
+                      {(noteGroups.get(n.id)?.length || 0) !== 1 ? "s" : ""}
+                      {expandedGroups.has(n.id) ? " ▲" : " ▼"}
+                    </div>
+                  )}
+                </div>
+              ),
+            )}
           </div>
         </main>
       </div>
@@ -2102,7 +2425,9 @@ function StatsRoute() {
     }
   }, [session, navigate]);
 
-  const [collab, setCollab] = useState<Collaboration | null | undefined>(undefined);
+  const [collab, setCollab] = useState<Collaboration | null | undefined>(
+    undefined,
+  );
   const [notes, setNotes] = useState<Note[]>([]);
   const [currentTime, setCurrentTime] = useState(0);
 
@@ -2125,8 +2450,10 @@ function StatsRoute() {
   }, [notes]);
 
   if (!session) return null;
-  if (collab === undefined) return <div className={styles.loading}>Loading...</div>;
-  if (collab === null) return <div className={styles.error}>Collaboration not found</div>;
+  if (collab === undefined)
+    return <div className={styles.loading}>Loading...</div>;
+  if (collab === null)
+    return <div className={styles.error}>Collaboration not found</div>;
 
   const isHost = collab.startedBy === session.userId;
 
@@ -2150,7 +2477,7 @@ function StatsRoute() {
   const userMap = new Map<string, UserActivity>();
 
   // Process notes
-  notes.forEach(note => {
+  notes.forEach((note) => {
     if (!userMap.has(note.createdBy)) {
       userMap.set(note.createdBy, {
         userId: note.createdBy,
@@ -2159,7 +2486,7 @@ function StatsRoute() {
         contributionCount: 0,
         notesCount: 0,
         reactionsCount: 0,
-        responsesCount: 0
+        responsesCount: 0,
       });
     }
 
@@ -2176,7 +2503,7 @@ function StatsRoute() {
       timestamp = noteTime.toDate().getTime();
     } else if (noteTime?.seconds) {
       timestamp = noteTime.seconds * 1000;
-    } else if (typeof note.createdAt === 'number') {
+    } else if (typeof note.createdAt === "number") {
       timestamp = note.createdAt;
     }
 
@@ -2186,7 +2513,7 @@ function StatsRoute() {
 
     // Check reactions on this note
     if (note.reactions) {
-      Object.keys(note.reactions).forEach(reactorId => {
+      Object.keys(note.reactions).forEach((reactorId) => {
         if (!userMap.has(reactorId)) {
           userMap.set(reactorId, {
             userId: reactorId,
@@ -2195,7 +2522,7 @@ function StatsRoute() {
             contributionCount: 0,
             notesCount: 0,
             reactionsCount: 0,
-            responsesCount: 0
+            responsesCount: 0,
           });
         }
 
@@ -2210,7 +2537,7 @@ function StatsRoute() {
 
     // Check responses
     if (note.responses) {
-      note.responses.forEach(response => {
+      note.responses.forEach((response) => {
         if (!userMap.has(response.createdBy)) {
           userMap.set(response.createdBy, {
             userId: response.createdBy,
@@ -2219,14 +2546,15 @@ function StatsRoute() {
             contributionCount: 0,
             notesCount: 0,
             reactionsCount: 0,
-            responsesCount: 0
+            responsesCount: 0,
           });
         }
 
         const responder = userMap.get(response.createdBy)!;
         responder.contributionCount++; // Count the response
         responder.responsesCount++; // Count the response
-        const responseTime = typeof response.createdAt === 'number' ? response.createdAt : 0;
+        const responseTime =
+          typeof response.createdAt === "number" ? response.createdAt : 0;
 
         if (responseTime > responder.lastActivityTime) {
           responder.lastActivityTime = responseTime;
@@ -2234,7 +2562,7 @@ function StatsRoute() {
 
         // Check reactions on responses
         if (response.reactions) {
-          Object.keys(response.reactions).forEach(reactorId => {
+          Object.keys(response.reactions).forEach((reactorId) => {
             if (!userMap.has(reactorId)) {
               userMap.set(reactorId, {
                 userId: reactorId,
@@ -2243,7 +2571,7 @@ function StatsRoute() {
                 contributionCount: 0,
                 notesCount: 0,
                 reactionsCount: 0,
-                responsesCount: 0
+                responsesCount: 0,
               });
             }
 
@@ -2281,10 +2609,12 @@ function StatsRoute() {
   });
 
   // Convert to array and sort by most recent activity
-  const usersArray = Array.from(userMap.values()).sort((a, b) => b.lastActivityTime - a.lastActivityTime);
+  const usersArray = Array.from(userMap.values()).sort(
+    (a, b) => b.lastActivityTime - a.lastActivityTime,
+  );
 
   // Pre-compute formatted times
-  const users = usersArray.map(user => {
+  const users = usersArray.map((user) => {
     let formattedTime = "No activity";
 
     if (user.lastActivityTime !== 0 && currentTime !== 0) {
@@ -2294,10 +2624,13 @@ function StatsRoute() {
       const hours = Math.floor(minutes / 60);
       const days = Math.floor(hours / 24);
 
-      if (seconds < 60) formattedTime = `${seconds} second${seconds !== 1 ? 's' : ''} ago`;
-      else if (minutes < 60) formattedTime = `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
-      else if (hours < 24) formattedTime = `${hours} hour${hours !== 1 ? 's' : ''} ago`;
-      else formattedTime = `${days} day${days !== 1 ? 's' : ''} ago`;
+      if (seconds < 60)
+        formattedTime = `${seconds} second${seconds !== 1 ? "s" : ""} ago`;
+      else if (minutes < 60)
+        formattedTime = `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
+      else if (hours < 24)
+        formattedTime = `${hours} hour${hours !== 1 ? "s" : ""} ago`;
+      else formattedTime = `${days} day${days !== 1 ? "s" : ""} ago`;
     }
 
     return { ...user, formattedTime };
@@ -2307,7 +2640,10 @@ function StatsRoute() {
     <div className={styles.container}>
       <div className={styles.statsPage}>
         <div className={styles.statsHeader}>
-          <button onClick={() => navigate(`/collabs/${id}`)} className={styles.backButton}>
+          <button
+            onClick={() => navigate(`/collabs/${id}`)}
+            className={styles.backButton}
+          >
             ← Back to collaboration
           </button>
           <h1>Participants ({users.length})</h1>
@@ -2325,7 +2661,7 @@ function StatsRoute() {
               </tr>
             </thead>
             <tbody>
-              {users.map(user => (
+              {users.map((user) => (
                 <tr key={user.userId}>
                   <td>{user.displayName}</td>
                   <td>{user.notesCount}</td>
