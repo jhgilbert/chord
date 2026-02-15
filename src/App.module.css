@@ -1132,31 +1132,19 @@
   color: #555;
 }
 
-.filterDropdown {
-  padding: 5px 10px;
-  font-size: 13px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.filterDropdown:first-of-type {
-  margin-left: 24px;
-  padding-left: 16px;
-  border-left: 2px solid #d1d5db;
-}
-
 .noteTypeFilterContainer {
   position: relative;
   margin-left: 24px;
-  padding-left: 16px;
-  border-left: 2px solid #d1d5db;
+}
+
+.sortOrderContainer {
+  margin-left: 8px;
 }
 
 .noteTypeFilterDropdown {
   position: absolute;
   top: 100%;
-  left: 16px;
+  left: 0;
   margin-top: 4px;
   background: #fff;
   border: 1px solid #d1d5db;
@@ -1185,18 +1173,6 @@
   cursor: pointer;
   width: 16px;
   height: 16px;
-}
-
-.filterDropdown[data-active="true"] {
-  background: #111;
-  color: #fff;
-  font-weight: 600;
-}
-
-.filterDropdown[data-active="false"] {
-  background: #f3f4f6;
-  color: #555;
-  font-weight: 400;
 }
 
 .notesList {

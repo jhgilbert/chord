@@ -1852,7 +1852,7 @@ function CollabRoute() {
             <div className={styles.noteTypeFilterContainer}>
               <button
                 onClick={() => setShowNoteTypeFilter(!showNoteTypeFilter)}
-                className={styles.filterDropdown}
+                className={styles.filterButton}
                 data-active={selectedNoteTypes.size < existingNoteTypes.length}
               >
                 Note types {showNoteTypeFilter ? "▲" : "▼"}
@@ -1880,17 +1880,19 @@ function CollabRoute() {
                 </div>
               )}
             </div>
-            <select
-              value={filter === "Inbox" ? "asc" : sortOrder}
-              onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
-              className={styles.filterDropdown}
-              data-active={sortOrder === "asc"}
-              disabled={filter === "Inbox"}
-              title={filter === "Inbox" ? "Inbox is always sorted oldest first" : undefined}
-            >
-              <option value="desc">Newest first</option>
-              <option value="asc">Oldest first</option>
-            </select>
+            <div className={styles.sortOrderContainer}>
+              <select
+                value={filter === "Inbox" ? "asc" : sortOrder}
+                onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
+                className={styles.filterButton}
+                data-active={sortOrder === "asc"}
+                disabled={filter === "Inbox"}
+                title={filter === "Inbox" ? "Inbox is always sorted oldest first" : undefined}
+              >
+                <option value="desc">Newest first</option>
+                <option value="asc">Oldest first</option>
+              </select>
+            </div>
           </div>
           <div className={styles.notesList}>
             {displayNotes.map(({ note: n, isGrouped, groupDepth, isParent }) => (
