@@ -311,6 +311,7 @@ function StickyNote({
   canEdit,
   canArchive,
   onRespondingChange,
+  hideYouBadge,
 }: {
   note: Note;
   collaborationId: string;
@@ -331,6 +332,7 @@ function StickyNote({
   canEdit?: boolean;
   canArchive?: boolean;
   onRespondingChange?: (isResponding: boolean) => void;
+  hideYouBadge?: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -550,7 +552,7 @@ function StickyNote({
       )}
       <div className={styles.stickyNoteBadges}>
         <span className={styles.badgeType} style={{ backgroundColor: NOTE_TYPE_COLORS[note.type] }}>{note.type}</span>
-        {note.createdBy === sessionId && (
+        {note.createdBy === sessionId && !hideYouBadge && (
           <span className={styles.badgeYou}>You</span>
         )}
         {paused && <span className={styles.badgeName}>{note.createdByName}</span>}
@@ -1824,6 +1826,7 @@ function CollabRoute() {
                 onClick={() => setFilter(t)}
                 className={styles.filterButton}
                 data-active={filter === t}
+                data-filter={t}
               >
                 {t === "Mine" ? "Your notes" : t === "Inbox" ? `Inbox (${inboxCount})` : t === "Archived" ? `Archived (${archivedCount})` : t}
               </button>
@@ -1913,6 +1916,7 @@ function CollabRoute() {
                   onRespondingChange={(isResponding) =>
                     setRespondingToNoteId(isResponding ? n.id : null)
                   }
+                  hideYouBadge={filter === "Mine"}
                 />
                 {isParent && !isGrouped && (
                   <div className={styles.groupIndicator}>
