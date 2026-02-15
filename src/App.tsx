@@ -36,7 +36,7 @@ import {
   type PromptVersion,
 } from "./collaborations";
 
-const NOTE_TYPES: NoteType[] = ["Question", "Statement", "Recommendation", "Requirement", "Action item", "Host note"];
+const NOTE_TYPES: NoteType[] = ["Question", "Statement", "Recommendation", "Requirement", "Action item", "Host note", "Positive feedback", "Constructive feedback"];
 
 function LoginScreen() {
   const [firstName, setFirstName] = useState("");
