@@ -2,13 +2,6 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useEffect, useMemo, useState } from "react";
 import { getOrCreateSession } from "./session";
-import {
-  createTodo,
-  removeTodo,
-  subscribeTodos,
-  toggleTodo,
-  type Todo,
-} from "./todos";
 import { createNote, removeNote, subscribeNotes, type Note } from "./notes";
 
 function RichTextEditor({
@@ -96,11 +89,7 @@ function RichTextEditor({
             type="button"
             onMouseDown={(e) => {
               e.preventDefault();
-              editor
-                .chain()
-                .focus()
-                .toggleHeading({ level: 2 })
-                .run();
+              editor.chain().focus().toggleHeading({ level: 2 }).run();
             }}
             style={btnStyle(editor.isActive("heading", { level: 2 }))}
           >
@@ -200,31 +189,12 @@ function StickyNote({
 
 export default function App() {
   const { sessionId, displayName } = useMemo(() => getOrCreateSession(), []);
-  const [tab, setTab] = useState<"todos" | "notes">("todos");
-  const [todos, setTodos] = useState<Todo[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
-  const [text, setText] = useState("");
-
-  useEffect(() => {
-    const unsub = subscribeTodos(setTodos);
-    return () => unsub();
-  }, []);
 
   useEffect(() => {
     const unsub = subscribeNotes(setNotes);
     return () => unsub();
   }, []);
-
-  const tabBtn = (active: boolean): React.CSSProperties => ({
-    padding: "8px 20px",
-    fontWeight: active ? 600 : 400,
-    background: active ? "#111" : "transparent",
-    color: active ? "#fff" : "#555",
-    border: "1px solid #d1d5db",
-    borderRadius: 4,
-    cursor: "pointer",
-    fontSize: 14,
-  });
 
   return (
     <div
@@ -240,90 +210,19 @@ export default function App() {
         You are: <b>{displayName}</b> (<code>{sessionId}</code>)
       </p>
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
-        <button style={tabBtn(tab === "todos")} onClick={() => setTab("todos")}>
-          TODOs
-        </button>
-        <button style={tabBtn(tab === "notes")} onClick={() => setTab("notes")}>
-          Notes
-        </button>
-      </div>
+      <RichTextEditor
+        onSubmit={(html) => createNote(html, sessionId, displayName)}
+      />
 
-      {tab === "todos" && (
-        <>
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              const t = text.trim();
-              if (!t) return;
-              setText("");
-              await createTodo(t, sessionId, displayName);
-            }}
-            style={{ display: "flex", gap: 8 }}
-          >
-            <input
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Add a todo…"
-              style={{ flex: 1, padding: 10 }}
-            />
-            <button type="submit" style={{ padding: "10px 14px" }}>
-              Add
-            </button>
-          </form>
-
-          <ul style={{ listStyle: "none", padding: 0, marginTop: 20 }}>
-            {todos.map((t) => (
-              <li
-                key={t.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  padding: "10px 0",
-                  borderBottom: "1px solid #eee",
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={t.done}
-                  onChange={(e) => toggleTodo(t.id, e.target.checked)}
-                />
-                <div style={{ flex: 1 }}>
-                  <div
-                    style={{ textDecoration: t.done ? "line-through" : "none" }}
-                  >
-                    {t.text}
-                  </div>
-                  <div style={{ fontSize: 12, opacity: 0.7 }}>
-                    by {t.createdByName}
-                  </div>
-                </div>
-                <button onClick={() => removeTodo(t.id)} aria-label="Delete">
-                  ✕
-                </button>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-
-      {tab === "notes" && (
-        <>
-          <RichTextEditor
-            onSubmit={(html) => createNote(html, sessionId, displayName)}
+      <div style={{ marginTop: 24 }}>
+        {notes.map((n) => (
+          <StickyNote
+            key={n.id}
+            note={n}
+            onDelete={() => removeNote(n.id)}
           />
-          <div style={{ marginTop: 24 }}>
-            {notes.map((n) => (
-              <StickyNote
-                key={n.id}
-                note={n}
-                onDelete={() => removeNote(n.id)}
-              />
-            ))}
-          </div>
-        </>
-      )}
+        ))}
+      </div>
     </div>
   );
 }
