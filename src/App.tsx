@@ -907,6 +907,7 @@ function CollabRoute() {
   const [promptValue, setPromptValue] = useState("");
   const [showNoteTypeSettings, setShowNoteTypeSettings] = useState(false);
   const [respondingToNoteId, setRespondingToNoteId] = useState<string | null>(null);
+  const [summaryFormat, setSummaryFormat] = useState<'html' | 'markdown'>('html');
   const noteTypeSettingsRef = useRef<HTMLDivElement>(null);
 
   // Close note type settings dropdown when clicking outside
@@ -1116,18 +1117,18 @@ function CollabRoute() {
         if (actionItems.length > 0) {
           html += `<h3>Action Items</h3>`;
           html += `<table border="1" style="width:100%; border-collapse:collapse; margin-bottom:20px;">`;
-          html += `<thead><tr><th>Prompt</th><th>Note</th><th>Author</th><th>Assignee</th><th>Due Date</th></tr></thead>`;
+          html += `<thead><tr><th style="padding: 8px 12px;">Prompt</th><th style="padding: 8px 12px;">Note</th><th style="padding: 8px 12px;">Author</th><th style="padding: 8px 12px;">Assignee</th><th style="padding: 8px 12px;">Due Date</th></tr></thead>`;
           html += `<tbody>`;
           actionItems.forEach(note => {
             const authorName = note.createdBy === collab.startedBy ? `${note.createdByName} (host)` : note.createdByName;
             const assignee = note.assignee || '-';
             const dueDate = note.dueDate ? new Date(note.dueDate).toLocaleDateString() : '-';
             html += `<tr>`;
-            html += `<td>${getPromptForNote(note)}</td>`;
-            html += `<td>${note.content}</td>`;
-            html += `<td>${authorName}</td>`;
-            html += `<td>${assignee}</td>`;
-            html += `<td>${dueDate}</td>`;
+            html += `<td style="padding: 8px 12px;">${getPromptForNote(note)}</td>`;
+            html += `<td style="padding: 8px 12px;">${note.content}</td>`;
+            html += `<td style="padding: 8px 12px;">${authorName}</td>`;
+            html += `<td style="padding: 8px 12px;">${assignee}</td>`;
+            html += `<td style="padding: 8px 12px;">${dueDate}</td>`;
             html += `</tr>`;
           });
           html += `</tbody></table>`;
@@ -1137,14 +1138,14 @@ function CollabRoute() {
         if (requirements.length > 0) {
           html += `<h3>Requirements</h3>`;
           html += `<table border="1" style="width:100%; border-collapse:collapse; margin-bottom:20px;">`;
-          html += `<thead><tr><th>Prompt</th><th>Note</th><th>Author</th></tr></thead>`;
+          html += `<thead><tr><th style="padding: 8px 12px;">Prompt</th><th style="padding: 8px 12px;">Note</th><th style="padding: 8px 12px;">Author</th></tr></thead>`;
           html += `<tbody>`;
           requirements.forEach(note => {
             const authorName = note.createdBy === collab.startedBy ? `${note.createdByName} (host)` : note.createdByName;
             html += `<tr>`;
-            html += `<td>${getPromptForNote(note)}</td>`;
-            html += `<td>${note.content}</td>`;
-            html += `<td>${authorName}</td>`;
+            html += `<td style="padding: 8px 12px;">${getPromptForNote(note)}</td>`;
+            html += `<td style="padding: 8px 12px;">${note.content}</td>`;
+            html += `<td style="padding: 8px 12px;">${authorName}</td>`;
             html += `</tr>`;
           });
           html += `</tbody></table>`;
@@ -1154,14 +1155,14 @@ function CollabRoute() {
         if (constructiveFeedback.length > 0) {
           html += `<h3>Constructive Feedback</h3>`;
           html += `<table border="1" style="width:100%; border-collapse:collapse; margin-bottom:20px;">`;
-          html += `<thead><tr><th>Prompt</th><th>Note</th><th>Author</th></tr></thead>`;
+          html += `<thead><tr><th style="padding: 8px 12px;">Prompt</th><th style="padding: 8px 12px;">Note</th><th style="padding: 8px 12px;">Author</th></tr></thead>`;
           html += `<tbody>`;
           constructiveFeedback.forEach(note => {
             const authorName = note.createdBy === collab.startedBy ? `${note.createdByName} (host)` : note.createdByName;
             html += `<tr>`;
-            html += `<td>${getPromptForNote(note)}</td>`;
-            html += `<td>${note.content}</td>`;
-            html += `<td>${authorName}</td>`;
+            html += `<td style="padding: 8px 12px;">${getPromptForNote(note)}</td>`;
+            html += `<td style="padding: 8px 12px;">${note.content}</td>`;
+            html += `<td style="padding: 8px 12px;">${authorName}</td>`;
             html += `</tr>`;
           });
           html += `</tbody></table>`;
@@ -1399,31 +1400,47 @@ function CollabRoute() {
         <div className={styles.stoppedSummary}>
           <div className={styles.summaryHeader}>
             <h2 className={styles.summaryTitle}>Summary</h2>
-            <div className={styles.copyButtons}>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(generateMarkdown());
-                  alert('Copied Markdown to clipboard!');
-                }}
-                className={styles.copyButton}
-              >
-                Copy Markdown
-              </button>
+            <div className={styles.summaryControls}>
+              <div className={styles.formatToggle}>
+                <button
+                  onClick={() => setSummaryFormat('html')}
+                  className={styles.formatButton}
+                  data-active={summaryFormat === 'html'}
+                >
+                  HTML
+                </button>
+                <button
+                  onClick={() => setSummaryFormat('markdown')}
+                  className={styles.formatButton}
+                  data-active={summaryFormat === 'markdown'}
+                >
+                  Markdown
+                </button>
+              </div>
               <button
                 onClick={async () => {
-                  const html = generateHTML();
-                  const blob = new Blob([html], { type: 'text/html' });
-                  const clipboardItem = new ClipboardItem({ 'text/html': blob });
-                  await navigator.clipboard.write([clipboardItem]);
-                  alert('Copied for Google Docs! Paste into Google Docs to preserve formatting.');
+                  if (summaryFormat === 'markdown') {
+                    await navigator.clipboard.writeText(generateMarkdown());
+                    alert('Copied Markdown to clipboard!');
+                  } else {
+                    const html = generateHTML();
+                    const blob = new Blob([html], { type: 'text/html' });
+                    const clipboardItem = new ClipboardItem({ 'text/html': blob });
+                    await navigator.clipboard.write([clipboardItem]);
+                    alert('Copied HTML to clipboard! Paste into Google Docs to preserve formatting.');
+                  }
                 }}
                 className={styles.copyButton}
               >
-                Copy for Google Docs
+                Copy
               </button>
             </div>
           </div>
-          <pre className={styles.summaryContent}>{generateMarkdown()}</pre>
+          {summaryFormat === 'markdown' ? (
+            <pre className={styles.summaryContent}>{generateMarkdown()}</pre>
+          ) : (
+            <div className={styles.summaryContent} dangerouslySetInnerHTML={{ __html: generateHTML() }} />
+          )}
         </div>
       </div>
     );

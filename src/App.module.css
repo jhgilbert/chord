@@ -652,9 +652,44 @@
   font-weight: 600;
 }
 
-.copyButtons {
+.summaryControls {
   display: flex;
-  gap: 8px;
+  gap: 12px;
+  align-items: center;
+}
+
+.formatToggle {
+  display: flex;
+  gap: 0;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.formatButton {
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  background: #fff;
+  color: #6b7280;
+  border: none;
+  border-right: 1px solid #d1d5db;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.formatButton:last-child {
+  border-right: none;
+}
+
+.formatButton[data-active="true"] {
+  background: #111;
+  color: #fff;
+  font-weight: 600;
+}
+
+.formatButton:hover:not([data-active="true"]) {
+  background: #f3f4f6;
 }
 
 .copyButton {
@@ -677,13 +712,17 @@
   padding: 20px;
   margin: 0;
   overflow: auto;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 13px;
   line-height: 1.6;
-  white-space: pre-wrap;
-  word-wrap: break-word;
   color: #1a1a1a;
   background: #fff;
+}
+
+.summaryContent pre {
+  margin: 0;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 /* StartScreen */
