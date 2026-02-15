@@ -43,6 +43,7 @@ function RichTextEditor({
           border: "1px solid #d1d5db",
           borderRadius: 6,
           overflow: "hidden",
+          colorScheme: "light",
         }}
       >
         <div
@@ -116,16 +117,15 @@ function RichTextEditor({
             1. List
           </button>
         </div>
-        <EditorContent
-          editor={editor}
-          style={{
-            minHeight: 100,
-            padding: "10px 12px",
-            outline: "none",
-            fontSize: 15,
-            lineHeight: 1.6,
-          }}
-        />
+        <div
+          onClick={() => editor.commands.focus()}
+          style={{ minHeight: 100, padding: "10px 12px", cursor: "text", background: "#fff", color: "#111" }}
+        >
+          <EditorContent
+            editor={editor}
+            style={{ fontSize: 15, lineHeight: 1.6, outline: "none" }}
+          />
+        </div>
       </div>
       <div style={{ marginTop: 8, display: "flex", justifyContent: "flex-end" }}>
         <button type="submit" style={{ padding: "8px 16px" }}>
@@ -151,7 +151,6 @@ function StickyNote({
         boxShadow:
           "3px 3px 10px rgba(0,0,0,0.18), 1px 1px 3px rgba(0,0,0,0.1)",
         padding: "18px 20px",
-        marginBottom: 16,
         position: "relative",
         color: "#1a1a1a",
       }}
@@ -199,30 +198,46 @@ export default function App() {
   return (
     <div
       style={{
-        maxWidth: 720,
-        margin: "40px auto",
-        padding: "0 20px",
+        margin: "40px 20px",
         fontFamily: "system-ui, sans-serif",
+        display: "grid",
+        gridTemplateColumns: "280px 1fr",
+        gridTemplateRows: "auto 1fr",
+        gap: "0 24px",
+        minHeight: "calc(100vh - 80px)",
       }}
     >
-      <h1 style={{ marginBottom: 4 }}>Chord</h1>
-      <p style={{ marginBottom: 20 }}>
-        You are: <b>{displayName}</b> (<code>{sessionId}</code>)
-      </p>
-
-      <RichTextEditor
-        onSubmit={(html) => createNote(html, sessionId, displayName)}
-      />
-
-      <div style={{ marginTop: 24 }}>
-        {notes.map((n) => (
-          <StickyNote
-            key={n.id}
-            note={n}
-            onDelete={() => removeNote(n.id)}
-          />
-        ))}
+      <div style={{ gridColumn: "1 / -1", marginBottom: 20 }}>
+        <h1 style={{ marginBottom: 4 }}>Chord</h1>
+        <p style={{ margin: 0 }}>
+          You are: <b>{displayName}</b> (<code>{sessionId}</code>)
+        </p>
       </div>
+
+      <aside>
+        <RichTextEditor
+          onSubmit={(html) => createNote(html, sessionId, displayName)}
+        />
+      </aside>
+
+      <main>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+            gap: 16,
+            alignContent: "start",
+          }}
+        >
+          {notes.map((n) => (
+            <StickyNote
+              key={n.id}
+              note={n}
+              onDelete={() => removeNote(n.id)}
+            />
+          ))}
+        </div>
+      </main>
     </div>
   );
 }
