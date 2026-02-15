@@ -39,6 +39,7 @@ export type Note = {
   groupedUnder?: string; // parent note ID if this note is grouped
   editHistory?: NoteVersion[]; // previous versions
   responses?: NoteResponse[]; // responses to this note
+  archived?: boolean; // whether the note is archived
 };
 
 const notesCol = (collaborationId: string) =>
@@ -160,4 +161,17 @@ export async function addResponse(
   };
 
   await updateDoc(noteRef, updateData);
+}
+
+export async function toggleArchive(
+  collaborationId: string,
+  noteId: string,
+  archived: boolean,
+) {
+  await updateDoc(
+    doc(db, "collaborations", collaborationId, "notes", noteId),
+    {
+      archived: archived ? deleteField() : true,
+    },
+  );
 }

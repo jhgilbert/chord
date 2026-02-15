@@ -18,6 +18,7 @@ import {
   setReaction,
   setGroupedUnder,
   subscribeNotes,
+  toggleArchive,
   type Note,
   type NoteType,
   type Reaction,
@@ -176,6 +177,7 @@ function StickyNote({
   canUngroup,
   onUngroup,
   canEdit,
+  canArchive,
 }: {
   note: Note;
   collaborationId: string;
@@ -194,6 +196,7 @@ function StickyNote({
   canUngroup?: boolean;
   onUngroup?: () => void;
   canEdit?: boolean;
+  canArchive?: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -340,8 +343,24 @@ function StickyNote({
         </button>
       )}
       {((!paused && !isResponding && (note.createdBy !== sessionId || (note.responses && note.responses.length > 0))) ||
-        ((canReact || paused) && note.createdBy !== sessionId)) && (
+        ((canReact || paused) && note.createdBy !== sessionId) ||
+        canArchive) && (
         <div className={styles.stickyNoteActions}>
+          {canArchive && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleArchive(collaborationId, note.id, !!note.archived);
+              }}
+              className={styles.actionButton}
+              data-active={false}
+              style={{ opacity: hovered ? 1 : 0 }}
+              aria-label={note.archived ? "Unarchive" : "Archive"}
+              title={note.archived ? "Unarchive" : "Archive"}
+            >
+              {note.archived ? "📂" : "🗄️"}
+            </button>
+          )}
           {!paused && !isResponding && (note.createdBy !== sessionId || (note.responses && note.responses.length > 0)) && (
             <button
               onClick={(e) => {
@@ -638,7 +657,7 @@ function CollabRoute() {
   );
   const [notes, setNotes] = useState<Note[]>([]);
   const [openType, setOpenType] = useState<NoteType | null>(null);
-  const [filter, setFilter] = useState<NoteType | "All" | "Inbox" | "Mine">(
+  const [filter, setFilter] = useState<NoteType | "All" | "Inbox" | "Mine" | "Archived">(
     "All",
   );
   const [reactionFilter, setReactionFilter] = useState<
@@ -694,10 +713,12 @@ function CollabRoute() {
       md += `**Prompt:** ${promptText}\n\n`;
       md += `**Started by:** ${collab.startedByName}\n\n`;
       md += `---\n\n`;
-      md += `## Notes (${notes.length})\n\n`;
 
-      // Notes are already sorted by creation time from the query
-      notes.forEach((note, idx) => {
+      // Separate action items for top section, but keep all notes for chronological section
+      const actionItems = notes.filter(n => n.type === "Action item");
+
+      // Helper function to render a note
+      const renderNote = (note: Note, idx: number) => {
         // Strip HTML from note content
         tempDiv.innerHTML = note.content;
         const noteText = tempDiv.textContent || tempDiv.innerText || '';
@@ -744,7 +765,19 @@ function CollabRoute() {
         }
 
         md += `---\n\n`;
-      });
+      };
+
+      // Render action items first for quick reference
+      if (actionItems.length > 0) {
+        md += `## Action Items (${actionItems.length})\n\n`;
+        actionItems.forEach((note, idx) => renderNote(note, idx));
+      }
+
+      // Then render all notes in chronological order (including action items)
+      if (notes.length > 0) {
+        md += `## Notes (${notes.length})\n\n`;
+        notes.forEach((note, idx) => renderNote(note, idx));
+      }
 
       return md;
     };
@@ -799,27 +832,34 @@ function CollabRoute() {
     children.forEach((id) => allChildIds.add(id));
   }
 
-  // Calculate inbox count
+  // Calculate inbox count (exclude archived)
   const inboxCount = notes.filter(
     (n) =>
       n.createdBy !== session.userId &&
       !n.reactions?.[session.userId] &&
-      !allChildIds.has(n.id),
+      !allChildIds.has(n.id) &&
+      !n.archived,
   ).length;
 
+  // Calculate archived count
+  const archivedCount = notes.filter((n) => n.archived).length;
+
   let visibleNotes =
-    filter === "All"
-      ? notes
-      : filter === "Inbox"
-        ? notes.filter(
-            (n) =>
-              n.createdBy !== session.userId &&
-              !n.reactions?.[session.userId] &&
-              !allChildIds.has(n.id),
-          )
-        : filter === "Mine"
-          ? notes.filter((n) => n.createdBy === session.userId)
-          : notes.filter((n) => n.type === filter);
+    filter === "Archived"
+      ? notes.filter((n) => n.archived)
+      : filter === "All"
+        ? notes.filter((n) => !n.archived)
+        : filter === "Inbox"
+          ? notes.filter(
+              (n) =>
+                n.createdBy !== session.userId &&
+                !n.reactions?.[session.userId] &&
+                !allChildIds.has(n.id) &&
+                !n.archived,
+            )
+          : filter === "Mine"
+            ? notes.filter((n) => n.createdBy === session.userId && !n.archived)
+            : notes.filter((n) => n.type === filter && !n.archived);
 
   // Apply reaction filter
   if (reactionFilter !== "All") {
@@ -1039,14 +1079,14 @@ function CollabRoute() {
 
         <main className={styles.collabMain}>
           <div className={styles.filterBar}>
-            {(["All", "Inbox", "Mine"] as const).map((t) => (
+            {(["All", "Inbox", "Mine", "Archived"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setFilter(t)}
                 className={styles.filterButton}
                 data-active={filter === t}
               >
-                {t === "Inbox" ? `Inbox (${inboxCount})` : t}
+                {t === "Inbox" ? `Inbox (${inboxCount})` : t === "Archived" ? `Archived (${archivedCount})` : t}
               </button>
             ))}
             <select
@@ -1116,6 +1156,7 @@ function CollabRoute() {
                   canEdit={
                     !collab.paused && collab.active && n.createdBy === session.userId
                   }
+                  canArchive={isHost && collab.active}
                 />
                 {isParent && !isGrouped && (
                   <div className={styles.groupIndicator}>
