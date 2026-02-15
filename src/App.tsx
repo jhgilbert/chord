@@ -972,41 +972,39 @@ function CollabRoute() {
   if (!collab.active) {
     // Generate Markdown summary
     const generateHTML = () => {
-      let html = `<h1>Collaboration Summary</h1>`;
-      html += `<p><strong>Host:</strong> ${collab.startedByName}</p>`;
-      html += `<hr>`;
+      let html = '';
 
-      // Render prompt(s) with history
-      const allPrompts: PromptVersion[] = [
-        ...(collab.promptHistory || []),
-        { prompt: collab.prompt, timestamp: collab.promptUpdatedAt || collab.startedAt || Date.now() }
-      ];
+      // Helper to get timestamp from Firestore or number
+      const getTimestamp = (time: unknown): number => {
+        if (!time) return 0;
+        const ts = time as unknown as {
+          toDate?: () => Date;
+          seconds?: number;
+        };
+        if (ts.toDate) return ts.toDate().getTime();
+        if (ts.seconds) return ts.seconds * 1000;
+        if (typeof time === 'number') return time;
+        return 0;
+      };
 
-      html += `<h2>Prompt${allPrompts.length > 1 ? 's' : ''}</h2>`;
-      allPrompts.forEach((p, idx) => {
-        let timestamp = "Unknown time";
-        if (p.timestamp) {
-          // Handle Firestore Timestamp objects
-          const ts = p.timestamp as unknown as {
-            toDate?: () => Date;
-            seconds?: number;
-          };
-          if (ts.toDate) {
-            timestamp = ts.toDate().toLocaleString();
-          } else if (ts.seconds) {
-            timestamp = new Date(ts.seconds * 1000).toLocaleString();
-          } else {
-            timestamp = new Date(p.timestamp as number).toLocaleString();
-          }
+      // Helper to format timestamp as string
+      const formatTimestamp = (time: unknown): string => {
+        const timestamp = getTimestamp(time);
+        return timestamp > 0 ? new Date(timestamp).toLocaleString() : "Unknown time";
+      };
+
+      // Build prompts array with timestamps
+      const allPrompts: (PromptVersion & { timestampMs: number })[] = [
+        ...(collab.promptHistory || []).map(p => ({
+          ...p,
+          timestampMs: getTimestamp(p.timestamp)
+        })),
+        {
+          prompt: collab.prompt,
+          timestamp: collab.promptUpdatedAt || collab.startedAt || Date.now(),
+          timestampMs: getTimestamp(collab.promptUpdatedAt || collab.startedAt || Date.now())
         }
-        if (allPrompts.length > 1) {
-          html += `<h3>${idx + 1}. ${timestamp}</h3>`;
-        } else {
-          html += `<p><em>${timestamp}</em></p>`;
-        }
-        html += `<div>${p.prompt}</div>`;
-      });
-      html += `<hr>`;
+      ].sort((a, b) => a.timestampMs - b.timestampMs);
 
       // Helper function to render a note in HTML
       const renderNoteHTML = (note: Note, idx: number) => {
@@ -1080,19 +1078,48 @@ function CollabRoute() {
         html += `<hr>`;
       };
 
-      // Render each note type in its own section
-      const noteTypeOrder: NoteType[] = ["Action item", "Requirement", "Recommendation", "Statement", "Question"];
+      // Render prompt sections with notes grouped by type
+      const noteTypeOrder: NoteType[] = [
+        "Action item",
+        "Requirement",
+        "Recommendation",
+        "Statement",
+        "Question",
+        "Positive feedback",
+        "Constructive feedback"
+      ];
 
-      noteTypeOrder.forEach(noteType => {
-        const notesOfType = notes.filter(n => n.type === noteType);
-        if (notesOfType.length > 0) {
-          const sectionName = noteType === "Action item" ? "Action Items" : noteType + "s";
-          html += `<h2>${sectionName} (${notesOfType.length})</h2>`;
-          notesOfType.forEach((note, idx) => renderNoteHTML(note, idx));
+      allPrompts.forEach((prompt, promptIdx) => {
+        // Determine time range for this prompt
+        const startTime = prompt.timestampMs;
+        const endTime = promptIdx < allPrompts.length - 1 ? allPrompts[promptIdx + 1].timestampMs : Infinity;
+
+        // Get notes created during this prompt's period
+        const promptNotes = notes.filter(note => {
+          const noteTime = getTimestamp(note.createdAt);
+          return noteTime >= startTime && noteTime < endTime;
+        });
+
+        // Only render this prompt section if it has notes
+        if (promptNotes.length > 0) {
+          html += `<h2>Prompt ${promptIdx + 1}</h2>`;
+          html += `<p><em>${formatTimestamp(prompt.timestamp)}</em></p>`;
+          html += `<div>${prompt.prompt}</div>`;
+          html += `<hr>`;
+
+          // Group notes by type and render
+          noteTypeOrder.forEach(noteType => {
+            const notesOfType = promptNotes.filter(n => n.type === noteType);
+            if (notesOfType.length > 0) {
+              const sectionName = noteType === "Action item" ? "Action items" : noteType + "s";
+              html += `<h3>${sectionName} (${notesOfType.length})</h3>`;
+              notesOfType.forEach((note, idx) => renderNoteHTML(note, idx));
+            }
+          });
         }
       });
 
-      // Then render all notes in chronological order
+      // Render all notes in chronological order
       if (notes.length > 0) {
         html += `<h2>Collaboration Timeline (${notes.length})</h2>`;
         notes.forEach((note, idx) => renderNoteHTML(note, idx));
@@ -1102,47 +1129,40 @@ function CollabRoute() {
     };
 
     const generateMarkdown = () => {
-      let md = `# Collaboration Summary\n\n`;
-      md += `**Host:** ${collab.startedByName}\n\n`;
-      md += `---\n\n`;
-
-      // Render prompt(s) with history
+      let md = '';
       const tempDiv = document.createElement('div');
-      const allPrompts: PromptVersion[] = [
-        ...(collab.promptHistory || []),
-        { prompt: collab.prompt, timestamp: collab.promptUpdatedAt || collab.startedAt || Date.now() }
-      ];
 
-      md += `## Prompt${allPrompts.length > 1 ? 's' : ''}\n\n`;
-      allPrompts.forEach((p, idx) => {
-        let timestamp = "Unknown time";
-        if (p.timestamp) {
-          // Handle Firestore Timestamp objects
-          const ts = p.timestamp as unknown as {
-            toDate?: () => Date;
-            seconds?: number;
-          };
-          if (ts.toDate) {
-            timestamp = ts.toDate().toLocaleString();
-          } else if (ts.seconds) {
-            timestamp = new Date(ts.seconds * 1000).toLocaleString();
-          } else {
-            timestamp = new Date(p.timestamp as number).toLocaleString();
-          }
+      // Helper to get timestamp from Firestore or number
+      const getTimestamp = (time: unknown): number => {
+        if (!time) return 0;
+        const ts = time as unknown as {
+          toDate?: () => Date;
+          seconds?: number;
+        };
+        if (ts.toDate) return ts.toDate().getTime();
+        if (ts.seconds) return ts.seconds * 1000;
+        if (typeof time === 'number') return time;
+        return 0;
+      };
+
+      // Helper to format timestamp as string
+      const formatTimestamp = (time: unknown): string => {
+        const timestamp = getTimestamp(time);
+        return timestamp > 0 ? new Date(timestamp).toLocaleString() : "Unknown time";
+      };
+
+      // Build prompts array with timestamps
+      const allPrompts: (PromptVersion & { timestampMs: number })[] = [
+        ...(collab.promptHistory || []).map(p => ({
+          ...p,
+          timestampMs: getTimestamp(p.timestamp)
+        })),
+        {
+          prompt: collab.prompt,
+          timestamp: collab.promptUpdatedAt || collab.startedAt || Date.now(),
+          timestampMs: getTimestamp(collab.promptUpdatedAt || collab.startedAt || Date.now())
         }
-
-        // Strip HTML tags from prompt for markdown
-        tempDiv.innerHTML = p.prompt;
-        const promptText = tempDiv.textContent || tempDiv.innerText || '';
-
-        if (allPrompts.length > 1) {
-          md += `### ${idx + 1}. ${timestamp}\n\n`;
-        } else {
-          md += `*${timestamp}*\n\n`;
-        }
-        md += `${promptText}\n\n`;
-      });
-      md += `---\n\n`;
+      ].sort((a, b) => a.timestampMs - b.timestampMs);
 
       // Helper function to render a note
       const renderNote = (note: Note, idx: number) => {
@@ -1223,21 +1243,52 @@ function CollabRoute() {
         md += `---\n\n`;
       };
 
-      // Render each note type in its own section
-      // Order: Action items, Requirements, Recommendations, Statements, Questions
-      const noteTypeOrder: NoteType[] = ["Action item", "Requirement", "Recommendation", "Statement", "Question"];
+      // Render prompt sections with notes grouped by type
+      const noteTypeOrder: NoteType[] = [
+        "Action item",
+        "Requirement",
+        "Recommendation",
+        "Statement",
+        "Question",
+        "Positive feedback",
+        "Constructive feedback"
+      ];
 
-      noteTypeOrder.forEach(noteType => {
-        const notesOfType = notes.filter(n => n.type === noteType);
-        if (notesOfType.length > 0) {
-          // Pluralize the section name
-          const sectionName = noteType === "Action item" ? "Action Items" : noteType + "s";
-          md += `## ${sectionName} (${notesOfType.length})\n\n`;
-          notesOfType.forEach((note, idx) => renderNote(note, idx));
+      allPrompts.forEach((prompt, promptIdx) => {
+        // Determine time range for this prompt
+        const startTime = prompt.timestampMs;
+        const endTime = promptIdx < allPrompts.length - 1 ? allPrompts[promptIdx + 1].timestampMs : Infinity;
+
+        // Get notes created during this prompt's period
+        const promptNotes = notes.filter(note => {
+          const noteTime = getTimestamp(note.createdAt);
+          return noteTime >= startTime && noteTime < endTime;
+        });
+
+        // Only render this prompt section if it has notes
+        if (promptNotes.length > 0) {
+          md += `## Prompt ${promptIdx + 1}\n\n`;
+          md += `*${formatTimestamp(prompt.timestamp)}*\n\n`;
+
+          // Strip HTML from prompt for markdown
+          tempDiv.innerHTML = prompt.prompt;
+          const promptText = tempDiv.textContent || tempDiv.innerText || '';
+          md += `${promptText}\n\n`;
+          md += `---\n\n`;
+
+          // Group notes by type and render
+          noteTypeOrder.forEach(noteType => {
+            const notesOfType = promptNotes.filter(n => n.type === noteType);
+            if (notesOfType.length > 0) {
+              const sectionName = noteType === "Action item" ? "Action items" : noteType + "s";
+              md += `### ${sectionName} (${notesOfType.length})\n\n`;
+              notesOfType.forEach((note, idx) => renderNote(note, idx));
+            }
+          });
         }
       });
 
-      // Then render all notes in chronological order
+      // Render all notes in chronological order
       if (notes.length > 0) {
         md += `## Collaboration Timeline (${notes.length})\n\n`;
         notes.forEach((note, idx) => renderNote(note, idx));
