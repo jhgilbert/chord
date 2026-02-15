@@ -500,7 +500,7 @@
   gap: 6px;
   position: absolute;
   top: 10px;
-  right: 40px;
+  right: 0;
 }
 
 .actionButton {
@@ -1295,4 +1295,9 @@
 
 .buttonStats:hover {
   background: #4f46e5;
+}
+
+/* Hide last button in Quill toolbar */
+:global(.ql-toolbar button:last-child) {
+  display: none;
 }

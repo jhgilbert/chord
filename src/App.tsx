@@ -545,26 +545,15 @@ function StickyNote({
               {note.archived ? "📂" : "🗄️"}
             </button>
           )}
-          <>
-            <button
-              onClick={canReact && note.createdBy !== sessionId ? () => handleReaction("agree") : undefined}
-              className={styles.actionButton}
-              data-active={myReaction === "agree"}
-              data-paused={paused || note.createdBy === sessionId}
-              style={{ opacity: getReactionOpacity("agree") }}
-            >
-              👍 <span>{counts.agree}</span>
-            </button>
-            <button
-              onClick={canReact && note.createdBy !== sessionId ? () => handleReaction("disagree") : undefined}
-              className={styles.actionButton}
-              data-active={myReaction === "disagree"}
-              data-paused={paused || note.createdBy === sessionId}
-              style={{ opacity: getReactionOpacity("disagree") }}
-            >
-              👎 <span>{counts.disagree}</span>
-            </button>
-          </>
+          <button
+            onClick={canReact && note.createdBy !== sessionId ? () => handleReaction("agree") : undefined}
+            className={styles.actionButton}
+            data-active={myReaction === "agree"}
+            data-paused={paused || note.createdBy === sessionId}
+            style={{ opacity: getReactionOpacity("agree") }}
+          >
+            👍 <span>{counts.agree}</span>
+          </button>
           {!paused && !isResponding && (
             <button
               onClick={(e) => {
@@ -958,9 +947,6 @@ function CollabRoute() {
   const [filter, setFilter] = useState<NoteType | "All" | "Inbox" | "Mine" | "Archived">(
     "Mine",
   );
-  const [reactionFilter, setReactionFilter] = useState<
-    "All" | "Agreed" | "Disagreed" | "Not reacted"
-  >("All");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [draggedNoteId, setDraggedNoteId] = useState<string | null>(null);
@@ -1557,17 +1543,6 @@ function CollabRoute() {
             ? notes.filter((n) => n.createdBy === session.userId && !n.archived)
             : notes.filter((n) => n.type === filter && !n.archived);
 
-  // Apply reaction filter
-  if (reactionFilter !== "All") {
-    visibleNotes = visibleNotes.filter((n) => {
-      const myReaction = n.reactions?.[session.userId] ?? null;
-      if (reactionFilter === "Agreed") return myReaction === "agree";
-      if (reactionFilter === "Disagreed") return myReaction === "disagree";
-      if (reactionFilter === "Not reacted")
-        return n.createdBy !== session.userId && !myReaction;
-      return true;
-    });
-  }
 
   // Apply sort order (notes are fetched in ascending order by default)
   // Inbox always shows oldest first for stable queue processing
@@ -1866,21 +1841,6 @@ function CollabRoute() {
                   {t}
                 </option>
               ))}
-            </select>
-            <select
-              value={reactionFilter}
-              onChange={(e) =>
-                setReactionFilter(
-                  e.target.value as typeof reactionFilter,
-                )
-              }
-              className={styles.filterDropdown}
-              data-active={reactionFilter !== "All"}
-            >
-              <option value="All">All reactions</option>
-              <option value="Agreed">Agreed</option>
-              <option value="Disagreed">Disagreed</option>
-              <option value="Not reacted">Not reacted</option>
             </select>
             <select
               value={filter === "Inbox" ? "asc" : sortOrder}
