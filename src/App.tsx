@@ -745,6 +745,89 @@ function CollabRoute() {
   // If collaboration is stopped, show summary screen
   if (!collab.active) {
     // Generate Markdown summary
+    const generateHTML = () => {
+      let html = `<h1>Collaboration Summary</h1>`;
+      html += `<p><strong>Host:</strong> ${collab.startedByName}</p>`;
+      html += `<hr>`;
+      html += `<h2>Prompt</h2>`;
+      html += `<div>${collab.prompt}</div>`;
+      html += `<hr>`;
+
+      // Helper function to render a note in HTML
+      const renderNoteHTML = (note: Note, idx: number) => {
+        html += `<h3>${idx + 1}. ${note.type} by ${note.createdByName}</h3>`;
+
+        // Action item metadata
+        if (note.type === "Action item" && (note.assignee || note.dueDate)) {
+          html += `<p>`;
+          if (note.assignee) html += `<strong>Assignee:</strong> ${note.assignee}<br>`;
+          if (note.dueDate) {
+            const dueDate = new Date(note.dueDate).toLocaleDateString();
+            html += `<strong>Due date:</strong> ${dueDate}<br>`;
+          }
+          html += `</p>`;
+        }
+
+        html += `<div>${note.content}</div>`;
+
+        // Reactions
+        if (note.reactions && Object.keys(note.reactions).length > 0) {
+          const reactionCounts = { agree: 0, disagree: 0 };
+          Object.values(note.reactions).forEach(r => reactionCounts[r]++);
+          html += `<p><strong>Reactions:</strong> `;
+          if (reactionCounts.agree > 0) html += `👍 ${reactionCounts.agree} `;
+          if (reactionCounts.disagree > 0) html += `👎 ${reactionCounts.disagree}`;
+          html += `</p>`;
+        }
+
+        // Responses
+        if (note.responses && note.responses.length > 0) {
+          html += `<p><strong>Responses (${note.responses.length}):</strong></p><ul>`;
+          note.responses.forEach(response => {
+            const timestamp = response.createdAt
+              ? new Date(response.createdAt as number).toLocaleString()
+              : "Unknown time";
+            html += `<li><strong>${response.createdByName}</strong> (${timestamp}): <div style="display:inline">${response.content}</div></li>`;
+          });
+          html += `</ul>`;
+        }
+
+        // Edit history
+        if (note.editHistory && note.editHistory.length > 0) {
+          html += `<p><strong>Edit History (${note.editHistory.length} version${note.editHistory.length !== 1 ? 's' : ''}):</strong></p><ol>`;
+          note.editHistory.forEach((version) => {
+            const timestamp = version.editedAt
+              ? new Date(version.editedAt as number).toLocaleString()
+              : "Unknown time";
+            html += `<li>${timestamp}: <div style="display:inline">${version.content}</div></li>`;
+          });
+          html += `</ol>`;
+        }
+
+        html += `<hr>`;
+      };
+
+      // Render each note type in its own section
+      const noteTypeOrder: NoteType[] = ["Action item", "Requirement", "Recommendation", "Statement", "Question"];
+
+      noteTypeOrder.forEach(noteType => {
+        const notesOfType = notes.filter(n => n.type === noteType);
+        if (notesOfType.length > 0) {
+          const sectionName = noteType === "Action item" ? "Action Items" : noteType + "s";
+          html += `<h2>${sectionName} (${notesOfType.length})</h2>`;
+          notesOfType.forEach((note, idx) => renderNoteHTML(note, idx));
+        }
+      });
+
+      // Then render all notes in chronological order
+      if (notes.length > 0) {
+        html += `<h2>Collaboration Timeline (${notes.length})</h2>`;
+        notes.forEach((note, idx) => renderNoteHTML(note, idx));
+      }
+
+      return html;
+    };
+
     const generateMarkdown = () => {
       let md = `# Collaboration Summary\n\n`;
       md += `**Host:** ${collab.startedByName}\n\n`;
@@ -862,15 +945,29 @@ function CollabRoute() {
         <div className={styles.stoppedSummary}>
           <div className={styles.summaryHeader}>
             <h2 className={styles.summaryTitle}>Summary</h2>
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(generateMarkdown());
-                alert('Copied to clipboard!');
-              }}
-              className={styles.copyButton}
-            >
-              Copy Markdown
-            </button>
+            <div className={styles.copyButtons}>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(generateMarkdown());
+                  alert('Copied Markdown to clipboard!');
+                }}
+                className={styles.copyButton}
+              >
+                Copy Markdown
+              </button>
+              <button
+                onClick={async () => {
+                  const html = generateHTML();
+                  const blob = new Blob([html], { type: 'text/html' });
+                  const clipboardItem = new ClipboardItem({ 'text/html': blob });
+                  await navigator.clipboard.write([clipboardItem]);
+                  alert('Copied for Google Docs! Paste into Google Docs to preserve formatting.');
+                }}
+                className={styles.copyButton}
+              >
+                Copy for Google Docs
+              </button>
+            </div>
           </div>
           <pre className={styles.summaryContent}>{generateMarkdown()}</pre>
         </div>
