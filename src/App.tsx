@@ -51,7 +51,7 @@ const NOTE_TYPES: NoteType[] = [
 ];
 
 const NOTE_TYPE_EXAMPLES: Partial<Record<NoteType, string>> = {
-  Question: "How should we ...?",
+  Question: "Are we expected to ...?",
   Statement: "I don't like ...",
   Recommendation: "We should ...",
   Requirement: "The solution must ...",
@@ -339,7 +339,10 @@ function NoteTypePanel({
               style={{
                 backgroundColor: color,
                 color: "#fff",
-                opacity: !value || value.replace(/<[^>]*>/g, "").trim() === "" ? 0.4 : 1,
+                opacity:
+                  !value || value.replace(/<[^>]*>/g, "").trim() === ""
+                    ? 0.4
+                    : 1,
               }}
               disabled={!value || value.replace(/<[^>]*>/g, "").trim() === ""}
             >
@@ -480,7 +483,9 @@ function StickyNote({
   const [showResponses, setShowResponses] = useState(false);
   const [isResponding, setIsResponding] = useState(false);
   const [responseContent, setResponseContent] = useState("");
-  const [pendingPollSelection, setPendingPollSelection] = useState<number | number[] | null>(null);
+  const [pendingPollSelection, setPendingPollSelection] = useState<
+    number | number[] | null
+  >(null);
   const myReaction: Reaction | null = note.reactions?.[sessionId] ?? null;
 
   const counts = { agree: 0, disagree: 0, markRead: 0 };
@@ -790,107 +795,126 @@ function StickyNote({
             dangerouslySetInnerHTML={{ __html: note.content }}
             className={styles.stickyNoteContent}
           />
-          {note.type === "Poll" && note.pollOptions && (() => {
-            const isMultiChoice = note.pollMultipleChoice;
-            const currentUserVote = note.pollVotes?.[sessionId];
-            const hasSubmittedVote = currentUserVote !== undefined;
+          {note.type === "Poll" &&
+            note.pollOptions &&
+            (() => {
+              const isMultiChoice = note.pollMultipleChoice;
+              const currentUserVote = note.pollVotes?.[sessionId];
+              const hasSubmittedVote = currentUserVote !== undefined;
 
-            return (
-              <div className={styles.pollOptionsDisplay}>
-                {note.pollOptions!.map((option, index) => {
-
-                // Use pending selection if exists, otherwise use submitted vote
-                const activeSelection = hasSubmittedVote ? currentUserVote : pendingPollSelection;
-
-                // Count votes for this option
-                const voteCount = Object.values(note.pollVotes || {}).filter(
-                  (v) => Array.isArray(v) ? v.includes(index) : v === index,
-                ).length;
-                const totalVotes = Object.keys(note.pollVotes || {}).length;
-                const percentage =
-                  totalVotes > 0
-                    ? Math.round((voteCount / totalVotes) * 100)
-                    : 0;
-
-                // Check if this option is selected
-                const isSelected = Array.isArray(activeSelection)
-                  ? activeSelection.includes(index)
-                  : activeSelection === index;
-
-                const showResults = paused;
-                const isPollClosed = !!note.pollClosed;
-                const canInteract = !paused && !isPollClosed && !hasSubmittedVote;
-
-                return (
-                  <button
-                    key={index}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (canInteract) {
-                        if (isMultiChoice) {
-                          // Multi-choice: toggle this option
-                          const currentSelection = Array.isArray(pendingPollSelection) ? pendingPollSelection : [];
-                          const newSelection = currentSelection.includes(index)
-                            ? currentSelection.filter(i => i !== index)
-                            : [...currentSelection, index];
-                          setPendingPollSelection(newSelection);
-                        } else {
-                          // Single choice: set to this option
-                          setPendingPollSelection(index);
-                        }
-                      }
-                    }}
-                    className={styles.pollOption}
-                    data-voted={isSelected}
-                    data-disabled={!canInteract}
-                    disabled={!canInteract}
-                  >
-                    <span className={styles.pollOptionText}>{option}</span>
-                    {showResults && (
-                      <span className={styles.pollOptionCount}>
-                        {voteCount} ({percentage}%)
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-              {!paused && !note.pollClosed && !hasSubmittedVote && pendingPollSelection !== null && (
-                <button
-                  onClick={async (e) => {
-                    e.stopPropagation();
-                    const voteToSubmit = Array.isArray(pendingPollSelection) && pendingPollSelection.length === 0
-                      ? (note.pollMultipleChoice ? [] : 0)
+              return (
+                <div className={styles.pollOptionsDisplay}>
+                  {note.pollOptions!.map((option, index) => {
+                    // Use pending selection if exists, otherwise use submitted vote
+                    const activeSelection = hasSubmittedVote
+                      ? currentUserVote
                       : pendingPollSelection;
-                    await votePoll(
-                      collaborationId,
-                      note.id,
-                      sessionId,
-                      voteToSubmit,
+
+                    // Count votes for this option
+                    const voteCount = Object.values(
+                      note.pollVotes || {},
+                    ).filter((v) =>
+                      Array.isArray(v) ? v.includes(index) : v === index,
+                    ).length;
+                    const totalVotes = Object.keys(note.pollVotes || {}).length;
+                    const percentage =
+                      totalVotes > 0
+                        ? Math.round((voteCount / totalVotes) * 100)
+                        : 0;
+
+                    // Check if this option is selected
+                    const isSelected = Array.isArray(activeSelection)
+                      ? activeSelection.includes(index)
+                      : activeSelection === index;
+
+                    const showResults = paused;
+                    const isPollClosed = !!note.pollClosed;
+                    const canInteract =
+                      !paused && !isPollClosed && !hasSubmittedVote;
+
+                    return (
+                      <button
+                        key={index}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (canInteract) {
+                            if (isMultiChoice) {
+                              // Multi-choice: toggle this option
+                              const currentSelection = Array.isArray(
+                                pendingPollSelection,
+                              )
+                                ? pendingPollSelection
+                                : [];
+                              const newSelection = currentSelection.includes(
+                                index,
+                              )
+                                ? currentSelection.filter((i) => i !== index)
+                                : [...currentSelection, index];
+                              setPendingPollSelection(newSelection);
+                            } else {
+                              // Single choice: set to this option
+                              setPendingPollSelection(index);
+                            }
+                          }
+                        }}
+                        className={styles.pollOption}
+                        data-voted={isSelected}
+                        data-disabled={!canInteract}
+                        disabled={!canInteract}
+                      >
+                        <span className={styles.pollOptionText}>{option}</span>
+                        {showResults && (
+                          <span className={styles.pollOptionCount}>
+                            {voteCount} ({percentage}%)
+                          </span>
+                        )}
+                      </button>
                     );
-                    setPendingPollSelection(null);
-                  }}
-                  className={styles.pollSubmitButton}
-                >
-                  Submit vote
-                </button>
-              )}
-              {isHost && paused && !note.pollClosed && (
-                <button
-                  onClick={async (e) => {
-                    e.stopPropagation();
-                    await closePoll(collaborationId, note.id);
-                  }}
-                  className={styles.closePollButton}
-                >
-                  Close poll
-                </button>
-              )}
-              {note.pollClosed && (
-                <div className={styles.pollClosedMessage}>Poll closed</div>
-              )}
-            </div>
-            );
-          })()}
+                  })}
+                  {!paused &&
+                    !note.pollClosed &&
+                    !hasSubmittedVote &&
+                    pendingPollSelection !== null && (
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          const voteToSubmit =
+                            Array.isArray(pendingPollSelection) &&
+                            pendingPollSelection.length === 0
+                              ? note.pollMultipleChoice
+                                ? []
+                                : 0
+                              : pendingPollSelection;
+                          await votePoll(
+                            collaborationId,
+                            note.id,
+                            sessionId,
+                            voteToSubmit,
+                          );
+                          setPendingPollSelection(null);
+                        }}
+                        className={styles.pollSubmitButton}
+                      >
+                        Submit vote
+                      </button>
+                    )}
+                  {isHost && paused && !note.pollClosed && (
+                    <button
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        await closePoll(collaborationId, note.id);
+                      }}
+                      className={styles.closePollButton}
+                    >
+                      Close poll
+                    </button>
+                  )}
+                  {note.pollClosed && (
+                    <div className={styles.pollClosedMessage}>Poll closed</div>
+                  )}
+                </div>
+              );
+            })()}
           {note.editHistory && note.editHistory.length > 0 && (
             <div className={styles.historyContainer}>
               <button
@@ -2013,7 +2037,8 @@ function CollabRoute() {
                 n.type === "Poll"
                   ? (() => {
                       const userVote = n.pollVotes?.[session.userId];
-                      const hasVoted = userVote !== undefined &&
+                      const hasVoted =
+                        userVote !== undefined &&
                         (Array.isArray(userVote) ? userVote.length > 0 : true);
                       return hasVoted || n.pollClosed;
                     })()
@@ -2301,7 +2326,13 @@ function CollabRoute() {
                     onToggle={() =>
                       setOpenType(openType === type ? null : type)
                     }
-                    onSubmit={(html, assignee, dueDate, pollOptions, pollMultipleChoice) =>
+                    onSubmit={(
+                      html,
+                      assignee,
+                      dueDate,
+                      pollOptions,
+                      pollMultipleChoice,
+                    ) =>
                       createNote(
                         collab.id,
                         type,
@@ -2326,7 +2357,13 @@ function CollabRoute() {
                 onToggle={() =>
                   setOpenType(openType === "Action item" ? null : "Action item")
                 }
-                onSubmit={(html, assignee, dueDate, pollOptions, pollMultipleChoice) =>
+                onSubmit={(
+                  html,
+                  assignee,
+                  dueDate,
+                  pollOptions,
+                  pollMultipleChoice,
+                ) =>
                   createNote(
                     collab.id,
                     "Action item",
@@ -2348,7 +2385,13 @@ function CollabRoute() {
                 onToggle={() =>
                   setOpenType(openType === "Poll" ? null : "Poll")
                 }
-                onSubmit={(html, assignee, dueDate, pollOptions, pollMultipleChoice) =>
+                onSubmit={(
+                  html,
+                  assignee,
+                  dueDate,
+                  pollOptions,
+                  pollMultipleChoice,
+                ) =>
                   createNote(
                     collab.id,
                     "Poll",
@@ -2371,7 +2414,13 @@ function CollabRoute() {
                   onToggle={() =>
                     setOpenType(openType === "Host note" ? null : "Host note")
                   }
-                  onSubmit={(html, assignee, dueDate, pollOptions, pollMultipleChoice) =>
+                  onSubmit={(
+                    html,
+                    assignee,
+                    dueDate,
+                    pollOptions,
+                    pollMultipleChoice,
+                  ) =>
                     createNote(
                       collab.id,
                       "Host note",
