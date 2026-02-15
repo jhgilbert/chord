@@ -559,8 +559,8 @@ function CollabRoute() {
         </aside>
 
         <main>
-          <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
-            {(["All", "Inbox", "Mine", ...NOTE_TYPES] as const).map((t) => (
+          <div style={{ display: "flex", gap: 6, marginBottom: 16, alignItems: "center" }}>
+            {(["All", "Inbox", "Mine"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setFilter(t)}
@@ -578,6 +578,25 @@ function CollabRoute() {
                 {t}
               </button>
             ))}
+            <select
+              value={NOTE_TYPES.includes(filter as NoteType) ? filter : "All"}
+              onChange={(e) => setFilter(e.target.value as typeof filter)}
+              style={{
+                padding: "5px 10px",
+                fontSize: 13,
+                border: "1px solid #d1d5db",
+                borderRadius: 4,
+                background: NOTE_TYPES.includes(filter as NoteType) ? "#111" : "#f3f4f6",
+                color: NOTE_TYPES.includes(filter as NoteType) ? "#fff" : "#555",
+                cursor: "pointer",
+                fontWeight: NOTE_TYPES.includes(filter as NoteType) ? 600 : 400,
+              }}
+            >
+              <option value="All">All note types</option>
+              {NOTE_TYPES.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {visibleNotes.map((n) => (
