@@ -60,9 +60,9 @@ const NOTE_TYPE_EXAMPLES: Partial<Record<NoteType, string>> = {
 };
 
 const NOTE_TYPE_COLORS: Record<NoteType, string> = {
-  Question: "#228b22", // forest green
-  Statement: "#a855f7", // purple
-  Recommendation: "#fb923c", // orange
+  Question: "#228b53", // forest green
+  Statement: "#8335f1", // purple
+  Recommendation: "#fb7c3c", // orange
   Requirement: "#3b82f6", // blue
   "Action item": "#ff1493", // pink
   "Positive feedback": "#10b981", // green
@@ -490,7 +490,7 @@ function StickyNote({
 
   const counts = { agree: 0, disagree: 0, markRead: 0 };
   if (paused) {
-    for (const r of Object.values(note.reactions ?? {})) counts[r]++;
+    Object.values(note.reactions ?? {}).forEach((r) => counts[r]++);
   } else if (myReaction) {
     counts[myReaction] = 1;
   }
@@ -977,8 +977,9 @@ function StickyNote({
                     response.reactions?.[sessionId] ?? null;
                   const responseCounts = { agree: 0, disagree: 0, markRead: 0 };
                   if (paused) {
-                    for (const r of Object.values(response.reactions ?? {}))
-                      responseCounts[r]++;
+                    Object.values(response.reactions ?? {}).forEach(
+                      (r) => responseCounts[r]++,
+                    );
                   } else if (myResponseReaction) {
                     responseCounts[myResponseReaction] = 1;
                   }
@@ -1350,16 +1351,22 @@ function CollabRoute() {
     if (notes.length === 0) return;
 
     const existingTypes = new Set(notes.map((note) => note.type));
-    const newTypes = Array.from(existingTypes).filter(
-      (type) => !selectedNoteTypes.has(type),
-    );
 
-    if (newTypes.length > 0) {
-      const newSet = new Set(selectedNoteTypes);
-      newTypes.forEach((type) => newSet.add(type));
-      setSelectedNoteTypes(newSet);
-    }
-  }, [notes, selectedNoteTypes]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSelectedNoteTypes((prevSelected) => {
+      const newTypes = Array.from(existingTypes).filter(
+        (type) => !prevSelected.has(type),
+      );
+
+      if (newTypes.length > 0) {
+        const newSet = new Set(prevSelected);
+        newTypes.forEach((type) => newSet.add(type));
+        return newSet;
+      }
+
+      return prevSelected;
+    });
+  }, [notes]);
 
   if (!id) return <Navigate to="/start" replace />;
   if (!session) return null;
@@ -2267,13 +2274,16 @@ function CollabRoute() {
                   </button>
                   <button
                     onClick={async () => {
+                      const getCurrentTimestamp = () => Date.now();
+                      const timestamp =
+                        collab.promptUpdatedAt ||
+                        collab.startedAt ||
+                        getCurrentTimestamp();
                       await updatePrompt(
                         collab.id,
                         promptValue,
                         collab.prompt,
-                        collab.promptUpdatedAt ||
-                          collab.startedAt ||
-                          Date.now(),
+                        timestamp,
                         collab.promptHistory,
                       );
                       // Create a host note documenting the prompt change
