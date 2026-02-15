@@ -493,6 +493,7 @@ function StickyNote({
                   setIsResponding(true);
                 }}
                 className={styles.responseAddButton}
+                style={{ opacity: hovered ? 1 : 0 }}
               >
                 Add response
               </button>
