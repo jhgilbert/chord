@@ -766,6 +766,62 @@ function StartScreen() {
         />
         <div className={styles.noteTypesSelection}>
           <label className={styles.noteTypesLabel}>Allowed note types</label>
+          <div style={{ marginBottom: '16px' }}>
+            <div style={{ fontSize: '13px', color: '#666', marginBottom: '8px' }}>
+              Quick presets:
+            </div>
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              {(() => {
+                const discussionPreset: NoteType[] = ["Question", "Statement", "Recommendation"];
+                const retroPreset: NoteType[] = ["Positive feedback", "Constructive feedback"];
+
+                const arraysMatch = (a: NoteType[], b: NoteType[]) =>
+                  a.length === b.length && a.every(item => b.includes(item)) && b.every(item => a.includes(item));
+
+                const isDiscussionActive = arraysMatch(allowedNoteTypes, discussionPreset);
+                const isRetroActive = arraysMatch(allowedNoteTypes, retroPreset);
+
+                return (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setAllowedNoteTypes(discussionPreset)}
+                      style={{
+                        padding: '8px 14px',
+                        fontSize: '14px',
+                        cursor: 'pointer',
+                        border: isDiscussionActive ? '2px solid #0066cc' : '1px solid #0066cc',
+                        borderRadius: '6px',
+                        backgroundColor: isDiscussionActive ? '#0066cc' : '#e6f2ff',
+                        color: isDiscussionActive ? '#ffffff' : '#0066cc',
+                        fontWeight: isDiscussionActive ? '600' : '500',
+                        boxShadow: isDiscussionActive ? '0 2px 4px rgba(0,102,204,0.3)' : 'none'
+                      }}
+                    >
+                      📋 Discussion preset
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAllowedNoteTypes(retroPreset)}
+                      style={{
+                        padding: '8px 14px',
+                        fontSize: '14px',
+                        cursor: 'pointer',
+                        border: isRetroActive ? '2px solid #0066cc' : '1px solid #0066cc',
+                        borderRadius: '6px',
+                        backgroundColor: isRetroActive ? '#0066cc' : '#e6f2ff',
+                        color: isRetroActive ? '#ffffff' : '#0066cc',
+                        fontWeight: isRetroActive ? '600' : '500',
+                        boxShadow: isRetroActive ? '0 2px 4px rgba(0,102,204,0.3)' : 'none'
+                      }}
+                    >
+                      🔄 Retro preset
+                    </button>
+                  </>
+                );
+              })()}
+            </div>
+          </div>
           <div className={styles.noteTypesCheckboxes}>
             {NOTE_TYPES.filter(type => type !== "Host note").map(type => (
               <label key={type} className={styles.noteTypeCheckbox}>
