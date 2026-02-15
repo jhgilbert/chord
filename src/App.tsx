@@ -1304,7 +1304,10 @@ function CollabRoute() {
                   sessionId={session.userId}
                   displayName={session.displayName}
                   canDelete={
-                    !collab.paused && collab.active && n.createdBy === session.userId
+                    !collab.paused &&
+                    collab.active &&
+                    n.createdBy === session.userId &&
+                    (!n.responses || n.responses.length === 0)
                   }
                   canReact={
                     !collab.paused && collab.active && n.createdBy !== session.userId
