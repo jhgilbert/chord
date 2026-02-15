@@ -869,7 +869,23 @@ function CollabRoute() {
       // Helper function to render a note in HTML
       const renderNoteHTML = (note: Note, idx: number) => {
         const authorName = note.createdBy === collab.startedBy && note.type !== "Host note" ? `${note.createdByName} (host)` : note.createdByName;
+        let timestamp = "Unknown time";
+        if (note.createdAt) {
+          // Handle Firestore Timestamp objects
+          const createdAt = note.createdAt as unknown as {
+            toDate?: () => Date;
+            seconds?: number;
+          };
+          if (createdAt.toDate) {
+            timestamp = createdAt.toDate().toLocaleString();
+          } else if (createdAt.seconds) {
+            timestamp = new Date(createdAt.seconds * 1000).toLocaleString();
+          } else {
+            timestamp = new Date(note.createdAt as number).toLocaleString();
+          }
+        }
         html += `<h3>${idx + 1}. ${note.type} by ${authorName}</h3>`;
+        html += `<p><em>${timestamp}</em></p>`;
 
         // Action item metadata
         if (note.type === "Action item" && (note.assignee || note.dueDate)) {
@@ -964,7 +980,23 @@ function CollabRoute() {
         const noteText = tempDiv.textContent || tempDiv.innerText || '';
 
         const authorName = note.createdBy === collab.startedBy && note.type !== "Host note" ? `${note.createdByName} (host)` : note.createdByName;
+        let timestamp = "Unknown time";
+        if (note.createdAt) {
+          // Handle Firestore Timestamp objects
+          const createdAt = note.createdAt as unknown as {
+            toDate?: () => Date;
+            seconds?: number;
+          };
+          if (createdAt.toDate) {
+            timestamp = createdAt.toDate().toLocaleString();
+          } else if (createdAt.seconds) {
+            timestamp = new Date(createdAt.seconds * 1000).toLocaleString();
+          } else {
+            timestamp = new Date(note.createdAt as number).toLocaleString();
+          }
+        }
         md += `### ${idx + 1}. ${note.type} by ${authorName}\n\n`;
+        md += `*${timestamp}*\n\n`;
 
         // Action item metadata
         if (note.type === "Action item" && (note.assignee || note.dueDate)) {
