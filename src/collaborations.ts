@@ -15,6 +15,7 @@ export type PromptVersion = {
 
 export type Collaboration = {
   id: string;
+  title: string;
   prompt: string; // HTML from Quill (current prompt)
   promptUpdatedAt?: unknown; // Timestamp of current prompt (Date.now())
   startedBy: string;
@@ -43,10 +44,12 @@ export async function startCollaboration(
   id: string,
   sessionId: string,
   displayName: string,
+  title: string,
   prompt: string,
   allowedNoteTypes: NoteType[],
 ) {
   await setDoc(doc(db, "collaborations", id), {
+    title,
     prompt,
     startedBy: sessionId,
     startedByName: displayName,

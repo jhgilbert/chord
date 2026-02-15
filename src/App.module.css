@@ -550,6 +550,7 @@
 
 .responseItem {
   margin-top: 8px;
+  position: relative;
 }
 
 .responseDivider {
@@ -560,7 +561,7 @@
 
 .responseHeader {
   display: flex;
-  justify-content: space-between;
+  gap: 8px;
   align-items: center;
   margin-bottom: 4px;
 }
@@ -581,13 +582,14 @@
 
 .responseContent {
   line-height: 1.6;
-  font-size: 14px;
 }
 
 .responseReactions {
   display: flex;
   gap: 6px;
-  margin-top: 8px;
+  position: absolute;
+  top: 8px;
+  right: 0;
 }
 
 .responseReactionButton {
@@ -979,6 +981,22 @@
   font-size: 14px;
 }
 
+.startScreenInput {
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+  font-family: system-ui, sans-serif;
+}
+
+.startScreenInput:focus {
+  outline: none;
+  border-color: #0066cc;
+}
+
 .startScreenEditor {
   background: #fff;
   color: #111;
@@ -1262,8 +1280,7 @@
   font-size: 14px;
   line-height: 1.6;
   color: #1a1a1a;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
+  word-break: break-word;
   overflow: hidden;
 }
 

@@ -52,7 +52,7 @@ const NOTE_TYPES: NoteType[] = [
 
 const NOTE_TYPE_EXAMPLES: Partial<Record<NoteType, string>> = {
   Question: "Are we expected to ...?",
-  Statement: "I don't like ...",
+  Statement: "I'm planning to ...",
   Recommendation: "We should ...",
   Requirement: "The solution must ...",
   "Positive feedback": "I liked ...",
@@ -374,25 +374,9 @@ function ResponseItem({
   getReactionOpacity: (r: Reaction) => number;
   handleReaction: (r: Reaction) => void;
 }) {
-  const [hovered, setHovered] = useState(false);
-
   return (
-    <div
-      className={styles.responseItem}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
+    <div className={styles.responseItem}>
       <div className={styles.responseDivider} />
-      <div className={styles.responseHeader}>
-        <span className={styles.responseAuthor}>
-          {paused && response.createdByName}
-        </span>
-        <span className={styles.responseTimestamp}>{timestamp}</span>
-      </div>
-      <div
-        dangerouslySetInnerHTML={{ __html: response.content }}
-        className={styles.responseContent}
-      />
       {(canReact || paused) && (
         <div className={styles.responseReactions}>
           <button
@@ -400,33 +384,24 @@ function ResponseItem({
             className={styles.responseReactionButton}
             data-active={myReaction === "agree"}
             data-paused={paused}
-            style={{
-              opacity: paused
-                ? getReactionOpacity("agree")
-                : hovered || myReaction === "agree"
-                  ? 1
-                  : 0,
-            }}
+            style={{ opacity: getReactionOpacity("agree") }}
           >
-            ➕ {counts.agree > 0 && <span>{counts.agree}</span>}
-          </button>
-          <button
-            onClick={canReact ? () => handleReaction("markRead") : undefined}
-            className={styles.responseReactionButton}
-            data-active={myReaction === "markRead"}
-            data-paused={paused}
-            style={{
-              opacity: paused
-                ? getReactionOpacity("markRead")
-                : hovered || myReaction === "markRead"
-                  ? 1
-                  : 0,
-            }}
-          >
-            📬 {counts.markRead > 0 && <span>{counts.markRead}</span>}
+            ➕ <span>{counts.agree}</span>
           </button>
         </div>
       )}
+      <div className={styles.responseHeader}>
+        <span className={styles.responseTimestamp}>{timestamp}</span>
+        {paused && (
+          <span className={styles.responseAuthor}>
+            {response.createdByName}
+          </span>
+        )}
+      </div>
+      <div
+        dangerouslySetInnerHTML={{ __html: response.content.replace(/&nbsp;/g, ' ') }}
+        className={styles.responseContent}
+      />
     </div>
   );
 }
@@ -792,7 +767,7 @@ function StickyNote({
       ) : (
         <>
           <div
-            dangerouslySetInnerHTML={{ __html: note.content }}
+            dangerouslySetInnerHTML={{ __html: note.content.replace(/&nbsp;/g, ' ') }}
             className={styles.stickyNoteContent}
           />
           {note.type === "Poll" &&
@@ -941,7 +916,7 @@ function StickyNote({
                           {timestamp}
                         </div>
                         <div
-                          dangerouslySetInnerHTML={{ __html: version.content }}
+                          dangerouslySetInnerHTML={{ __html: version.content.replace(/&nbsp;/g, ' ') }}
                           className={styles.historyContent}
                         />
                       </div>
@@ -1068,6 +1043,7 @@ function StartScreen() {
     }
   }, [session, navigate]);
 
+  const [title, setTitle] = useState("");
   const [prompt, setPrompt] = useState("");
   const [allowedNoteTypes, setAllowedNoteTypes] = useState<NoteType[]>([
     "Question",
@@ -1079,6 +1055,11 @@ function StartScreen() {
 
   const handleStart = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // Check if title is empty
+    if (!title.trim()) {
+      alert("Please enter a title");
+      return;
+    }
     // Check if prompt is empty by stripping HTML and checking text content
     const tempDiv = document.createElement("div");
     tempDiv.innerHTML = prompt;
@@ -1101,6 +1082,7 @@ function StartScreen() {
       id,
       session.userId,
       session.displayName,
+      title,
       prompt,
       noteTypesWithHostNote,
     );
@@ -1120,6 +1102,16 @@ function StartScreen() {
         You are: <b>{session.displayName}</b>
       </p>
       <form onSubmit={handleStart} className={styles.startScreenForm}>
+        <label className={styles.startScreenLabel}>
+          Title <span style={{ color: "red" }}>*</span>
+        </label>
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className={styles.startScreenInput}
+          placeholder="Enter a title for this collaboration"
+        />
         <label className={styles.startScreenLabel}>
           Collaboration prompt <span style={{ color: "red" }}>*</span>
         </label>
@@ -1189,7 +1181,7 @@ function StartScreen() {
                           : "none",
                       }}
                     >
-                      📋 Discussion preset
+                      📋 Discussion
                     </button>
                     <button
                       type="button"
@@ -1210,7 +1202,7 @@ function StartScreen() {
                           : "none",
                       }}
                     >
-                      🔄 Retro preset
+                      🔄 Retro
                     </button>
                     <button
                       type="button"
@@ -1231,7 +1223,7 @@ function StartScreen() {
                           : "none",
                       }}
                     >
-                      ❓ Q & A preset
+                      ❓ Q & A
                     </button>
                   </>
                 );
@@ -2136,9 +2128,9 @@ function CollabRoute() {
       {/* Header */}
       <div className={styles.collabHeader}>
         <div>
-          <span className={styles.collabHeaderTitle}>chord</span>
+          <span className={styles.collabHeaderTitle}>{collab.title}</span>
           <span className={styles.collabHeaderMeta}>
-            Started by <b>{collab.startedByName}</b>
+            Hosted by <b>{collab.startedByName}</b>
           </span>
           <span className={styles.collabHeaderUser}>
             You are: <b>{session.displayName}</b>
@@ -2306,7 +2298,7 @@ function CollabRoute() {
               </>
             ) : (
               <div
-                dangerouslySetInnerHTML={{ __html: collab.prompt }}
+                dangerouslySetInnerHTML={{ __html: collab.prompt.replace(/&nbsp;/g, ' ') }}
                 className={styles.promptContent}
               />
             )}
