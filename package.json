@@ -4,12 +4,16 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "start-firebase": "firebase emulators:start --import=./emulator-data --export-on-exit",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tiptap/pm": "^3.19.0",
+    "@tiptap/react": "^3.19.0",
+    "@tiptap/starter-kit": "^3.19.0",
     "firebase": "^12.9.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
