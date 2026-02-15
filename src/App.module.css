@@ -1,5 +1,5 @@
-/* Host only label */
-.hostOnlyLabel {
+/* Section labels */
+.sectionLabel {
   margin-top: 24px;
   margin-bottom: 12px;
   padding: 8px 12px;
@@ -12,11 +12,20 @@
   border-radius: 4px;
 }
 
+.sectionLabel:first-of-type {
+  margin-top: 0;
+}
+
 /* NoteTypePanel */
 .noteTypePanel {
   border: 1px solid #d1d5db;
   border-radius: 6px;
   overflow: hidden;
+}
+
+.noteTypePanel[data-disabled="true"] {
+  opacity: 0.6;
+  border-color: #e5e7eb;
 }
 
 .noteTypePanelButton {
@@ -32,12 +41,18 @@
   align-items: center;
 }
 
-.noteTypePanelButton[data-open="true"] {
+.noteTypePanelButton[data-disabled="true"] {
+  cursor: not-allowed;
+  background: #f9fafb;
+  color: #9ca3af;
+}
+
+.noteTypePanelButton[data-open="true"]:not([data-disabled="true"]) {
   background: #111;
   color: #fff;
 }
 
-.noteTypePanelButton[data-open="false"] {
+.noteTypePanelButton[data-open="false"]:not([data-disabled="true"]) {
   background: #f9fafb;
   color: #111;
 }

@@ -122,11 +122,13 @@ function NoteTypePanel({
   isOpen,
   onToggle,
   onSubmit,
+  disabled = false,
 }: {
   label: NoteType;
   isOpen: boolean;
   onToggle: () => void;
   onSubmit: (html: string, assignee?: string, dueDate?: string) => Promise<void>;
+  disabled?: boolean;
 }) {
   const [value, setValue] = useState("");
   const [assignee, setAssignee] = useState("");
@@ -147,21 +149,23 @@ function NoteTypePanel({
   const exampleText = NOTE_TYPE_EXAMPLES[label];
 
   return (
-    <div className={styles.noteTypePanel}>
+    <div className={styles.noteTypePanel} data-disabled={disabled}>
       <button
         type="button"
-        onClick={onToggle}
+        onClick={disabled ? undefined : onToggle}
         className={styles.noteTypePanelButton}
         data-open={isOpen}
+        data-disabled={disabled}
+        disabled={disabled}
       >
         <span>{label}</span>
         {exampleText && (
           <span className={styles.noteTypePanelExample}>{exampleText}</span>
         )}
-        <span className={styles.noteTypePanelArrow}>{isOpen ? "▲" : "▼"}</span>
+        {!disabled && <span className={styles.noteTypePanelArrow}>{isOpen ? "▲" : "▼"}</span>}
       </button>
 
-      {isOpen && (
+      {isOpen && !disabled && (
         <form onSubmit={handleSubmit} className={styles.noteTypePanelForm}>
           <ReactQuill
             theme="snow"
@@ -1727,6 +1731,7 @@ function CollabRoute() {
           ) : (
             <>
               {/* Participant note types */}
+              <div className={styles.sectionLabel}>Add a response</div>
               {allowedNoteTypes
                 .filter((type) => type !== "Host note" && (type !== "Action item" || allowedNoteTypes.includes("Action item")))
                 .map((type) => (
@@ -1742,9 +1747,9 @@ function CollabRoute() {
                 ))}
 
               {/* Host-only note types */}
-              {isHost && (allowedNoteTypes.includes("Host note") || !allowedNoteTypes.includes("Action item")) && (
+              {(allowedNoteTypes.includes("Host note") || !allowedNoteTypes.includes("Action item")) && (
                 <>
-                  <div className={styles.hostOnlyLabel}>Host only</div>
+                  <div className={styles.sectionLabel}>Host only</div>
                   {!allowedNoteTypes.includes("Action item") && (
                     <NoteTypePanel
                       key="Action item"
@@ -1754,6 +1759,7 @@ function CollabRoute() {
                       onSubmit={(html, assignee, dueDate) =>
                         createNote(collab.id, "Action item", html, session.userId, session.displayName, assignee, dueDate)
                       }
+                      disabled={!isHost}
                     />
                   )}
                   {allowedNoteTypes.includes("Host note") && (
@@ -1765,6 +1771,7 @@ function CollabRoute() {
                       onSubmit={(html, assignee, dueDate) =>
                         createNote(collab.id, "Host note", html, session.userId, session.displayName, assignee, dueDate)
                       }
+                      disabled={!isHost}
                     />
                   )}
                 </>
