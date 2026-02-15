@@ -14,7 +14,7 @@ export type Collaboration = {
   startedByName: string;
   startedAt?: unknown;
   active: boolean;
-  frozen?: boolean;
+  paused?: boolean;
 };
 
 export function subscribeCollaboration(
@@ -49,6 +49,6 @@ export async function endCollaboration(id: string) {
   await updateDoc(doc(db, "collaborations", id), { active: false });
 }
 
-export async function freezeCollaboration(id: string, frozen: boolean) {
-  await updateDoc(doc(db, "collaborations", id), { frozen });
+export async function pauseCollaboration(id: string, paused: boolean) {
+  await updateDoc(doc(db, "collaborations", id), { paused });
 }

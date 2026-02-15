@@ -1,7 +1,13 @@
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { useEffect, useMemo, useState } from "react";
-import { Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom";
+import {
+  Navigate,
+  Route,
+  Routes,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import { getOrCreateSession } from "./session";
 import {
   createNote,
@@ -14,7 +20,7 @@ import {
 } from "./notes";
 import {
   endCollaboration,
-  freezeCollaboration,
+  pauseCollaboration,
   startCollaboration,
   subscribeCollaboration,
   type Collaboration,
@@ -44,7 +50,13 @@ function NoteTypePanel({
   };
 
   return (
-    <div style={{ border: "1px solid #d1d5db", borderRadius: 6, overflow: "hidden" }}>
+    <div
+      style={{
+        border: "1px solid #d1d5db",
+        borderRadius: 6,
+        overflow: "hidden",
+      }}
+    >
       <button
         type="button"
         onClick={onToggle}
@@ -68,14 +80,23 @@ function NoteTypePanel({
       </button>
 
       {isOpen && (
-        <form onSubmit={handleSubmit} style={{ padding: 10, background: "#fff" }}>
+        <form
+          onSubmit={handleSubmit}
+          style={{ padding: 10, background: "#fff" }}
+        >
           <ReactQuill
             theme="snow"
             value={value}
             onChange={setValue}
             style={{ background: "#fff", color: "#111" }}
           />
-          <div style={{ marginTop: 8, display: "flex", justifyContent: "flex-end" }}>
+          <div
+            style={{
+              marginTop: 8,
+              display: "flex",
+              justifyContent: "flex-end",
+            }}
+          >
             <button type="submit" style={{ padding: "8px 16px" }}>
               Post note
             </button>
@@ -92,7 +113,7 @@ function StickyNote({
   sessionId,
   canDelete,
   canReact,
-  frozen,
+  paused,
   onDelete,
 }: {
   note: Note;
@@ -100,21 +121,26 @@ function StickyNote({
   sessionId: string;
   canDelete: boolean;
   canReact: boolean;
-  frozen: boolean;
+  paused: boolean;
   onDelete: () => void;
 }) {
   const [hovered, setHovered] = useState(false);
   const myReaction: Reaction | null = note.reactions?.[sessionId] ?? null;
 
   const counts = { agree: 0, disagree: 0 };
-  if (frozen) {
+  if (paused) {
     for (const r of Object.values(note.reactions ?? {})) counts[r]++;
   } else if (myReaction) {
     counts[myReaction] = 1;
   }
 
   const handleReaction = (r: Reaction) => {
-    setReaction(collaborationId, note.id, sessionId, myReaction === r ? null : r);
+    setReaction(
+      collaborationId,
+      note.id,
+      sessionId,
+      myReaction === r ? null : r,
+    );
   };
 
   const reactionBtn = (r: Reaction): React.CSSProperties => ({
@@ -125,9 +151,15 @@ function StickyNote({
     fontSize: 13,
     border: "1px solid",
     borderRadius: 20,
-    cursor: frozen ? "default" : "pointer",
+    cursor: paused ? "default" : "pointer",
     transition: "opacity 0.15s",
-    opacity: frozen ? (counts[r] > 0 ? 1 : 0.25) : hovered || myReaction === r ? 1 : 0,
+    opacity: paused
+      ? counts[r] > 0
+        ? 1
+        : 0.25
+      : hovered || myReaction === r
+        ? 1
+        : 0,
     background: myReaction === r ? "#111" : "transparent",
     color: myReaction === r ? "#fff" : "#555",
     borderColor: myReaction === r ? "#111" : "#bbb",
@@ -167,7 +199,14 @@ function StickyNote({
           ✕
         </button>
       )}
-      <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 10 }}>
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          alignItems: "center",
+          marginBottom: 10,
+        }}
+      >
         <span
           style={{
             fontSize: 11,
@@ -190,12 +229,18 @@ function StickyNote({
         dangerouslySetInnerHTML={{ __html: note.content }}
         style={{ lineHeight: 1.6 }}
       />
-      {(canReact || frozen) && note.createdBy !== sessionId && (
+      {(canReact || paused) && note.createdBy !== sessionId && (
         <div style={{ display: "flex", gap: 6, marginTop: 12 }}>
-          <button onClick={canReact ? () => handleReaction("agree") : undefined} style={reactionBtn("agree")}>
+          <button
+            onClick={canReact ? () => handleReaction("agree") : undefined}
+            style={reactionBtn("agree")}
+          >
             👍 {counts.agree > 0 && <span>{counts.agree}</span>}
           </button>
-          <button onClick={canReact ? () => handleReaction("disagree") : undefined} style={reactionBtn("disagree")}>
+          <button
+            onClick={canReact ? () => handleReaction("disagree") : undefined}
+            style={reactionBtn("disagree")}
+          >
             👎 {counts.disagree > 0 && <span>{counts.disagree}</span>}
           </button>
         </div>
@@ -237,7 +282,12 @@ function StartScreen() {
       </p>
       <form onSubmit={handleStart} style={{ width: "100%", maxWidth: 600 }}>
         <label
-          style={{ display: "block", fontWeight: 600, marginBottom: 8, fontSize: 14 }}
+          style={{
+            display: "block",
+            fontWeight: 600,
+            marginBottom: 8,
+            fontSize: 14,
+          }}
         >
           Collaboration prompt
         </label>
@@ -247,7 +297,9 @@ function StartScreen() {
           onChange={setPrompt}
           style={{ background: "#fff", color: "#111" }}
         />
-        <div style={{ marginTop: 12, display: "flex", justifyContent: "flex-end" }}>
+        <div
+          style={{ marginTop: 12, display: "flex", justifyContent: "flex-end" }}
+        >
           <button
             type="submit"
             style={{
@@ -272,10 +324,14 @@ function StartScreen() {
 function CollabRoute() {
   const { id } = useParams<{ id: string }>();
   const { sessionId, displayName } = useMemo(() => getOrCreateSession(), []);
-  const [collab, setCollab] = useState<Collaboration | null | undefined>(undefined);
+  const [collab, setCollab] = useState<Collaboration | null | undefined>(
+    undefined,
+  );
   const [notes, setNotes] = useState<Note[]>([]);
   const [openType, setOpenType] = useState<NoteType | null>(null);
-  const [filter, setFilter] = useState<NoteType | "All" | "Inbox" | "Mine">("All");
+  const [filter, setFilter] = useState<NoteType | "All" | "Inbox" | "Mine">(
+    "All",
+  );
 
   useEffect(() => {
     if (!id) return;
@@ -293,17 +349,30 @@ function CollabRoute() {
   if (collab === undefined) return null;
   if (collab === null) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", fontFamily: "system-ui, sans-serif" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100vh",
+          fontFamily: "system-ui, sans-serif",
+        }}
+      >
         Collaboration not found.
       </div>
     );
   }
 
   const visibleNotes =
-    filter === "All" ? notes :
-    filter === "Inbox" ? notes.filter((n) => n.createdBy !== sessionId && !n.reactions?.[sessionId]) :
-    filter === "Mine" ? notes.filter((n) => n.createdBy === sessionId) :
-    notes.filter((n) => n.type === filter);
+    filter === "All"
+      ? notes
+      : filter === "Inbox"
+        ? notes.filter(
+            (n) => n.createdBy !== sessionId && !n.reactions?.[sessionId],
+          )
+        : filter === "Mine"
+          ? notes.filter((n) => n.createdBy === sessionId)
+          : notes.filter((n) => n.type === filter);
 
   return (
     <div style={{ margin: "0 20px 40px", fontFamily: "system-ui, sans-serif" }}>
@@ -329,31 +398,51 @@ function CollabRoute() {
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           {!collab.active && (
-            <span style={{ fontSize: 12, fontWeight: 600, color: "#6b7280", background: "#f3f4f6", border: "1px solid #d1d5db", borderRadius: 4, padding: "3px 8px" }}>
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: "#6b7280",
+                background: "#f3f4f6",
+                border: "1px solid #d1d5db",
+                borderRadius: 4,
+                padding: "3px 8px",
+              }}
+            >
               Ended
             </span>
           )}
-          {collab.frozen && collab.active && (
-            <span style={{ fontSize: 12, fontWeight: 600, color: "#b45309", background: "#fef3c7", border: "1px solid #fcd34d", borderRadius: 4, padding: "3px 8px" }}>
-              Input frozen
+          {collab.paused && collab.active && (
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: "#b45309",
+                background: "#fef3c7",
+                border: "1px solid #fcd34d",
+                borderRadius: 4,
+                padding: "3px 8px",
+              }}
+            >
+              Input paused
             </span>
           )}
           {collab.startedBy === sessionId && collab.active && (
             <>
               <button
-                onClick={() => freezeCollaboration(collab.id, !collab.frozen)}
+                onClick={() => pauseCollaboration(collab.id, !collab.paused)}
                 style={{
                   padding: "6px 14px",
                   fontSize: 13,
-                  background: collab.frozen ? "#fff" : "#374151",
-                  color: collab.frozen ? "#374151" : "#fff",
+                  background: collab.paused ? "#fff" : "#374151",
+                  color: collab.paused ? "#374151" : "#fff",
                   border: "1px solid #374151",
                   borderRadius: 4,
                   cursor: "pointer",
                   fontWeight: 600,
                 }}
               >
-                {collab.frozen ? "Unfreeze input" : "Freeze input"}
+                {collab.paused ? "Resume input" : "Pause input"}
               </button>
               <button
                 onClick={() => endCollaboration(collab.id)}
@@ -394,7 +483,16 @@ function CollabRoute() {
               background: "#f9fafb",
             }}
           >
-            <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", opacity: 0.5, marginBottom: 8 }}>
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                opacity: 0.5,
+                marginBottom: 8,
+              }}
+            >
               Prompt
             </div>
             <div
@@ -403,12 +501,30 @@ function CollabRoute() {
             />
           </div>
           {!collab.active ? (
-            <div style={{ fontSize: 13, color: "#6b7280", background: "#f3f4f6", border: "1px solid #d1d5db", borderRadius: 6, padding: "10px 14px" }}>
+            <div
+              style={{
+                fontSize: 13,
+                color: "#6b7280",
+                background: "#f3f4f6",
+                border: "1px solid #d1d5db",
+                borderRadius: 6,
+                padding: "10px 14px",
+              }}
+            >
               This collaboration has ended.
             </div>
-          ) : collab.frozen ? (
-            <div style={{ fontSize: 13, color: "#92400e", background: "#fef3c7", border: "1px solid #fcd34d", borderRadius: 6, padding: "10px 14px" }}>
-              Input is frozen. New notes cannot be added.
+          ) : collab.paused ? (
+            <div
+              style={{
+                fontSize: 13,
+                color: "#92400e",
+                background: "#fef3c7",
+                border: "1px solid #fcd34d",
+                borderRadius: 6,
+                padding: "10px 14px",
+              }}
+            >
+              Input is paused. New notes cannot be added.
             </div>
           ) : (
             NOTE_TYPES.map((type) => (
@@ -453,9 +569,13 @@ function CollabRoute() {
                 note={n}
                 collaborationId={collab.id}
                 sessionId={sessionId}
-                canDelete={!collab.frozen && collab.active && n.createdBy === sessionId}
-                canReact={!collab.frozen && collab.active && n.createdBy !== sessionId}
-                frozen={!!collab.frozen}
+                canDelete={
+                  !collab.paused && collab.active && n.createdBy === sessionId
+                }
+                canReact={
+                  !collab.paused && collab.active && n.createdBy !== sessionId
+                }
+                paused={!!collab.paused}
                 onDelete={() => removeNote(collab.id, n.id)}
               />
             ))}
