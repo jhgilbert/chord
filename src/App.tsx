@@ -374,6 +374,7 @@ function StickyNote({
   };
 
   const getReactionOpacity = (r: Reaction) => {
+    if (paused || note.createdBy === sessionId) return 0.4;
     return 1;
   };
 
@@ -496,47 +497,11 @@ function StickyNote({
         </button>
       )}
       {((!paused && !isResponding) ||
-        ((canReact || paused) && note.createdBy !== sessionId) ||
+        (canReact || paused) ||
         canArchive ||
         canDelete ||
         (canEdit && !isEditing)) && (
         <div className={styles.stickyNoteActions}>
-          {(canReact || paused) && note.createdBy !== sessionId && (
-            <>
-              <button
-                onClick={canReact ? () => handleReaction("agree") : undefined}
-                className={styles.actionButton}
-                data-active={myReaction === "agree"}
-                data-paused={paused}
-                style={{ opacity: getReactionOpacity("agree") }}
-              >
-                👍 {counts.agree > 0 && <span>{counts.agree}</span>}
-              </button>
-              <button
-                onClick={canReact ? () => handleReaction("disagree") : undefined}
-                className={styles.actionButton}
-                data-active={myReaction === "disagree"}
-                data-paused={paused}
-                style={{ opacity: getReactionOpacity("disagree") }}
-              >
-                👎 {counts.disagree > 0 && <span>{counts.disagree}</span>}
-              </button>
-            </>
-          )}
-          {!paused && !isResponding && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsResponding(true);
-                onRespondingChange?.(true);
-              }}
-              className={styles.actionButton}
-              data-active={false}
-              aria-label="Add response"
-            >
-              💬 {note.responses && note.responses.length > 0 && <span>{note.responses.length}</span>}
-            </button>
-          )}
           {canEdit && !isEditing && (
             <button
               onClick={(e) => {
@@ -546,6 +511,7 @@ function StickyNote({
               className={styles.actionButton}
               data-active={false}
               aria-label="Edit note"
+              style={{ opacity: hovered ? 1 : 0 }}
             >
               ✏️
             </button>
@@ -559,6 +525,7 @@ function StickyNote({
               className={styles.actionButton}
               data-active={false}
               aria-label="Delete note"
+              style={{ opacity: hovered ? 1 : 0 }}
             >
               🗑️
             </button>
@@ -573,8 +540,43 @@ function StickyNote({
               data-active={false}
               aria-label={note.archived ? "Unarchive" : "Archive"}
               title={note.archived ? "Unarchive" : "Archive"}
+              style={{ opacity: hovered ? 1 : 0 }}
             >
               {note.archived ? "📂" : "🗄️"}
+            </button>
+          )}
+          <>
+            <button
+              onClick={canReact && note.createdBy !== sessionId ? () => handleReaction("agree") : undefined}
+              className={styles.actionButton}
+              data-active={myReaction === "agree"}
+              data-paused={paused || note.createdBy === sessionId}
+              style={{ opacity: getReactionOpacity("agree") }}
+            >
+              👍 <span>{counts.agree}</span>
+            </button>
+            <button
+              onClick={canReact && note.createdBy !== sessionId ? () => handleReaction("disagree") : undefined}
+              className={styles.actionButton}
+              data-active={myReaction === "disagree"}
+              data-paused={paused || note.createdBy === sessionId}
+              style={{ opacity: getReactionOpacity("disagree") }}
+            >
+              👎 <span>{counts.disagree}</span>
+            </button>
+          </>
+          {!paused && !isResponding && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsResponding(true);
+                onRespondingChange?.(true);
+              }}
+              className={styles.actionButton}
+              data-active={false}
+              aria-label="Add response"
+            >
+              💬 <span>{note.responses?.length || 0}</span>
             </button>
           )}
         </div>
