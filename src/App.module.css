@@ -986,9 +986,9 @@
 .buttonEnd {
   padding: 6px 14px;
   font-size: 13px;
-  background: #dc2626;
+  background: #374151;
   color: #fff;
-  border: none;
+  border: 1px solid #374151;
   border-radius: 4px;
   cursor: pointer;
   font-weight: 600;
@@ -1283,18 +1283,14 @@
 }
 
 .buttonStats {
-  padding: 8px 16px;
-  font-size: 14px;
+  padding: 6px 14px;
+  font-size: 13px;
   font-weight: 600;
-  background: #6366f1;
+  background: #374151;
   color: #fff;
-  border: none;
+  border: 1px solid #374151;
   border-radius: 4px;
   cursor: pointer;
-}
-
-.buttonStats:hover {
-  background: #4f46e5;
 }
 
 /* Hide last button in Quill toolbar */
