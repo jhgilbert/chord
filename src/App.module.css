@@ -489,12 +489,19 @@
 .stoppedScreen {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
   min-height: 100vh;
   font-family: system-ui, sans-serif;
   padding: 40px 20px;
   box-sizing: border-box;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.stoppedHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 32px;
 }
 
 .stoppedTitle {
@@ -503,7 +510,7 @@
 }
 
 .stoppedMessage {
-  margin: 0 0 32px;
+  margin: 0 0 24px;
   opacity: 0.7;
   font-size: 16px;
 }
@@ -521,6 +528,60 @@
 
 .resumeButton:hover {
   background: #333;
+}
+
+.stoppedSummary {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.summaryHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.summaryTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.copyButton {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  background: #111;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.copyButton:hover {
+  background: #333;
+}
+
+.summaryContent {
+  flex: 1;
+  padding: 20px;
+  margin: 0;
+  overflow: auto;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  color: #1a1a1a;
+  background: #fff;
 }
 
 /* StartScreen */

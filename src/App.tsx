@@ -641,22 +641,106 @@ function CollabRoute() {
 
   const isHost = collab.startedBy === session.userId;
 
-  // If collaboration is stopped, show resume screen
+  // If collaboration is stopped, show summary screen
   if (!collab.active) {
+    // Generate Markdown summary
+    const generateMarkdown = () => {
+      let md = `# Collaboration Summary\n\n`;
+
+      // Strip HTML tags from prompt for markdown
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = collab.prompt;
+      const promptText = tempDiv.textContent || tempDiv.innerText || '';
+
+      md += `**Prompt:** ${promptText}\n\n`;
+      md += `**Started by:** ${collab.startedByName}\n\n`;
+      md += `---\n\n`;
+      md += `## Notes (${notes.length})\n\n`;
+
+      // Notes are already sorted by creation time from the query
+      notes.forEach((note, idx) => {
+        // Strip HTML from note content
+        tempDiv.innerHTML = note.content;
+        const noteText = tempDiv.textContent || tempDiv.innerText || '';
+
+        md += `### ${idx + 1}. ${note.type} by ${note.createdByName}\n\n`;
+        md += `${noteText}\n\n`;
+
+        // Reactions
+        if (note.reactions && Object.keys(note.reactions).length > 0) {
+          const reactionCounts = { agree: 0, disagree: 0 };
+          Object.values(note.reactions).forEach(r => reactionCounts[r]++);
+          md += `**Reactions:** `;
+          if (reactionCounts.agree > 0) md += `👍 ${reactionCounts.agree} `;
+          if (reactionCounts.disagree > 0) md += `👎 ${reactionCounts.disagree}`;
+          md += `\n\n`;
+        }
+
+        // Responses
+        if (note.responses && note.responses.length > 0) {
+          md += `**Responses (${note.responses.length}):**\n\n`;
+          note.responses.forEach(response => {
+            tempDiv.innerHTML = response.content;
+            const responseText = tempDiv.textContent || tempDiv.innerText || '';
+            const timestamp = response.createdAt
+              ? new Date(response.createdAt as number).toLocaleString()
+              : "Unknown time";
+            md += `- **${response.createdByName}** (${timestamp}): ${responseText}\n`;
+          });
+          md += `\n`;
+        }
+
+        // Edit history
+        if (note.editHistory && note.editHistory.length > 0) {
+          md += `**Edit History (${note.editHistory.length} version${note.editHistory.length !== 1 ? 's' : ''}):**\n\n`;
+          note.editHistory.forEach((version, vIdx) => {
+            tempDiv.innerHTML = version.content;
+            const versionText = tempDiv.textContent || tempDiv.innerText || '';
+            const timestamp = version.editedAt
+              ? new Date(version.editedAt as number).toLocaleString()
+              : "Unknown time";
+            md += `${vIdx + 1}. ${timestamp}: ${versionText}\n`;
+          });
+          md += `\n`;
+        }
+
+        md += `---\n\n`;
+      });
+
+      return md;
+    };
+
     return (
       <div className={styles.stoppedScreen}>
-        <h1 className={styles.stoppedTitle}>Collaboration Stopped</h1>
-        <p className={styles.stoppedMessage}>
-          This collaboration was stopped by <b>{collab.startedByName}</b>.
-        </p>
-        {isHost && (
-          <button
-            onClick={() => resumeCollaboration(collab.id)}
-            className={styles.resumeButton}
-          >
-            Resume collaboration
-          </button>
-        )}
+        <div className={styles.stoppedHeader}>
+          <h1 className={styles.stoppedTitle}>Collaboration Stopped</h1>
+          <p className={styles.stoppedMessage}>
+            This collaboration was stopped by <b>{collab.startedByName}</b>.
+          </p>
+          {isHost && (
+            <button
+              onClick={() => resumeCollaboration(collab.id)}
+              className={styles.resumeButton}
+            >
+              Resume collaboration
+            </button>
+          )}
+        </div>
+        <div className={styles.stoppedSummary}>
+          <div className={styles.summaryHeader}>
+            <h2 className={styles.summaryTitle}>Summary</h2>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(generateMarkdown());
+                alert('Copied to clipboard!');
+              }}
+              className={styles.copyButton}
+            >
+              Copy Markdown
+            </button>
+          </div>
+          <pre className={styles.summaryContent}>{generateMarkdown()}</pre>
+        </div>
       </div>
     );
   }
