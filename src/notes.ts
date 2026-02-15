@@ -44,7 +44,8 @@ export type Note = {
   assignee?: string; // for action items
   dueDate?: string; // for action items (ISO date string)
   pollOptions?: string[]; // for polls: the available options
-  pollVotes?: Record<string, number>; // for polls: sessionId -> option index
+  pollVotes?: Record<string, number | number[]>; // for polls: sessionId -> option index or indices
+  pollMultipleChoice?: boolean; // for polls: whether multiple selections are allowed
   pollClosed?: boolean; // for polls: whether the poll is closed
 };
 
@@ -74,6 +75,7 @@ export async function createNote(
   assignee?: string,
   dueDate?: string,
   pollOptions?: string[],
+  pollMultipleChoice?: boolean,
 ) {
   const noteData: any = {
     type,
@@ -85,7 +87,10 @@ export async function createNote(
 
   if (assignee) noteData.assignee = assignee;
   if (dueDate) noteData.dueDate = dueDate;
-  if (pollOptions && pollOptions.length > 0) noteData.pollOptions = pollOptions;
+  if (pollOptions && pollOptions.length > 0) {
+    noteData.pollOptions = pollOptions;
+    if (pollMultipleChoice) noteData.pollMultipleChoice = pollMultipleChoice;
+  }
 
   await addDoc(notesCol(collaborationId), noteData);
 }
@@ -223,12 +228,12 @@ export async function votePoll(
   collaborationId: string,
   noteId: string,
   sessionId: string,
-  optionIndex: number,
+  vote: number | number[],
 ) {
   await updateDoc(
     doc(db, "collaborations", collaborationId, "notes", noteId),
     {
-      [`pollVotes.${sessionId}`]: optionIndex,
+      [`pollVotes.${sessionId}`]: vote,
     },
   );
 }

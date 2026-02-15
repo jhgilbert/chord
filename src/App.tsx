@@ -60,7 +60,7 @@ const NOTE_TYPE_EXAMPLES: Partial<Record<NoteType, string>> = {
 };
 
 const NOTE_TYPE_COLORS: Record<NoteType, string> = {
-  Question: "#eab308", // yellow
+  Question: "#228b22", // forest green
   Statement: "#a855f7", // purple
   Recommendation: "#fb923c", // orange
   Requirement: "#3b82f6", // blue
@@ -131,7 +131,7 @@ function LoginScreen() {
 
   return (
     <div className={styles.loginScreen}>
-      <h1 className={styles.loginTitle}>Welcome to Chord</h1>
+      <h1 className={styles.loginTitle}>Welcome to chord</h1>
       <p className={styles.loginSubtitle}>Please enter your name to continue</p>
       <form onSubmit={handleSubmit} className={styles.loginForm}>
         <div className={styles.loginField}>
@@ -187,6 +187,7 @@ function NoteTypePanel({
     assignee?: string,
     dueDate?: string,
     pollOptions?: string[],
+    pollMultipleChoice?: boolean,
   ) => Promise<void>;
   disabled?: boolean;
 }) {
@@ -194,6 +195,7 @@ function NoteTypePanel({
   const [assignee, setAssignee] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [pollOptions, setPollOptions] = useState<string[]>(["", ""]);
+  const [pollMultipleChoice, setPollMultipleChoice] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -210,11 +212,13 @@ function NoteTypePanel({
       assignee || undefined,
       dueDate || undefined,
       validPollOptions,
+      isPoll ? pollMultipleChoice : undefined,
     );
     setValue("");
     setAssignee("");
     setDueDate("");
     setPollOptions(["", ""]);
+    setPollMultipleChoice(false);
   };
 
   const isActionItem = label === "Action item";
@@ -318,6 +322,14 @@ function NoteTypePanel({
               >
                 + Add option
               </button>
+              <label className={styles.pollMultipleChoiceLabel}>
+                <input
+                  type="checkbox"
+                  checked={pollMultipleChoice}
+                  onChange={(e) => setPollMultipleChoice(e.target.checked)}
+                />
+                Allow multiple selections
+              </label>
             </div>
           )}
           <div className={styles.noteTypePanelActions}>
@@ -468,6 +480,7 @@ function StickyNote({
   const [showResponses, setShowResponses] = useState(false);
   const [isResponding, setIsResponding] = useState(false);
   const [responseContent, setResponseContent] = useState("");
+  const [pendingPollSelection, setPendingPollSelection] = useState<number | number[] | null>(null);
   const myReaction: Reaction | null = note.reactions?.[sessionId] ?? null;
 
   const counts = { agree: 0, disagree: 0, markRead: 0 };
@@ -777,39 +790,60 @@ function StickyNote({
             dangerouslySetInnerHTML={{ __html: note.content }}
             className={styles.stickyNoteContent}
           />
-          {note.type === "Poll" && note.pollOptions && (
-            <div className={styles.pollOptionsDisplay}>
-              {note.pollOptions.map((option, index) => {
+          {note.type === "Poll" && note.pollOptions && (() => {
+            const isMultiChoice = note.pollMultipleChoice;
+            const currentUserVote = note.pollVotes?.[sessionId];
+            const hasSubmittedVote = currentUserVote !== undefined;
+
+            return (
+              <div className={styles.pollOptionsDisplay}>
+                {note.pollOptions!.map((option, index) => {
+
+                // Use pending selection if exists, otherwise use submitted vote
+                const activeSelection = hasSubmittedVote ? currentUserVote : pendingPollSelection;
+
+                // Count votes for this option
                 const voteCount = Object.values(note.pollVotes || {}).filter(
-                  (v) => v === index,
+                  (v) => Array.isArray(v) ? v.includes(index) : v === index,
                 ).length;
                 const totalVotes = Object.keys(note.pollVotes || {}).length;
                 const percentage =
                   totalVotes > 0
                     ? Math.round((voteCount / totalVotes) * 100)
                     : 0;
-                const userVoted = note.pollVotes?.[sessionId] === index;
+
+                // Check if this option is selected
+                const isSelected = Array.isArray(activeSelection)
+                  ? activeSelection.includes(index)
+                  : activeSelection === index;
+
                 const showResults = paused;
                 const isPollClosed = !!note.pollClosed;
+                const canInteract = !paused && !isPollClosed && !hasSubmittedVote;
 
                 return (
                   <button
                     key={index}
-                    onClick={async (e) => {
+                    onClick={(e) => {
                       e.stopPropagation();
-                      if (!paused && !isPollClosed) {
-                        await votePoll(
-                          collaborationId,
-                          note.id,
-                          sessionId,
-                          index,
-                        );
+                      if (canInteract) {
+                        if (isMultiChoice) {
+                          // Multi-choice: toggle this option
+                          const currentSelection = Array.isArray(pendingPollSelection) ? pendingPollSelection : [];
+                          const newSelection = currentSelection.includes(index)
+                            ? currentSelection.filter(i => i !== index)
+                            : [...currentSelection, index];
+                          setPendingPollSelection(newSelection);
+                        } else {
+                          // Single choice: set to this option
+                          setPendingPollSelection(index);
+                        }
                       }
                     }}
                     className={styles.pollOption}
-                    data-voted={userVoted}
-                    data-disabled={paused || isPollClosed}
-                    disabled={paused || isPollClosed}
+                    data-voted={isSelected}
+                    data-disabled={!canInteract}
+                    disabled={!canInteract}
                   >
                     <span className={styles.pollOptionText}>{option}</span>
                     {showResults && (
@@ -820,6 +854,26 @@ function StickyNote({
                   </button>
                 );
               })}
+              {!paused && !note.pollClosed && !hasSubmittedVote && pendingPollSelection !== null && (
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    const voteToSubmit = Array.isArray(pendingPollSelection) && pendingPollSelection.length === 0
+                      ? (note.pollMultipleChoice ? [] : 0)
+                      : pendingPollSelection;
+                    await votePoll(
+                      collaborationId,
+                      note.id,
+                      sessionId,
+                      voteToSubmit,
+                    );
+                    setPendingPollSelection(null);
+                  }}
+                  className={styles.pollSubmitButton}
+                >
+                  Submit vote
+                </button>
+              )}
               {isHost && paused && !note.pollClosed && (
                 <button
                   onClick={async (e) => {
@@ -835,7 +889,8 @@ function StickyNote({
                 <div className={styles.pollClosedMessage}>Poll closed</div>
               )}
             </div>
-          )}
+            );
+          })()}
           {note.editHistory && note.editHistory.length > 0 && (
             <div className={styles.historyContainer}>
               <button
@@ -1035,7 +1090,7 @@ function StartScreen() {
 
   return (
     <div className={styles.startScreen}>
-      <h1 className={styles.startScreenTitle}>Chord</h1>
+      <h1 className={styles.startScreenTitle}>chord</h1>
       <p className={styles.startScreenUser}>
         You are: <b>{session.displayName}</b>
       </p>
@@ -1921,14 +1976,27 @@ function CollabRoute() {
   }
 
   // Calculate inbox count (exclude archived and host notes)
-  const inboxCount = notes.filter(
-    (n) =>
-      n.createdBy !== session.userId &&
-      !n.reactions?.[session.userId] &&
+  const inboxCount = notes.filter((n) => {
+    // For polls, check if user has voted
+    const hasInteracted =
+      n.type === "Poll"
+        ? (() => {
+            const userVote = n.pollVotes?.[session.userId];
+            const hasVoted =
+              userVote !== undefined &&
+              (Array.isArray(userVote) ? userVote.length > 0 : true);
+            return hasVoted || n.pollClosed;
+          })()
+        : n.reactions?.[session.userId];
+
+    return (
+      (n.type === "Poll" || n.createdBy !== session.userId) &&
+      !hasInteracted &&
       !allChildIds.has(n.id) &&
       !n.archived &&
-      n.type !== "Host note",
-  ).length;
+      n.type !== "Host note"
+    );
+  }).length;
 
   // Calculate archived count
   const archivedCount = notes.filter((n) => n.archived).length;
@@ -1943,11 +2011,16 @@ function CollabRoute() {
               // For polls, only remove from inbox if user has voted or poll is closed
               const hasInteracted =
                 n.type === "Poll"
-                  ? n.pollVotes?.[session.userId] !== undefined || n.pollClosed
+                  ? (() => {
+                      const userVote = n.pollVotes?.[session.userId];
+                      const hasVoted = userVote !== undefined &&
+                        (Array.isArray(userVote) ? userVote.length > 0 : true);
+                      return hasVoted || n.pollClosed;
+                    })()
                   : n.reactions?.[session.userId];
 
               return (
-                n.createdBy !== session.userId &&
+                (n.type === "Poll" || n.createdBy !== session.userId) &&
                 !hasInteracted &&
                 (!allChildIds.has(n.id) || n.id === respondingToNoteId) &&
                 !n.archived &&
@@ -2031,7 +2104,7 @@ function CollabRoute() {
       {/* Header */}
       <div className={styles.collabHeader}>
         <div>
-          <span className={styles.collabHeaderTitle}>Chord</span>
+          <span className={styles.collabHeaderTitle}>chord</span>
           <span className={styles.collabHeaderMeta}>
             Started by <b>{collab.startedByName}</b>
           </span>
@@ -2228,7 +2301,7 @@ function CollabRoute() {
                     onToggle={() =>
                       setOpenType(openType === type ? null : type)
                     }
-                    onSubmit={(html, assignee, dueDate, pollOptions) =>
+                    onSubmit={(html, assignee, dueDate, pollOptions, pollMultipleChoice) =>
                       createNote(
                         collab.id,
                         type,
@@ -2238,6 +2311,7 @@ function CollabRoute() {
                         assignee,
                         dueDate,
                         pollOptions,
+                        pollMultipleChoice,
                       )
                     }
                   />
@@ -2252,7 +2326,7 @@ function CollabRoute() {
                 onToggle={() =>
                   setOpenType(openType === "Action item" ? null : "Action item")
                 }
-                onSubmit={(html, assignee, dueDate, pollOptions) =>
+                onSubmit={(html, assignee, dueDate, pollOptions, pollMultipleChoice) =>
                   createNote(
                     collab.id,
                     "Action item",
@@ -2262,6 +2336,7 @@ function CollabRoute() {
                     assignee,
                     dueDate,
                     pollOptions,
+                    pollMultipleChoice,
                   )
                 }
                 disabled={!isHost}
@@ -2273,7 +2348,7 @@ function CollabRoute() {
                 onToggle={() =>
                   setOpenType(openType === "Poll" ? null : "Poll")
                 }
-                onSubmit={(html, assignee, dueDate, pollOptions) =>
+                onSubmit={(html, assignee, dueDate, pollOptions, pollMultipleChoice) =>
                   createNote(
                     collab.id,
                     "Poll",
@@ -2283,6 +2358,7 @@ function CollabRoute() {
                     assignee,
                     dueDate,
                     pollOptions,
+                    pollMultipleChoice,
                   )
                 }
                 disabled={!isHost}
@@ -2295,7 +2371,7 @@ function CollabRoute() {
                   onToggle={() =>
                     setOpenType(openType === "Host note" ? null : "Host note")
                   }
-                  onSubmit={(html, assignee, dueDate, pollOptions) =>
+                  onSubmit={(html, assignee, dueDate, pollOptions, pollMultipleChoice) =>
                     createNote(
                       collab.id,
                       "Host note",
@@ -2305,6 +2381,7 @@ function CollabRoute() {
                       assignee,
                       dueDate,
                       pollOptions,
+                      pollMultipleChoice,
                     )
                   }
                   disabled={!isHost}
