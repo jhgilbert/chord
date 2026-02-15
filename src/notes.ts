@@ -16,15 +16,21 @@ export type NoteType = "Question" | "Requirement" | "Comment";
 
 export type Reaction = "agree" | "disagree";
 
+export type NoteVersion = {
+  content: string;
+  editedAt: unknown; // Firestore timestamp
+};
+
 export type Note = {
   id: string;
   type: NoteType;
-  content: string; // HTML from Quill
+  content: string; // HTML from Quill (current version)
   createdAt?: unknown; // Firestore timestamp
   createdBy: string; // sessionId
   createdByName: string; // displayName
   reactions?: Record<string, Reaction>; // sessionId -> reaction
   groupedUnder?: string; // parent note ID if this note is grouped
+  editHistory?: NoteVersion[]; // previous versions
 };
 
 const notesCol = (collaborationId: string) =>
@@ -89,4 +95,37 @@ export async function setGroupedUnder(
       groupedUnder: parentId === null ? deleteField() : parentId,
     },
   );
+}
+
+export async function editNote(
+  collaborationId: string,
+  noteId: string,
+  currentContent: string,
+  newContent: string,
+  existingHistory?: NoteVersion[],
+) {
+  const noteRef = doc(db, "collaborations", collaborationId, "notes", noteId);
+
+  // Add current content to history
+  // Note: Using Date.now() instead of serverTimestamp() because Firestore
+  // doesn't support serverTimestamp() inside arrays
+  const newHistoryEntry: NoteVersion = {
+    content: currentContent,
+    editedAt: Date.now(),
+  };
+
+  const updateData = {
+    content: newContent,
+    editHistory: [...(existingHistory || []), newHistoryEntry],
+  };
+
+  console.log("editNote: Updating Firestore", {
+    noteId,
+    newContentLength: newContent.length,
+    historyCount: updateData.editHistory.length,
+  });
+
+  await updateDoc(noteRef, updateData);
+
+  console.log("editNote: Update completed");
 }

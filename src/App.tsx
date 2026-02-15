@@ -12,6 +12,7 @@ import {
 import { getOrCreateSession } from "./session";
 import {
   createNote,
+  editNote,
   removeNote,
   setReaction,
   setGroupedUnder,
@@ -99,6 +100,7 @@ function StickyNote({
   groupDepth,
   canUngroup,
   onUngroup,
+  canEdit,
 }: {
   note: Note;
   collaborationId: string;
@@ -115,8 +117,12 @@ function StickyNote({
   groupDepth?: number;
   canUngroup?: boolean;
   onUngroup?: () => void;
+  canEdit?: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState("");
+  const [showHistory, setShowHistory] = useState(false);
   const myReaction: Reaction | null = note.reactions?.[sessionId] ?? null;
 
   const counts = { agree: 0, disagree: 0 };
@@ -138,6 +144,45 @@ function StickyNote({
   const getReactionOpacity = (r: Reaction) => {
     if (paused) return counts[r] > 0 ? 1 : 0.25;
     return hovered || myReaction === r ? 1 : 0;
+  };
+
+  const handleEdit = () => {
+    setEditContent(note.content);
+    setIsEditing(true);
+  };
+
+  const handleSaveEdit = async () => {
+    const isEmpty = editContent === "" || editContent === "<p><br></p>";
+    if (isEmpty) return;
+    if (editContent === note.content) {
+      setIsEditing(false);
+      return;
+    }
+    try {
+      console.log("Saving edit:", {
+        noteId: note.id,
+        oldContent: note.content.substring(0, 50),
+        newContent: editContent.substring(0, 50),
+      });
+      await editNote(
+        collaborationId,
+        note.id,
+        note.content,
+        editContent,
+        note.editHistory,
+      );
+      console.log("Edit saved successfully");
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Failed to save edit:", error);
+      alert("Failed to save edit. Check console for details.");
+      setIsEditing(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditContent("");
   };
 
   return (
@@ -217,11 +262,84 @@ function StickyNote({
         )}
         <span className={styles.badgeType}>{note.type}</span>
         <span className={styles.badgeName}>{note.createdByName}</span>
+        {canEdit && !isEditing && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleEdit();
+            }}
+            className={styles.badgeEdit}
+            aria-label="Edit note"
+          >
+            Edit
+          </button>
+        )}
       </div>
-      <div
-        dangerouslySetInnerHTML={{ __html: note.content }}
-        className={styles.stickyNoteContent}
-      />
+      {isEditing ? (
+        <div className={styles.editContainer}>
+          <ReactQuill
+            theme="snow"
+            value={editContent}
+            onChange={setEditContent}
+            className={styles.editEditor}
+          />
+          <div className={styles.editActions}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCancelEdit();
+              }}
+              className={styles.editCancel}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSaveEdit();
+              }}
+              className={styles.editSave}
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div
+            dangerouslySetInnerHTML={{ __html: note.content }}
+            className={styles.stickyNoteContent}
+          />
+          {note.editHistory && note.editHistory.length > 0 && (
+            <div className={styles.historyContainer}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowHistory(!showHistory);
+                }}
+                className={styles.historyToggle}
+              >
+                {showHistory ? "Hide" : "Show"} edit history (
+                {note.editHistory.length} version
+                {note.editHistory.length !== 1 ? "s" : ""})
+              </button>
+              {showHistory && (
+                <div className={styles.historyList}>
+                  {note.editHistory.map((version, idx) => (
+                    <div key={idx} className={styles.historyVersion}>
+                      <div className={styles.historyDivider} />
+                      <div
+                        dangerouslySetInnerHTML={{ __html: version.content }}
+                        className={styles.historyContent}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
@@ -594,6 +712,9 @@ function CollabRoute() {
                   groupDepth={groupDepth}
                   canUngroup={isHost && isGrouped}
                   onUngroup={() => setGroupedUnder(collab.id, n.id, null)}
+                  canEdit={
+                    !collab.paused && collab.active && n.createdBy === sessionId
+                  }
                 />
                 {isParent && !isGrouped && (
                   <div className={styles.groupIndicator}>
