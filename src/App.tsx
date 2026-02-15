@@ -97,6 +97,8 @@ function StickyNote({
   onDrop,
   isGrouped,
   groupDepth,
+  canUngroup,
+  onUngroup,
 }: {
   note: Note;
   collaborationId: string;
@@ -111,6 +113,8 @@ function StickyNote({
   onDrop?: () => void;
   isGrouped?: boolean;
   groupDepth?: number;
+  canUngroup?: boolean;
+  onUngroup?: () => void;
 }) {
   const [hovered, setHovered] = useState(false);
   const myReaction: Reaction | null = note.reactions?.[sessionId] ?? null;
@@ -174,6 +178,15 @@ function StickyNote({
           className={styles.stickyNoteDelete}
         >
           ✕
+        </button>
+      )}
+      {canUngroup && (
+        <button
+          onClick={onUngroup}
+          aria-label="Ungroup note"
+          className={styles.stickyNoteUngroup}
+        >
+          Ungroup
         </button>
       )}
       {(canReact || paused) && note.createdBy !== sessionId && (
@@ -579,6 +592,8 @@ function CollabRoute() {
                   }}
                   isGrouped={isGrouped}
                   groupDepth={groupDepth}
+                  canUngroup={isHost && isGrouped}
+                  onUngroup={() => setGroupedUnder(collab.id, n.id, null)}
                 />
                 {isParent && !isGrouped && (
                   <div className={styles.groupIndicator}>

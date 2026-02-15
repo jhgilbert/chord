@@ -91,6 +91,28 @@
   opacity: 0.45;
 }
 
+.stickyNoteUngroup {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  background: #111;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 10px;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  transition: opacity 0.15s;
+  opacity: 0;
+}
+
+.stickyNote:hover .stickyNoteUngroup {
+  opacity: 1;
+}
+
 .stickyNoteBadges {
   display: flex;
   gap: 8px;
