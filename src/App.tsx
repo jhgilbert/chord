@@ -60,11 +60,11 @@ const NOTE_TYPE_EXAMPLES: Partial<Record<NoteType, string>> = {
 };
 
 const NOTE_TYPE_COLORS: Record<NoteType, string> = {
-  Question: "#fbbf24", // yellow
+  Question: "#eab308", // yellow
   Statement: "#a855f7", // purple
   Recommendation: "#fb923c", // orange
   Requirement: "#3b82f6", // blue
-  "Action item": "#ec4899", // pink
+  "Action item": "#ff1493", // pink
   "Positive feedback": "#10b981", // green
   "Constructive feedback": "#ef4444", // red
   Poll: "#14b8a6", // teal
@@ -311,7 +311,16 @@ function NoteTypePanel({
             </div>
           )}
           <div className={styles.noteTypePanelActions}>
-            <button type="submit" className={styles.noteTypePanelSubmit}>
+            <button
+              type="submit"
+              className={styles.noteTypePanelSubmit}
+              style={{
+                backgroundColor: color,
+                color: "#fff",
+                opacity: !value || value.replace(/<[^>]*>/g, "").trim() === "" ? 0.4 : 1,
+              }}
+              disabled={!value || value.replace(/<[^>]*>/g, "").trim() === ""}
+            >
               Post note
             </button>
           </div>
