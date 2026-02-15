@@ -65,6 +65,20 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+function getRelativeTime(timestamp: number): string {
+  const now = Date.now();
+  const diff = now - timestamp;
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (seconds < 60) return `${seconds} second${seconds !== 1 ? 's' : ''} ago`;
+  if (minutes < 60) return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+  if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+  return `${days} day${days !== 1 ? 's' : ''} ago`;
+}
+
 function LoginScreen() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -568,6 +582,11 @@ function StickyNote({
             Edit
           </button>
         )}
+        <span className={styles.badgeTimestamp}>
+          {note.createdAt && typeof note.createdAt === 'object' && 'seconds' in note.createdAt
+            ? getRelativeTime((note.createdAt as { seconds: number }).seconds * 1000)
+            : ''}
+        </span>
       </div>
       {note.type === "Action item" && (note.assignee || note.dueDate) && (
         <div className={styles.actionItemMeta}>
