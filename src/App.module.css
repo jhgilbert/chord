@@ -364,7 +364,7 @@
   font-weight: 600;
 }
 
-.stickyNoteReactions {
+.stickyNoteActions {
   display: flex;
   gap: 6px;
   position: absolute;
@@ -372,7 +372,7 @@
   right: 12px;
 }
 
-.reactionButton {
+.actionButton {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -384,19 +384,19 @@
   transition: opacity 0.15s;
 }
 
-.reactionButton[data-active="true"] {
+.actionButton[data-active="true"] {
   background: #111;
   color: #fff;
   border-color: #111;
 }
 
-.reactionButton[data-active="false"] {
+.actionButton[data-active="false"] {
   background: transparent;
   color: #555;
   border-color: #bbb;
 }
 
-.reactionButton[data-paused="true"] {
+.actionButton[data-paused="true"] {
   cursor: default;
 }
 

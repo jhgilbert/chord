@@ -338,26 +338,45 @@ function StickyNote({
           Ungroup
         </button>
       )}
-      {(canReact || paused) && note.createdBy !== sessionId && (
-        <div className={styles.stickyNoteReactions}>
-          <button
-            onClick={canReact ? () => handleReaction("agree") : undefined}
-            className={styles.reactionButton}
-            data-active={myReaction === "agree"}
-            data-paused={paused}
-            style={{ opacity: getReactionOpacity("agree") }}
-          >
-            👍 {counts.agree > 0 && <span>{counts.agree}</span>}
-          </button>
-          <button
-            onClick={canReact ? () => handleReaction("disagree") : undefined}
-            className={styles.reactionButton}
-            data-active={myReaction === "disagree"}
-            data-paused={paused}
-            style={{ opacity: getReactionOpacity("disagree") }}
-          >
-            👎 {counts.disagree > 0 && <span>{counts.disagree}</span>}
-          </button>
+      {((!paused && !isResponding && (note.createdBy !== sessionId || (note.responses && note.responses.length > 0))) ||
+        ((canReact || paused) && note.createdBy !== sessionId)) && (
+        <div className={styles.stickyNoteActions}>
+          {!paused && !isResponding && (note.createdBy !== sessionId || (note.responses && note.responses.length > 0)) && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsResponding(true);
+              }}
+              className={styles.actionButton}
+              data-active={false}
+              style={{ opacity: hovered ? 1 : 0 }}
+              aria-label="Add response"
+            >
+              💬 {note.responses && note.responses.length > 0 && <span>{note.responses.length}</span>}
+            </button>
+          )}
+          {(canReact || paused) && note.createdBy !== sessionId && (
+            <>
+              <button
+                onClick={canReact ? () => handleReaction("agree") : undefined}
+                className={styles.actionButton}
+                data-active={myReaction === "agree"}
+                data-paused={paused}
+                style={{ opacity: getReactionOpacity("agree") }}
+              >
+                👍 {counts.agree > 0 && <span>{counts.agree}</span>}
+              </button>
+              <button
+                onClick={canReact ? () => handleReaction("disagree") : undefined}
+                className={styles.actionButton}
+                data-active={myReaction === "disagree"}
+                data-paused={paused}
+                style={{ opacity: getReactionOpacity("disagree") }}
+              >
+                👎 {counts.disagree > 0 && <span>{counts.disagree}</span>}
+              </button>
+            </>
+          )}
         </div>
       )}
       <div className={styles.stickyNoteBadges}>
@@ -485,18 +504,6 @@ function StickyNote({
                   );
                 })}
               </div>
-            )}
-            {!paused && !isResponding && (note.createdBy !== sessionId || (note.responses && note.responses.length > 0)) && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsResponding(true);
-                }}
-                className={styles.responseAddButton}
-                style={{ opacity: hovered ? 1 : 0 }}
-              >
-                Add response
-              </button>
             )}
             {isResponding && (
               <div className={styles.responseForm}>
