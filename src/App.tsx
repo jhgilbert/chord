@@ -23,6 +23,7 @@ import {
   pauseCollaboration,
   startCollaboration,
   subscribeCollaboration,
+  updatePrompt,
   type Collaboration,
 } from "./collaborations";
 
@@ -349,6 +350,8 @@ function CollabRoute() {
   const [filter, setFilter] = useState<NoteType | "All" | "Inbox" | "Mine">(
     "All",
   );
+  const [editingPrompt, setEditingPrompt] = useState(false);
+  const [promptValue, setPromptValue] = useState("");
 
   useEffect(() => {
     if (!id) return;
@@ -502,20 +505,96 @@ function CollabRoute() {
           >
             <div
               style={{
-                fontSize: 11,
-                fontWeight: 700,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                opacity: 0.5,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
                 marginBottom: 8,
               }}
             >
-              Prompt
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                  opacity: 0.5,
+                }}
+              >
+                Prompt
+              </div>
+              {collab.startedBy === sessionId && !editingPrompt && (
+                <button
+                  onClick={() => {
+                    setEditingPrompt(true);
+                    setPromptValue(collab.prompt);
+                  }}
+                  style={{
+                    fontSize: 11,
+                    padding: "2px 8px",
+                    background: "transparent",
+                    border: "1px solid #d1d5db",
+                    borderRadius: 3,
+                    cursor: "pointer",
+                    color: "#555",
+                  }}
+                >
+                  Edit
+                </button>
+              )}
             </div>
-            <div
-              dangerouslySetInnerHTML={{ __html: collab.prompt }}
-              style={{ fontSize: 14, lineHeight: 1.6, color: "#1a1a1a" }}
-            />
+            {editingPrompt ? (
+              <>
+                <ReactQuill
+                  theme="snow"
+                  value={promptValue}
+                  onChange={setPromptValue}
+                  style={{ background: "#fff", color: "#111", marginBottom: 8 }}
+                />
+                <div style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
+                  <button
+                    onClick={() => {
+                      setEditingPrompt(false);
+                      setPromptValue("");
+                    }}
+                    style={{
+                      fontSize: 12,
+                      padding: "4px 12px",
+                      background: "#fff",
+                      border: "1px solid #d1d5db",
+                      borderRadius: 4,
+                      cursor: "pointer",
+                      color: "#555",
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      await updatePrompt(collab.id, promptValue);
+                      setEditingPrompt(false);
+                      setPromptValue("");
+                    }}
+                    style={{
+                      fontSize: 12,
+                      padding: "4px 12px",
+                      background: "#111",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 4,
+                      cursor: "pointer",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Save
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div
+                dangerouslySetInnerHTML={{ __html: collab.prompt }}
+                style={{ fontSize: 14, lineHeight: 1.6, color: "#1a1a1a" }}
+              />
+            )}
           </div>
           {!collab.active ? (
             <div

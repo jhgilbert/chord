@@ -52,3 +52,7 @@ export async function endCollaboration(id: string) {
 export async function pauseCollaboration(id: string, paused: boolean) {
   await updateDoc(doc(db, "collaborations", id), { paused });
 }
+
+export async function updatePrompt(id: string, prompt: string) {
+  await updateDoc(doc(db, "collaborations", id), { prompt });
+}
