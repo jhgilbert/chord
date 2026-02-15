@@ -90,6 +90,12 @@ function StickyNote({
   canReact,
   paused,
   onDelete,
+  canDrag,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  isGrouped,
+  groupDepth,
 }: {
   note: Note;
   collaborationId: string;
@@ -98,6 +104,12 @@ function StickyNote({
   canReact: boolean;
   paused: boolean;
   onDelete: () => void;
+  canDrag?: boolean;
+  onDragStart?: () => void;
+  onDragOver?: (e: React.DragEvent) => void;
+  onDrop?: () => void;
+  isGrouped?: boolean;
+  groupDepth?: number;
 }) {
   const [hovered, setHovered] = useState(false);
   const myReaction: Reaction | null = note.reactions?.[sessionId] ?? null;
@@ -129,6 +141,30 @@ function StickyNote({
       onMouseLeave={() => setHovered(false)}
       className={styles.stickyNote}
       data-own={note.createdBy === sessionId}
+      data-grouped={isGrouped}
+      draggable={canDrag}
+      onDragStart={(e) => {
+        if (onDragStart) {
+          e.dataTransfer.effectAllowed = "move";
+          onDragStart();
+        }
+      }}
+      onDragOver={(e) => {
+        if (onDragOver) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "move";
+          onDragOver(e);
+        }
+      }}
+      onDrop={(e) => {
+        if (onDrop) {
+          e.preventDefault();
+          onDrop();
+        }
+      }}
+      style={
+        groupDepth ? { marginLeft: `${groupDepth * 20}px` } : undefined
+      }
     >
       {canDelete && (
         <button
@@ -230,6 +266,11 @@ function CollabRoute() {
   const [reactionFilter, setReactionFilter] = useState<
     "All" | "Agreed" | "Disagreed" | "Not reacted"
   >("All");
+  const [noteGroups, setNoteGroups] = useState<Map<string, string[]>>(
+    new Map(),
+  );
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [draggedNoteId, setDraggedNoteId] = useState<string | null>(null);
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [promptValue, setPromptValue] = useState("");
 
@@ -272,6 +313,87 @@ function CollabRoute() {
         return n.createdBy !== sessionId && !myReaction;
       return true;
     });
+  }
+
+  const isHost = collab.startedBy === sessionId;
+
+  const handleGroupNotes = (parentId: string, childId: string) => {
+    if (!isHost) return;
+    if (parentId === childId) return;
+
+    setNoteGroups((prev) => {
+      const newGroups = new Map(prev);
+
+      // Remove child from any existing group
+      for (const [key, children] of newGroups.entries()) {
+        if (children.includes(childId)) {
+          newGroups.set(
+            key,
+            children.filter((id) => id !== childId),
+          );
+        }
+      }
+
+      // Add child to new parent group
+      const existingChildren = newGroups.get(parentId) || [];
+      newGroups.set(parentId, [...existingChildren, childId]);
+
+      return newGroups;
+    });
+  };
+
+  const toggleGroup = (noteId: string) => {
+    setExpandedGroups((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(noteId)) {
+        newSet.delete(noteId);
+      } else {
+        newSet.add(noteId);
+      }
+      return newSet;
+    });
+  };
+
+  // Build display list including grouped notes
+  const displayNotes: Array<{
+    note: Note;
+    isGrouped: boolean;
+    groupDepth: number;
+    isParent: boolean;
+  }> = [];
+
+  const allChildIds = new Set<string>();
+  for (const children of noteGroups.values()) {
+    children.forEach((id) => allChildIds.add(id));
+  }
+
+  for (const note of visibleNotes) {
+    // Skip if this note is a child of another note
+    if (allChildIds.has(note.id)) continue;
+
+    // Add parent note
+    const children = noteGroups.get(note.id) || [];
+    displayNotes.push({
+      note,
+      isGrouped: false,
+      groupDepth: 0,
+      isParent: children.length > 0,
+    });
+
+    // Add children if expanded
+    if (expandedGroups.has(note.id)) {
+      for (const childId of children) {
+        const childNote = notes.find((n) => n.id === childId);
+        if (childNote) {
+          displayNotes.push({
+            note: childNote,
+            isGrouped: true,
+            groupDepth: 1,
+            isParent: false,
+          });
+        }
+      }
+    }
   }
 
   return (
@@ -432,21 +554,46 @@ function CollabRoute() {
             </select>
           </div>
           <div className={styles.notesList}>
-            {visibleNotes.map((n) => (
-              <StickyNote
+            {displayNotes.map(({ note: n, isGrouped, groupDepth, isParent }) => (
+              <div
                 key={n.id}
-                note={n}
-                collaborationId={collab.id}
-                sessionId={sessionId}
-                canDelete={
-                  !collab.paused && collab.active && n.createdBy === sessionId
+                onClick={
+                  isParent && !isGrouped ? () => toggleGroup(n.id) : undefined
                 }
-                canReact={
-                  !collab.paused && collab.active && n.createdBy !== sessionId
-                }
-                paused={!!collab.paused}
-                onDelete={() => removeNote(collab.id, n.id)}
-              />
+                style={{ cursor: isParent && !isGrouped ? "pointer" : undefined }}
+              >
+                <StickyNote
+                  note={n}
+                  collaborationId={collab.id}
+                  sessionId={sessionId}
+                  canDelete={
+                    !collab.paused && collab.active && n.createdBy === sessionId
+                  }
+                  canReact={
+                    !collab.paused && collab.active && n.createdBy !== sessionId
+                  }
+                  paused={!!collab.paused}
+                  onDelete={() => removeNote(collab.id, n.id)}
+                  canDrag={isHost && !isGrouped}
+                  onDragStart={() => setDraggedNoteId(n.id)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => {
+                    if (draggedNoteId && draggedNoteId !== n.id) {
+                      handleGroupNotes(n.id, draggedNoteId);
+                      setDraggedNoteId(null);
+                    }
+                  }}
+                  isGrouped={isGrouped}
+                  groupDepth={groupDepth}
+                />
+                {isParent && !isGrouped && (
+                  <div className={styles.groupIndicator}>
+                    {noteGroups.get(n.id)?.length || 0} grouped note
+                    {(noteGroups.get(n.id)?.length || 0) !== 1 ? "s" : ""}
+                    {expandedGroups.has(n.id) ? " ▲" : " ▼"}
+                  </div>
+                )}
+              </div>
             ))}
           </div>
         </main>
