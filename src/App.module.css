@@ -933,18 +933,34 @@
   flex: 1;
   padding: 20px;
   margin: 0;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   font-size: 13px;
   line-height: 1.6;
   color: #1a1a1a;
   background: #fff;
+  width: 100%;
+  max-width: 800px;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  box-sizing: border-box;
+}
+
+.summaryContent * {
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .summaryContent pre {
   margin: 0;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   white-space: pre-wrap;
-  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* StartScreen */

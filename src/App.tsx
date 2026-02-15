@@ -399,7 +399,9 @@ function ResponseItem({
         )}
       </div>
       <div
-        dangerouslySetInnerHTML={{ __html: response.content.replace(/&nbsp;/g, ' ') }}
+        dangerouslySetInnerHTML={{
+          __html: response.content.replace(/&nbsp;/g, " "),
+        }}
         className={styles.responseContent}
       />
     </div>
@@ -767,7 +769,9 @@ function StickyNote({
       ) : (
         <>
           <div
-            dangerouslySetInnerHTML={{ __html: note.content.replace(/&nbsp;/g, ' ') }}
+            dangerouslySetInnerHTML={{
+              __html: note.content.replace(/&nbsp;/g, " "),
+            }}
             className={styles.stickyNoteContent}
           />
           {note.type === "Poll" &&
@@ -916,7 +920,9 @@ function StickyNote({
                           {timestamp}
                         </div>
                         <div
-                          dangerouslySetInnerHTML={{ __html: version.content.replace(/&nbsp;/g, ' ') }}
+                          dangerouslySetInnerHTML={{
+                            __html: version.content.replace(/&nbsp;/g, " "),
+                          }}
                           className={styles.historyContent}
                         />
                       </div>
@@ -1693,7 +1699,7 @@ function CollabRoute() {
       // Helper function to render a note
       const renderNote = (note: Note, idx: number) => {
         // Strip HTML from note content
-        tempDiv.innerHTML = note.content;
+        tempDiv.innerHTML = note.content.replace(/&nbsp;/g, ' ');
         const noteText = tempDiv.textContent || tempDiv.innerText || "";
 
         const authorName =
@@ -1770,7 +1776,7 @@ function CollabRoute() {
         if (note.responses && note.responses.length > 0) {
           md += `#### Responses (${note.responses.length})\n\n`;
           note.responses.forEach((response) => {
-            tempDiv.innerHTML = response.content;
+            tempDiv.innerHTML = response.content.replace(/&nbsp;/g, ' ');
             const responseText = tempDiv.textContent || tempDiv.innerText || "";
             const timestamp = response.createdAt
               ? new Date(response.createdAt as number).toLocaleString()
@@ -1788,7 +1794,7 @@ function CollabRoute() {
         if (note.editHistory && note.editHistory.length > 0) {
           md += `**Edit History (${note.editHistory.length} version${note.editHistory.length !== 1 ? "s" : ""}):**\n\n`;
           note.editHistory.forEach((version, vIdx) => {
-            tempDiv.innerHTML = version.content;
+            tempDiv.innerHTML = version.content.replace(/&nbsp;/g, ' ');
             const versionText = tempDiv.textContent || tempDiv.innerText || "";
             const timestamp = version.editedAt
               ? new Date(version.editedAt as number).toLocaleString()
@@ -1837,7 +1843,7 @@ function CollabRoute() {
           md += `| Prompt | Note | Author | Assignee | Due Date |\n`;
           md += `|--------|------|--------|----------|----------|\n`;
           actionItems.forEach((note) => {
-            tempDiv.innerHTML = note.content;
+            tempDiv.innerHTML = note.content.replace(/&nbsp;/g, ' ');
             const noteText = (tempDiv.textContent || tempDiv.innerText || "")
               .replace(/\|/g, "\\|")
               .replace(/\n/g, " ");
@@ -1863,7 +1869,7 @@ function CollabRoute() {
           md += `| Prompt | Note | Author |\n`;
           md += `|--------|------|--------|\n`;
           requirements.forEach((note) => {
-            tempDiv.innerHTML = note.content;
+            tempDiv.innerHTML = note.content.replace(/&nbsp;/g, ' ');
             const noteText = (tempDiv.textContent || tempDiv.innerText || "")
               .replace(/\|/g, "\\|")
               .replace(/\n/g, " ");
@@ -1885,7 +1891,7 @@ function CollabRoute() {
           md += `| Prompt | Note | Author |\n`;
           md += `|--------|------|--------|\n`;
           constructiveFeedback.forEach((note) => {
-            tempDiv.innerHTML = note.content;
+            tempDiv.innerHTML = note.content.replace(/&nbsp;/g, ' ');
             const noteText = (tempDiv.textContent || tempDiv.innerText || "")
               .replace(/\|/g, "\\|")
               .replace(/\n/g, " ");
@@ -1916,7 +1922,8 @@ function CollabRoute() {
         <div className={styles.stoppedHeader}>
           <h1 className={styles.stoppedTitle}>Collaboration Results</h1>
           <p className={styles.stoppedMessage}>
-            This collaboration was closed by <b>{collab.startedByName}</b>.
+            This collaboration was closed by the host,{" "}
+            <b>{collab.startedByName}</b>.
           </p>
           {isHost && (
             <button
@@ -1971,11 +1978,13 @@ function CollabRoute() {
             </div>
           </div>
           {summaryFormat === "markdown" ? (
-            <pre className={styles.summaryContent}>{generateMarkdown()}</pre>
+            <pre className={styles.summaryContent}>{generateMarkdown().replace(/&nbsp;/g, ' ')}</pre>
           ) : (
             <div
               className={styles.summaryContent}
-              dangerouslySetInnerHTML={{ __html: generateHTML() }}
+              dangerouslySetInnerHTML={{
+                __html: generateHTML().replace(/&nbsp;/g, " "),
+              }}
             />
           )}
         </div>
@@ -2298,7 +2307,9 @@ function CollabRoute() {
               </>
             ) : (
               <div
-                dangerouslySetInnerHTML={{ __html: collab.prompt.replace(/&nbsp;/g, ' ') }}
+                dangerouslySetInnerHTML={{
+                  __html: collab.prompt.replace(/&nbsp;/g, " "),
+                }}
                 className={styles.promptContent}
               />
             )}
