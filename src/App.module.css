@@ -1146,6 +1146,47 @@
   border-left: 2px solid #d1d5db;
 }
 
+.noteTypeFilterContainer {
+  position: relative;
+  margin-left: 24px;
+  padding-left: 16px;
+  border-left: 2px solid #d1d5db;
+}
+
+.noteTypeFilterDropdown {
+  position: absolute;
+  top: 100%;
+  left: 16px;
+  margin-top: 4px;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  min-width: 180px;
+  z-index: 100;
+}
+
+.noteTypeFilterOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+  color: #374151;
+}
+
+.noteTypeFilterOption:hover {
+  background: #f3f4f6;
+}
+
+.noteTypeFilterOption input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
 .filterDropdown[data-active="true"] {
   background: #111;
   color: #fff;

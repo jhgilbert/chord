@@ -944,9 +944,11 @@ function CollabRoute() {
   );
   const [notes, setNotes] = useState<Note[]>([]);
   const [openType, setOpenType] = useState<NoteType | null>(null);
-  const [filter, setFilter] = useState<NoteType | "All" | "Inbox" | "Mine" | "Archived">(
+  const [filter, setFilter] = useState<"All" | "Inbox" | "Mine" | "Archived">(
     "Mine",
   );
+  const [selectedNoteTypes, setSelectedNoteTypes] = useState<Set<NoteType>>(new Set(NOTE_TYPES));
+  const [showNoteTypeFilter, setShowNoteTypeFilter] = useState(false);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [draggedNoteId, setDraggedNoteId] = useState<string | null>(null);
@@ -983,6 +985,20 @@ function CollabRoute() {
     return () => unsub();
   }, [id]);
 
+  // Auto-check new note types when they first appear
+  useEffect(() => {
+    if (notes.length === 0) return;
+
+    const existingTypes = new Set(notes.map((note) => note.type));
+    const newTypes = Array.from(existingTypes).filter((type) => !selectedNoteTypes.has(type));
+
+    if (newTypes.length > 0) {
+      const newSet = new Set(selectedNoteTypes);
+      newTypes.forEach((type) => newSet.add(type));
+      setSelectedNoteTypes(newSet);
+    }
+  }, [notes, selectedNoteTypes]);
+
   if (!id) return <Navigate to="/start" replace />;
   if (!session) return null;
   if (collab === undefined) return null;
@@ -1005,6 +1021,11 @@ function CollabRoute() {
     const indexB = NOTE_TYPES.indexOf(b);
     return indexA - indexB;
   });
+
+  // Get note types that actually exist in the notes
+  const existingNoteTypes = allowedNoteTypes.filter((type) =>
+    notes.some((note) => note.type === type)
+  );
 
   const toggleNoteTypeInCollab = async (type: NoteType, enable: boolean) => {
     const newAllowedTypes = enable
@@ -1529,7 +1550,7 @@ function CollabRoute() {
     filter === "Archived"
       ? notes.filter((n) => n.archived)
       : filter === "All"
-        ? notes.filter((n) => !n.archived)
+        ? notes.filter((n) => !n.archived && selectedNoteTypes.has(n.type))
         : filter === "Inbox"
           ? notes.filter(
               (n) =>
@@ -1537,11 +1558,10 @@ function CollabRoute() {
                 !n.reactions?.[session.userId] &&
                 (!allChildIds.has(n.id) || n.id === respondingToNoteId) &&
                 !n.archived &&
-                n.type !== "Host note",
+                n.type !== "Host note" &&
+                selectedNoteTypes.has(n.type),
             )
-          : filter === "Mine"
-            ? notes.filter((n) => n.createdBy === session.userId && !n.archived)
-            : notes.filter((n) => n.type === filter && !n.archived);
+          : notes.filter((n) => n.createdBy === session.userId && !n.archived && selectedNoteTypes.has(n.type));
 
 
   // Apply sort order (notes are fetched in ascending order by default)
@@ -1829,19 +1849,37 @@ function CollabRoute() {
                 {t === "Mine" ? "Your notes" : t === "Inbox" ? `Inbox (${inboxCount})` : t === "Archived" ? `Archived (${archivedCount})` : t}
               </button>
             ))}
-            <select
-              value={allowedNoteTypes.includes(filter as NoteType) ? filter : "All"}
-              onChange={(e) => setFilter(e.target.value as typeof filter)}
-              className={styles.filterDropdown}
-              data-active={allowedNoteTypes.includes(filter as NoteType)}
-            >
-              <option value="All">All note types</option>
-              {allowedNoteTypes.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
+            <div className={styles.noteTypeFilterContainer}>
+              <button
+                onClick={() => setShowNoteTypeFilter(!showNoteTypeFilter)}
+                className={styles.filterDropdown}
+                data-active={selectedNoteTypes.size < existingNoteTypes.length}
+              >
+                Note types {showNoteTypeFilter ? "▲" : "▼"}
+              </button>
+              {showNoteTypeFilter && (
+                <div className={styles.noteTypeFilterDropdown}>
+                  {existingNoteTypes.map((t) => (
+                    <label key={t} className={styles.noteTypeFilterOption}>
+                      <input
+                        type="checkbox"
+                        checked={selectedNoteTypes.has(t)}
+                        onChange={(e) => {
+                          const newSet = new Set(selectedNoteTypes);
+                          if (e.target.checked) {
+                            newSet.add(t);
+                          } else {
+                            newSet.delete(t);
+                          }
+                          setSelectedNoteTypes(newSet);
+                        }}
+                      />
+                      <span>{t}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
             <select
               value={filter === "Inbox" ? "asc" : sortOrder}
               onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
