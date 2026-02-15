@@ -10,9 +10,12 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase";
 
+export type NoteType = "Question" | "Requirement";
+
 export type Note = {
   id: string;
-  content: string; // HTML from Tiptap
+  type: NoteType;
+  content: string; // HTML from Quill
   createdAt?: unknown; // Firestore timestamp
   createdBy: string; // sessionId
   createdByName: string; // displayName
@@ -32,11 +35,13 @@ export function subscribeNotes(cb: (notes: Note[]) => void) {
 }
 
 export async function createNote(
+  type: NoteType,
   content: string,
   sessionId: string,
   displayName: string,
 ) {
   await addDoc(notesCol, {
+    type,
     content,
     createdAt: serverTimestamp(),
     createdBy: sessionId,

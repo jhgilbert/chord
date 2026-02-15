@@ -2,11 +2,25 @@ import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { useEffect, useMemo, useState } from "react";
 import { getOrCreateSession } from "./session";
-import { createNote, removeNote, subscribeNotes, type Note } from "./notes";
+import {
+  createNote,
+  removeNote,
+  subscribeNotes,
+  type Note,
+  type NoteType,
+} from "./notes";
 
-function RichTextEditor({
+const NOTE_TYPES: NoteType[] = ["Question", "Requirement"];
+
+function NoteTypePanel({
+  label,
+  isOpen,
+  onToggle,
   onSubmit,
 }: {
+  label: NoteType;
+  isOpen: boolean;
+  onToggle: () => void;
   onSubmit: (html: string) => Promise<void>;
 }) {
   const [value, setValue] = useState("");
@@ -20,19 +34,45 @@ function RichTextEditor({
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <ReactQuill
-        theme="snow"
-        value={value}
-        onChange={setValue}
-        style={{ background: "#fff", color: "#111", borderRadius: 6 }}
-      />
-      <div style={{ marginTop: 8, display: "flex", justifyContent: "flex-end" }}>
-        <button type="submit" style={{ padding: "8px 16px" }}>
-          Post note
-        </button>
-      </div>
-    </form>
+    <div style={{ border: "1px solid #d1d5db", borderRadius: 6, overflow: "hidden" }}>
+      <button
+        type="button"
+        onClick={onToggle}
+        style={{
+          width: "100%",
+          padding: "10px 14px",
+          textAlign: "left",
+          background: isOpen ? "#111" : "#f9fafb",
+          color: isOpen ? "#fff" : "#111",
+          border: "none",
+          cursor: "pointer",
+          fontWeight: 600,
+          fontSize: 14,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        {label}
+        <span style={{ fontSize: 12, opacity: 0.6 }}>{isOpen ? "▲" : "▼"}</span>
+      </button>
+
+      {isOpen && (
+        <form onSubmit={handleSubmit} style={{ padding: 10, background: "#fff" }}>
+          <ReactQuill
+            theme="snow"
+            value={value}
+            onChange={setValue}
+            style={{ background: "#fff", color: "#111" }}
+          />
+          <div style={{ marginTop: 8, display: "flex", justifyContent: "flex-end" }}>
+            <button type="submit" style={{ padding: "8px 16px" }}>
+              Post note
+            </button>
+          </div>
+        </form>
+      )}
+    </div>
   );
 }
 
@@ -77,10 +117,24 @@ function StickyNote({
           ✕
         </button>
       )}
-      <div
-        style={{ fontSize: 12, fontWeight: 600, marginBottom: 10, opacity: 0.6 }}
-      >
-        {note.createdByName}
+      <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 10 }}>
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+            background: "#111",
+            color: "#fff",
+            borderRadius: 3,
+            padding: "2px 6px",
+          }}
+        >
+          {note.type}
+        </span>
+        <span style={{ fontSize: 12, fontWeight: 600, opacity: 0.6 }}>
+          {note.createdByName}
+        </span>
       </div>
       <div
         dangerouslySetInnerHTML={{ __html: note.content }}
@@ -93,6 +147,7 @@ function StickyNote({
 export default function App() {
   const { sessionId, displayName } = useMemo(() => getOrCreateSession(), []);
   const [notes, setNotes] = useState<Note[]>([]);
+  const [openType, setOpenType] = useState<NoteType | null>(null);
 
   useEffect(() => {
     const unsub = subscribeNotes(setNotes);
@@ -118,10 +173,16 @@ export default function App() {
         </p>
       </div>
 
-      <aside>
-        <RichTextEditor
-          onSubmit={(html) => createNote(html, sessionId, displayName)}
-        />
+      <aside style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {NOTE_TYPES.map((type) => (
+          <NoteTypePanel
+            key={type}
+            label={type}
+            isOpen={openType === type}
+            onToggle={() => setOpenType(openType === type ? null : type)}
+            onSubmit={(html) => createNote(type, html, sessionId, displayName)}
+          />
+        ))}
       </aside>
 
       <main>
