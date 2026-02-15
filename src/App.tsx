@@ -1,6 +1,6 @@
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./App.module.css";
 import {
   Navigate,
@@ -875,6 +875,21 @@ function CollabRoute() {
   const [promptValue, setPromptValue] = useState("");
   const [showNoteTypeSettings, setShowNoteTypeSettings] = useState(false);
   const [respondingToNoteId, setRespondingToNoteId] = useState<string | null>(null);
+  const noteTypeSettingsRef = useRef<HTMLDivElement>(null);
+
+  // Close note type settings dropdown when clicking outside
+  useEffect(() => {
+    if (!showNoteTypeSettings) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (noteTypeSettingsRef.current && !noteTypeSettingsRef.current.contains(event.target as Node)) {
+        setShowNoteTypeSettings(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showNoteTypeSettings]);
 
   useEffect(() => {
     if (!id) return;
@@ -906,11 +921,19 @@ function CollabRoute() {
 
   // Get allowed note types for this collaboration
   const allowedNoteTypes = collab.allowedNoteTypes || NOTE_TYPES;
-  const disabledNoteTypes = NOTE_TYPES.filter(t => !allowedNoteTypes.includes(t));
 
-  const enableNoteType = async (type: NoteType) => {
-    const newAllowedTypes = [...allowedNoteTypes, type];
+  const toggleNoteTypeInCollab = async (type: NoteType, enable: boolean) => {
+    const newAllowedTypes = enable
+      ? [...allowedNoteTypes, type]
+      : allowedNoteTypes.filter(t => t !== type);
+
     await updateAllowedNoteTypes(collab.id, newAllowedTypes);
+
+    // Create a host note documenting the change
+    const message = enable
+      ? `<p>The note type "${type}" was enabled.</p>`
+      : `<p>The note type "${type}" was disabled.</p>`;
+    await createNote(collab.id, "Host note", message, session.userId, session.displayName);
   };
 
   // If collaboration is stopped, show summary screen
@@ -1255,13 +1278,14 @@ function CollabRoute() {
     children.forEach((id) => allChildIds.add(id));
   }
 
-  // Calculate inbox count (exclude archived)
+  // Calculate inbox count (exclude archived and host notes)
   const inboxCount = notes.filter(
     (n) =>
       n.createdBy !== session.userId &&
       !n.reactions?.[session.userId] &&
       !allChildIds.has(n.id) &&
-      !n.archived,
+      !n.archived &&
+      n.type !== "Host note",
   ).length;
 
   // Calculate archived count
@@ -1278,7 +1302,8 @@ function CollabRoute() {
                 n.createdBy !== session.userId &&
                 !n.reactions?.[session.userId] &&
                 (!allChildIds.has(n.id) || n.id === respondingToNoteId) &&
-                !n.archived,
+                !n.archived &&
+                n.type !== "Host note",
             )
           : filter === "Mine"
             ? notes.filter((n) => n.createdBy === session.userId && !n.archived)
@@ -1380,37 +1405,39 @@ function CollabRoute() {
           )}
           {collab.startedBy === session.userId && collab.active && (
             <>
-              {disabledNoteTypes.length > 0 && (
-                <div className={styles.noteTypeSettingsContainer}>
-                  <button
-                    onClick={() => setShowNoteTypeSettings(!showNoteTypeSettings)}
-                    className={styles.buttonNoteTypes}
-                  >
-                    Note types {showNoteTypeSettings ? "▲" : "▼"}
-                  </button>
-                  {showNoteTypeSettings && (
-                    <div className={styles.noteTypeSettingsDropdown}>
-                      <div className={styles.noteTypeSettingsHeader}>
-                        Enable additional note types:
-                      </div>
-                      {disabledNoteTypes.map(type => (
-                        <button
-                          key={type}
-                          onClick={() => {
-                            enableNoteType(type);
-                            if (disabledNoteTypes.length === 1) {
-                              setShowNoteTypeSettings(false);
-                            }
-                          }}
-                          className={styles.noteTypeSettingsOption}
-                        >
-                          + {type}
-                        </button>
-                      ))}
+              <div className={styles.noteTypeSettingsContainer} ref={noteTypeSettingsRef}>
+                <button
+                  onClick={() => setShowNoteTypeSettings(!showNoteTypeSettings)}
+                  className={styles.buttonNoteTypes}
+                >
+                  Manage note types {showNoteTypeSettings ? "▲" : "▼"}
+                </button>
+                {showNoteTypeSettings && (
+                  <div className={styles.noteTypeSettingsDropdown}>
+                    <div className={styles.noteTypeSettingsHeader}>
+                      Note types:
                     </div>
-                  )}
-                </div>
-              )}
+                    {NOTE_TYPES.filter(type => type !== "Host note").map(type => {
+                      const isEnabled = allowedNoteTypes.includes(type);
+                      return (
+                        <label
+                          key={type}
+                          className={styles.noteTypeSettingsOption}
+                          style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', padding: '6px 8px' }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isEnabled}
+                            onChange={() => toggleNoteTypeInCollab(type, !isEnabled)}
+                            style={{ marginRight: '8px' }}
+                          />
+                          <span>{type}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
               <button
                 onClick={async () => {
                   const willPause = !collab.paused;
