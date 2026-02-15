@@ -1,9 +1,13 @@
 import {
+  collection,
   doc,
+  getDocs,
   onSnapshot,
+  query,
   serverTimestamp,
   setDoc,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import type { NoteType } from "./notes";
@@ -25,6 +29,7 @@ export type Collaboration = {
   paused?: boolean;
   allowedNoteTypes: NoteType[];
   promptHistory?: PromptVersion[]; // Previous versions
+  showAuthorNames?: boolean; // Whether to show author names while active (default true)
 };
 
 export function subscribeCollaboration(
@@ -47,6 +52,7 @@ export async function startCollaboration(
   title: string,
   prompt: string,
   allowedNoteTypes: NoteType[],
+  showAuthorNames: boolean,
 ) {
   await setDoc(doc(db, "collaborations", id), {
     title,
@@ -56,6 +62,7 @@ export async function startCollaboration(
     startedAt: serverTimestamp(),
     active: true,
     allowedNoteTypes,
+    showAuthorNames,
   });
 }
 
@@ -93,4 +100,20 @@ export async function updatePrompt(
 
 export async function updateAllowedNoteTypes(id: string, allowedNoteTypes: NoteType[]) {
   await updateDoc(doc(db, "collaborations", id), { allowedNoteTypes });
+}
+
+export async function updateShowAuthorNames(id: string, showAuthorNames: boolean) {
+  await updateDoc(doc(db, "collaborations", id), { showAuthorNames });
+}
+
+export async function getUserCollaborations(userId: string): Promise<Collaboration[]> {
+  const q = query(
+    collection(db, "collaborations"),
+    where("startedBy", "==", userId)
+  );
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...(doc.data() as Omit<Collaboration, "id">)
+  }));
 }

@@ -28,12 +28,14 @@ import {
 } from "./notes";
 import {
   endCollaboration,
+  getUserCollaborations,
   pauseCollaboration,
   resumeCollaboration,
   startCollaboration,
   subscribeCollaboration,
   updatePrompt,
   updateAllowedNoteTypes,
+  updateShowAuthorNames,
   type Collaboration,
   type PromptVersion,
 } from "./collaborations";
@@ -430,6 +432,7 @@ function StickyNote({
   onRespondingChange,
   hideYouBadge,
   isHost,
+  showAuthorNames,
 }: {
   note: Note;
   collaborationId: string;
@@ -438,6 +441,7 @@ function StickyNote({
   canDelete: boolean;
   canReact: boolean;
   paused: boolean;
+  showAuthorNames?: boolean;
   onDelete: () => void;
   canDrag?: boolean;
   onDragStart?: () => void;
@@ -708,7 +712,7 @@ function StickyNote({
         {note.createdBy === sessionId && !hideYouBadge && (
           <span className={styles.badgeYou}>You</span>
         )}
-        {paused && (
+        {showAuthorNames !== false && (
           <span className={styles.badgeName}>{note.createdByName}</span>
         )}
         <span className={styles.badgeTimestamp}>
@@ -1056,6 +1060,7 @@ function StartScreen() {
     "Statement",
     "Recommendation",
   ]);
+  const [showAuthorNames, setShowAuthorNames] = useState(true);
 
   if (!session) return null;
 
@@ -1091,6 +1096,7 @@ function StartScreen() {
       title,
       prompt,
       noteTypesWithHostNote,
+      showAuthorNames,
     );
     navigate(`/collabs/${id}`, { replace: true });
   };
@@ -1248,6 +1254,17 @@ function StartScreen() {
               </label>
             ))}
           </div>
+        </div>
+        <div style={{ marginTop: "20px" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px" }}>
+            <input
+              type="checkbox"
+              checked={showAuthorNames}
+              onChange={(e) => setShowAuthorNames(e.target.checked)}
+              style={{ cursor: "pointer" }}
+            />
+            <span>Show author names while collaboration is active</span>
+          </label>
         </div>
         <div className={styles.startScreenActions}>
           <button type="submit" className={styles.startScreenSubmit}>
@@ -2207,6 +2224,26 @@ function CollabRoute() {
               </button>
               <button
                 onClick={async () => {
+                  const willShow = collab.showAuthorNames === false;
+                  await updateShowAuthorNames(collab.id, willShow);
+                  const message = willShow
+                    ? "<p>The host set author names to 'displayed'.</p>"
+                    : "<p>The host set author names to 'hidden'.</p>";
+                  await createNote(
+                    collab.id,
+                    "Host note",
+                    message,
+                    session.userId,
+                    session.displayName,
+                  );
+                }}
+                className={styles.buttonToggle}
+                data-active={collab.showAuthorNames !== false}
+              >
+                {collab.showAuthorNames !== false ? "Hide authors" : "Show authors"}
+              </button>
+              <button
+                onClick={async () => {
                   const willPause = !collab.paused;
                   await pauseCollaboration(collab.id, willPause);
                   const message = willPause
@@ -2578,6 +2615,7 @@ function CollabRoute() {
                     }
                     hideYouBadge={filter === "Mine"}
                     isHost={isHost}
+                    showAuthorNames={collab.showAuthorNames}
                   />
                   {isParent && !isGrouped && (
                     <div className={styles.groupIndicator}>
@@ -2862,11 +2900,156 @@ function StatsRoute() {
   );
 }
 
+function CollabsListScreen() {
+  const navigate = useNavigate();
+  const session = getSession();
+  const [collabs, setCollabs] = useState<Collaboration[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!session) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    const loadCollabs = async () => {
+      try {
+        const userCollabs = await getUserCollaborations(session.userId);
+        // Sort by most recent first
+        userCollabs.sort((a, b) => {
+          const aTime = a.startedAt as unknown as { toDate?: () => Date } | number;
+          const bTime = b.startedAt as unknown as { toDate?: () => Date } | number;
+          if (!aTime) return 1;
+          if (!bTime) return -1;
+          const aMs = typeof aTime === 'object' && aTime.toDate ? aTime.toDate().getTime() : aTime as number;
+          const bMs = typeof bTime === 'object' && bTime.toDate ? bTime.toDate().getTime() : bTime as number;
+          return bMs - aMs;
+        });
+        setCollabs(userCollabs);
+      } catch (error) {
+        console.error("Error loading collaborations:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCollabs();
+  }, [session, navigate]);
+
+  if (!session) return null;
+
+  if (loading) {
+    return (
+      <div className={styles.startScreen}>
+        <h1 className={styles.startScreenTitle}>Your Collaborations</h1>
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.startScreen}>
+      <h1 className={styles.startScreenTitle}>Your Collaborations</h1>
+      <p className={styles.startScreenUser}>
+        Logged in as: <b>{session.displayName}</b>
+      </p>
+      {collabs.length === 0 ? (
+        <div style={{ marginTop: "32px", textAlign: "center" }}>
+          <p style={{ marginBottom: "16px" }}>You haven't created any collaborations yet.</p>
+          <button
+            onClick={() => navigate("/")}
+            className={styles.startScreenSubmit}
+          >
+            Create collaboration
+          </button>
+        </div>
+      ) : (
+        <div style={{ marginTop: "32px", width: "100%", maxWidth: "1000px" }}>
+          <div style={{ marginBottom: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <h2 style={{ margin: 0, fontSize: "18px" }}>Your Collaborations ({collabs.length})</h2>
+            <button
+              onClick={() => navigate("/")}
+              className={styles.startScreenSubmit}
+              style={{ padding: "8px 16px", fontSize: "14px" }}
+            >
+              Create new
+            </button>
+          </div>
+          <table className={styles.collabsTable}>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Prompt</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {collabs.map((collab) => {
+                const tempDiv = document.createElement("div");
+                tempDiv.innerHTML = collab.prompt.replace(/&nbsp;/g, ' ');
+                const promptText = (tempDiv.textContent || tempDiv.innerText || "").trim();
+                const truncatedPrompt = promptText.length > 100
+                  ? promptText.substring(0, 100) + "..."
+                  : promptText;
+
+                let createdDate = "Unknown";
+                if (collab.startedAt) {
+                  const time = collab.startedAt as unknown as { toDate?: () => Date } | number;
+                  if (typeof time === 'object' && time.toDate) {
+                    createdDate = time.toDate().toLocaleDateString();
+                  } else if (typeof time === "number") {
+                    createdDate = new Date(time).toLocaleDateString();
+                  }
+                }
+
+                return (
+                  <tr key={collab.id}>
+                    <td style={{ fontWeight: 600 }}>{collab.title}</td>
+                    <td style={{ fontSize: "13px", color: "#666" }}>{truncatedPrompt}</td>
+                    <td>
+                      {collab.active ? (
+                        <span style={{ color: "#16a34a", fontWeight: 600 }}>Active</span>
+                      ) : (
+                        <span style={{ color: "#9ca3af", fontWeight: 600 }}>Ended</span>
+                      )}
+                    </td>
+                    <td style={{ fontSize: "13px", color: "#666" }}>{createdDate}</td>
+                    <td>
+                      <button
+                        onClick={() => navigate(`/collabs/${collab.id}`)}
+                        style={{
+                          padding: "6px 12px",
+                          fontSize: "13px",
+                          background: "#0066cc",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          fontWeight: 600,
+                        }}
+                      >
+                        View
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginScreen />} />
       <Route path="/" element={<StartScreen />} />
+      <Route path="/collabs" element={<CollabsListScreen />} />
       <Route path="/collabs/:id" element={<CollabRoute />} />
       <Route path="/collabs/:id/stats" element={<StatsRoute />} />
       <Route path="*" element={<Navigate to="/" replace />} />
