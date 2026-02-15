@@ -24,6 +24,7 @@ export type Note = {
   createdBy: string; // sessionId
   createdByName: string; // displayName
   reactions?: Record<string, Reaction>; // sessionId -> reaction
+  groupedUnder?: string; // parent note ID if this note is grouped
 };
 
 const notesCol = (collaborationId: string) =>
@@ -73,6 +74,19 @@ export async function setReaction(
     doc(db, "collaborations", collaborationId, "notes", noteId),
     {
       [`reactions.${sessionId}`]: reaction === null ? deleteField() : reaction,
+    },
+  );
+}
+
+export async function setGroupedUnder(
+  collaborationId: string,
+  noteId: string,
+  parentId: string | null,
+) {
+  await updateDoc(
+    doc(db, "collaborations", collaborationId, "notes", noteId),
+    {
+      groupedUnder: parentId === null ? deleteField() : parentId,
     },
   );
 }

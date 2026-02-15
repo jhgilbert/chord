@@ -14,6 +14,7 @@ import {
   createNote,
   removeNote,
   setReaction,
+  setGroupedUnder,
   subscribeNotes,
   type Note,
   type NoteType,
@@ -266,9 +267,6 @@ function CollabRoute() {
   const [reactionFilter, setReactionFilter] = useState<
     "All" | "Agreed" | "Disagreed" | "Not reacted"
   >("All");
-  const [noteGroups, setNoteGroups] = useState<Map<string, string[]>>(
-    new Map(),
-  );
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [draggedNoteId, setDraggedNoteId] = useState<string | null>(null);
   const [editingPrompt, setEditingPrompt] = useState(false);
@@ -292,12 +290,30 @@ function CollabRoute() {
     return <div className={styles.notFound}>Collaboration not found.</div>;
   }
 
+  // Build noteGroups map from notes data
+  const noteGroups = new Map<string, string[]>();
+  for (const note of notes) {
+    if (note.groupedUnder) {
+      const existing = noteGroups.get(note.groupedUnder) || [];
+      noteGroups.set(note.groupedUnder, [...existing, note.id]);
+    }
+  }
+
+  // Build set of all grouped (child) note IDs
+  const allChildIds = new Set<string>();
+  for (const children of noteGroups.values()) {
+    children.forEach((id) => allChildIds.add(id));
+  }
+
   let visibleNotes =
     filter === "All"
       ? notes
       : filter === "Inbox"
         ? notes.filter(
-            (n) => n.createdBy !== sessionId && !n.reactions?.[sessionId],
+            (n) =>
+              n.createdBy !== sessionId &&
+              !n.reactions?.[sessionId] &&
+              !allChildIds.has(n.id),
           )
         : filter === "Mine"
           ? notes.filter((n) => n.createdBy === sessionId)
@@ -317,29 +333,12 @@ function CollabRoute() {
 
   const isHost = collab.startedBy === sessionId;
 
-  const handleGroupNotes = (parentId: string, childId: string) => {
+  const handleGroupNotes = async (parentId: string, childId: string) => {
     if (!isHost) return;
     if (parentId === childId) return;
 
-    setNoteGroups((prev) => {
-      const newGroups = new Map(prev);
-
-      // Remove child from any existing group
-      for (const [key, children] of newGroups.entries()) {
-        if (children.includes(childId)) {
-          newGroups.set(
-            key,
-            children.filter((id) => id !== childId),
-          );
-        }
-      }
-
-      // Add child to new parent group
-      const existingChildren = newGroups.get(parentId) || [];
-      newGroups.set(parentId, [...existingChildren, childId]);
-
-      return newGroups;
-    });
+    // Set the child note to be grouped under the parent
+    await setGroupedUnder(collab.id, childId, parentId);
   };
 
   const toggleGroup = (noteId: string) => {
@@ -361,11 +360,6 @@ function CollabRoute() {
     groupDepth: number;
     isParent: boolean;
   }> = [];
-
-  const allChildIds = new Set<string>();
-  for (const children of noteGroups.values()) {
-    children.forEach((id) => allChildIds.add(id));
-  }
 
   for (const note of visibleNotes) {
     // Skip if this note is a child of another note
