@@ -623,8 +623,39 @@
   color: #111;
 }
 
+.noteTypesSelection {
+  margin-top: 20px;
+}
+
+.noteTypesLabel {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.noteTypesCheckboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.noteTypeCheckbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.noteTypeCheckbox input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
 .startScreenActions {
-  margin-top: 12px;
+  margin-top: 20px;
   display: flex;
   justify-content: flex-end;
 }

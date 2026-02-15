@@ -32,7 +32,7 @@ import {
   type Collaboration,
 } from "./collaborations";
 
-const NOTE_TYPES: NoteType[] = ["Question", "Requirement", "Comment"];
+const NOTE_TYPES: NoteType[] = ["Question", "Requirement", "Comment", "Idea", "Action item"];
 
 function LoginScreen() {
   const [firstName, setFirstName] = useState("");
@@ -554,6 +554,7 @@ function StartScreen() {
   }, [session, navigate]);
 
   const [prompt, setPrompt] = useState("");
+  const [allowedNoteTypes, setAllowedNoteTypes] = useState<NoteType[]>(NOTE_TYPES);
 
   if (!session) return null;
 
@@ -561,9 +562,21 @@ function StartScreen() {
     e.preventDefault();
     const isEmpty = prompt === "" || prompt === "<p><br></p>";
     if (isEmpty) return;
+    if (allowedNoteTypes.length === 0) {
+      alert("Please select at least one note type");
+      return;
+    }
     const id = crypto.randomUUID();
-    await startCollaboration(id, session.userId, session.displayName, prompt);
+    await startCollaboration(id, session.userId, session.displayName, prompt, allowedNoteTypes);
     navigate(`/collabs/${id}`, { replace: true });
+  };
+
+  const toggleNoteType = (type: NoteType) => {
+    setAllowedNoteTypes(prev =>
+      prev.includes(type)
+        ? prev.filter(t => t !== type)
+        : [...prev, type]
+    );
   };
 
   return (
@@ -582,6 +595,21 @@ function StartScreen() {
           onChange={setPrompt}
           className={styles.startScreenEditor}
         />
+        <div className={styles.noteTypesSelection}>
+          <label className={styles.noteTypesLabel}>Allowed note types</label>
+          <div className={styles.noteTypesCheckboxes}>
+            {NOTE_TYPES.map(type => (
+              <label key={type} className={styles.noteTypeCheckbox}>
+                <input
+                  type="checkbox"
+                  checked={allowedNoteTypes.includes(type)}
+                  onChange={() => toggleNoteType(type)}
+                />
+                <span>{type}</span>
+              </label>
+            ))}
+          </div>
+        </div>
         <div className={styles.startScreenActions}>
           <button type="submit" className={styles.startScreenSubmit}>
             Start collaboration
@@ -640,6 +668,9 @@ function CollabRoute() {
   }
 
   const isHost = collab.startedBy === session.userId;
+
+  // Get allowed note types for this collaboration
+  const allowedNoteTypes = collab.allowedNoteTypes || NOTE_TYPES;
 
   // If collaboration is stopped, show summary screen
   if (!collab.active) {
@@ -953,7 +984,7 @@ function CollabRoute() {
               Input is paused. New notes cannot be added.
             </div>
           ) : (
-            NOTE_TYPES.map((type) => (
+            allowedNoteTypes.map((type) => (
               <NoteTypePanel
                 key={type}
                 label={type}
@@ -980,13 +1011,13 @@ function CollabRoute() {
               </button>
             ))}
             <select
-              value={NOTE_TYPES.includes(filter as NoteType) ? filter : "All"}
+              value={allowedNoteTypes.includes(filter as NoteType) ? filter : "All"}
               onChange={(e) => setFilter(e.target.value as typeof filter)}
               className={styles.filterDropdown}
-              data-active={NOTE_TYPES.includes(filter as NoteType)}
+              data-active={allowedNoteTypes.includes(filter as NoteType)}
             >
               <option value="All">All note types</option>
-              {NOTE_TYPES.map((t) => (
+              {allowedNoteTypes.map((t) => (
                 <option key={t} value={t}>
                   {t}
                 </option>

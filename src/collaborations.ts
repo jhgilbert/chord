@@ -6,6 +6,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { db } from "./firebase";
+import type { NoteType } from "./notes";
 
 export type Collaboration = {
   id: string;
@@ -15,6 +16,7 @@ export type Collaboration = {
   startedAt?: unknown;
   active: boolean;
   paused?: boolean;
+  allowedNoteTypes: NoteType[];
 };
 
 export function subscribeCollaboration(
@@ -35,6 +37,7 @@ export async function startCollaboration(
   sessionId: string,
   displayName: string,
   prompt: string,
+  allowedNoteTypes: NoteType[],
 ) {
   await setDoc(doc(db, "collaborations", id), {
     prompt,
@@ -42,6 +45,7 @@ export async function startCollaboration(
     startedByName: displayName,
     startedAt: serverTimestamp(),
     active: true,
+    allowedNoteTypes,
   });
 }
 
