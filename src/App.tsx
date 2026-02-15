@@ -29,6 +29,7 @@ import {
   startCollaboration,
   subscribeCollaboration,
   updatePrompt,
+  updateAllowedNoteTypes,
   type Collaboration,
 } from "./collaborations";
 
@@ -647,6 +648,7 @@ function CollabRoute() {
   const [draggedNoteId, setDraggedNoteId] = useState<string | null>(null);
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [promptValue, setPromptValue] = useState("");
+  const [showNoteTypeSettings, setShowNoteTypeSettings] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -671,6 +673,12 @@ function CollabRoute() {
 
   // Get allowed note types for this collaboration
   const allowedNoteTypes = collab.allowedNoteTypes || NOTE_TYPES;
+  const disabledNoteTypes = NOTE_TYPES.filter(t => !allowedNoteTypes.includes(t));
+
+  const enableNoteType = async (type: NoteType) => {
+    const newAllowedTypes = [...allowedNoteTypes, type];
+    await updateAllowedNoteTypes(collab.id, newAllowedTypes);
+  };
 
   // If collaboration is stopped, show summary screen
   if (!collab.active) {
@@ -902,6 +910,37 @@ function CollabRoute() {
           )}
           {collab.startedBy === session.userId && collab.active && (
             <>
+              {disabledNoteTypes.length > 0 && (
+                <div className={styles.noteTypeSettingsContainer}>
+                  <button
+                    onClick={() => setShowNoteTypeSettings(!showNoteTypeSettings)}
+                    className={styles.buttonNoteTypes}
+                  >
+                    Note types {showNoteTypeSettings ? "▲" : "▼"}
+                  </button>
+                  {showNoteTypeSettings && (
+                    <div className={styles.noteTypeSettingsDropdown}>
+                      <div className={styles.noteTypeSettingsHeader}>
+                        Enable additional note types:
+                      </div>
+                      {disabledNoteTypes.map(type => (
+                        <button
+                          key={type}
+                          onClick={() => {
+                            enableNoteType(type);
+                            if (disabledNoteTypes.length === 1) {
+                              setShowNoteTypeSettings(false);
+                            }
+                          }}
+                          className={styles.noteTypeSettingsOption}
+                        >
+                          + {type}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
               <button
                 onClick={() => pauseCollaboration(collab.id, !collab.paused)}
                 className={styles.buttonPause}

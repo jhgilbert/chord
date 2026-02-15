@@ -64,3 +64,7 @@ export async function pauseCollaboration(id: string, paused: boolean) {
 export async function updatePrompt(id: string, prompt: string) {
   await updateDoc(doc(db, "collaborations", id), { prompt });
 }
+
+export async function updateAllowedNoteTypes(id: string, allowedNoteTypes: NoteType[]) {
+  await updateDoc(doc(db, "collaborations", id), { allowedNoteTypes });
+}

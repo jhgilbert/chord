@@ -729,6 +729,65 @@
   padding: 3px 8px;
 }
 
+.noteTypeSettingsContainer {
+  position: relative;
+}
+
+.buttonNoteTypes {
+  padding: 6px 14px;
+  font-size: 13px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  background: #fff;
+  color: #374151;
+}
+
+.buttonNoteTypes:hover {
+  background: #f3f4f6;
+}
+
+.noteTypeSettingsDropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  min-width: 200px;
+  z-index: 100;
+}
+
+.noteTypeSettingsHeader {
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.noteTypeSettingsOption {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 13px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  color: #111;
+  font-weight: 500;
+}
+
+.noteTypeSettingsOption:hover {
+  background: #f3f4f6;
+}
+
 .buttonPause {
   padding: 6px 14px;
   font-size: 13px;
