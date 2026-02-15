@@ -14,7 +14,7 @@ import { db } from "./firebase";
 
 export type NoteType = "Question" | "Statement" | "Recommendation" | "Requirement" | "Action item" | "Poll" | "Host note" | "Positive feedback" | "Constructive feedback";
 
-export type Reaction = "agree" | "disagree";
+export type Reaction = "agree" | "disagree" | "markRead";
 
 export type NoteVersion = {
   content: string;

@@ -336,7 +336,7 @@ function ResponseItem({
   paused: boolean;
   canReact: boolean;
   myReaction: Reaction | null;
-  counts: { agree: number; disagree: number };
+  counts: { agree: number; disagree: number; markRead: number };
   getReactionOpacity: (r: Reaction) => number;
   handleReaction: (r: Reaction) => void;
 }) {
@@ -374,22 +374,22 @@ function ResponseItem({
                   : 0,
             }}
           >
-            👍 {counts.agree > 0 && <span>{counts.agree}</span>}
+            ➕ {counts.agree > 0 && <span>{counts.agree}</span>}
           </button>
           <button
-            onClick={canReact ? () => handleReaction("disagree") : undefined}
+            onClick={canReact ? () => handleReaction("markRead") : undefined}
             className={styles.responseReactionButton}
-            data-active={myReaction === "disagree"}
+            data-active={myReaction === "markRead"}
             data-paused={paused}
             style={{
               opacity: paused
-                ? getReactionOpacity("disagree")
-                : hovered || myReaction === "disagree"
+                ? getReactionOpacity("markRead")
+                : hovered || myReaction === "markRead"
                   ? 1
                   : 0,
             }}
           >
-            👎 {counts.disagree > 0 && <span>{counts.disagree}</span>}
+            📬 {counts.markRead > 0 && <span>{counts.markRead}</span>}
           </button>
         </div>
       )}
@@ -451,7 +451,7 @@ function StickyNote({
   const [responseContent, setResponseContent] = useState("");
   const myReaction: Reaction | null = note.reactions?.[sessionId] ?? null;
 
-  const counts = { agree: 0, disagree: 0 };
+  const counts = { agree: 0, disagree: 0, markRead: 0 };
   if (paused) {
     for (const r of Object.values(note.reactions ?? {})) counts[r]++;
   } else if (myReaction) {
@@ -652,7 +652,7 @@ function StickyNote({
               data-paused={paused || note.createdBy === sessionId}
               style={{ opacity: getReactionOpacity("agree") }}
             >
-              👍 <span>{counts.agree}</span>
+              ➕ <span>{counts.agree}</span>
             </button>
           )}
           {!paused && !isResponding && (
@@ -669,6 +669,19 @@ function StickyNote({
               💬 <span>{note.responses?.length || 0}</span>
             </button>
           )}
+          <button
+            onClick={
+              canReact && note.createdBy !== sessionId
+                ? () => handleReaction("markRead")
+                : undefined
+            }
+            className={styles.actionButton}
+            data-active={myReaction === "markRead"}
+            data-paused={paused || note.createdBy === sessionId}
+            style={{ opacity: getReactionOpacity("markRead") }}
+          >
+            📬 <span>{counts.markRead}</span>
+          </button>
         </div>
       )}
       <div className={styles.stickyNoteBadges}>
@@ -863,7 +876,7 @@ function StickyNote({
 
                   const myResponseReaction: Reaction | null =
                     response.reactions?.[sessionId] ?? null;
-                  const responseCounts = { agree: 0, disagree: 0 };
+                  const responseCounts = { agree: 0, disagree: 0, markRead: 0 };
                   if (paused) {
                     for (const r of Object.values(response.reactions ?? {}))
                       responseCounts[r]++;
@@ -1373,6 +1386,7 @@ function CollabRoute() {
         if (note.reactions && Object.keys(note.reactions).length > 0) {
           const agreedNames: string[] = [];
           const disagreedNames: string[] = [];
+          const markReadNames: string[] = [];
 
           Object.entries(note.reactions).forEach(([sessionId, reaction]) => {
             // Find the name for this sessionId
@@ -1389,6 +1403,8 @@ function CollabRoute() {
               agreedNames.push(name);
             } else if (reaction === "disagree") {
               disagreedNames.push(name);
+            } else if (reaction === "markRead") {
+              markReadNames.push(name);
             }
           });
 
@@ -1397,7 +1413,9 @@ function CollabRoute() {
           if (agreedNames.length > 0)
             html += `Agreed (${agreedNames.length}): ${agreedNames.join(", ")} `;
           if (disagreedNames.length > 0)
-            html += `Disagreed (${disagreedNames.length}): ${disagreedNames.join(", ")}`;
+            html += `Disagreed (${disagreedNames.length}): ${disagreedNames.join(", ")} `;
+          if (markReadNames.length > 0)
+            html += `Marked as read (${markReadNames.length}): ${markReadNames.join(", ")}`;
           html += `</p>`;
         }
 
@@ -1616,6 +1634,7 @@ function CollabRoute() {
         if (note.reactions && Object.keys(note.reactions).length > 0) {
           const agreedNames: string[] = [];
           const disagreedNames: string[] = [];
+          const markReadNames: string[] = [];
 
           Object.entries(note.reactions).forEach(([sessionId, reaction]) => {
             // Find the name for this sessionId
@@ -1632,6 +1651,8 @@ function CollabRoute() {
               agreedNames.push(name);
             } else if (reaction === "disagree") {
               disagreedNames.push(name);
+            } else if (reaction === "markRead") {
+              markReadNames.push(name);
             }
           });
 
@@ -1639,7 +1660,9 @@ function CollabRoute() {
           if (agreedNames.length > 0)
             md += `Agreed (${agreedNames.length}): ${agreedNames.join(", ")} `;
           if (disagreedNames.length > 0)
-            md += `Disagreed (${disagreedNames.length}): ${disagreedNames.join(", ")}`;
+            md += `Disagreed (${disagreedNames.length}): ${disagreedNames.join(", ")} `;
+          if (markReadNames.length > 0)
+            md += `Marked as read (${markReadNames.length}): ${markReadNames.join(", ")}`;
           md += `\n\n`;
         }
 

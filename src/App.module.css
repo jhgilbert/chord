@@ -271,7 +271,7 @@
 }
 
 .badgeYou {
-  background: #4ade80;
+  background: #a7f3d0;
   color: #14532d;
   border-radius: 3px;
 }
@@ -577,8 +577,9 @@
 }
 
 .responseReactionButton[data-active="true"] {
-  background: #fef3c7;
-  border-color: #f59e0b;
+  background: #a7f3d0;
+  border-color: #a7f3d0;
+  color: #14532d;
   font-weight: 600;
 }
 
@@ -667,9 +668,9 @@
 }
 
 .actionButton[data-active="true"] {
-  background: #111;
-  color: #fff;
-  border-color: #111;
+  background: #a7f3d0;
+  color: #14532d;
+  border-color: #a7f3d0;
 }
 
 .actionButton[data-active="false"] {
@@ -1276,7 +1277,7 @@
 }
 
 .filterButton[data-active="true"][data-filter="Mine"] {
-  background: #4ade80;
+  background: #a7f3d0;
   color: #14532d;
 }
 
