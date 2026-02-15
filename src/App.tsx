@@ -1435,16 +1435,16 @@ function CollabRoute() {
     return (
       <div className={styles.stoppedScreen}>
         <div className={styles.stoppedHeader}>
-          <h1 className={styles.stoppedTitle}>Collaboration Stopped</h1>
+          <h1 className={styles.stoppedTitle}>Collaboration Results</h1>
           <p className={styles.stoppedMessage}>
-            This collaboration was stopped by <b>{collab.startedByName}</b>.
+            This collaboration was closed by <b>{collab.startedByName}</b>.
           </p>
           {isHost && (
             <button
               onClick={() => resumeCollaboration(collab.id)}
               className={styles.resumeButton}
             >
-              Resume collaboration
+              Reopen collaboration
             </button>
           )}
         </div>
@@ -1685,7 +1685,7 @@ function CollabRoute() {
                 onClick={() => endCollaboration(collab.id)}
                 className={styles.buttonEnd}
               >
-                Stop collaboration
+                End collaboration
               </button>
             </>
           )}
