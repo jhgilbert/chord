@@ -33,6 +33,7 @@ import {
   updatePrompt,
   updateAllowedNoteTypes,
   type Collaboration,
+  type PromptVersion,
 } from "./collaborations";
 
 const NOTE_TYPES: NoteType[] = ["Question", "Statement", "Recommendation", "Requirement", "Action item", "Host note"];
@@ -863,8 +864,37 @@ function CollabRoute() {
       let html = `<h1>Collaboration Summary</h1>`;
       html += `<p><strong>Host:</strong> ${collab.startedByName}</p>`;
       html += `<hr>`;
-      html += `<h2>Prompt</h2>`;
-      html += `<div>${collab.prompt}</div>`;
+
+      // Render prompt(s) with history
+      const allPrompts: PromptVersion[] = [
+        ...(collab.promptHistory || []),
+        { prompt: collab.prompt, timestamp: collab.promptUpdatedAt || collab.startedAt || Date.now() }
+      ];
+
+      html += `<h2>Prompt${allPrompts.length > 1 ? 's' : ''}</h2>`;
+      allPrompts.forEach((p, idx) => {
+        let timestamp = "Unknown time";
+        if (p.timestamp) {
+          // Handle Firestore Timestamp objects
+          const ts = p.timestamp as unknown as {
+            toDate?: () => Date;
+            seconds?: number;
+          };
+          if (ts.toDate) {
+            timestamp = ts.toDate().toLocaleString();
+          } else if (ts.seconds) {
+            timestamp = new Date(ts.seconds * 1000).toLocaleString();
+          } else {
+            timestamp = new Date(p.timestamp as number).toLocaleString();
+          }
+        }
+        if (allPrompts.length > 1) {
+          html += `<h3>${idx + 1}. ${timestamp}</h3>`;
+        } else {
+          html += `<p><em>${timestamp}</em></p>`;
+        }
+        html += `<div>${p.prompt}</div>`;
+      });
       html += `<hr>`;
 
       // Helper function to render a note in HTML
@@ -965,13 +995,42 @@ function CollabRoute() {
       md += `**Host:** ${collab.startedByName}\n\n`;
       md += `---\n\n`;
 
-      // Strip HTML tags from prompt for markdown
+      // Render prompt(s) with history
       const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = collab.prompt;
-      const promptText = tempDiv.textContent || tempDiv.innerText || '';
+      const allPrompts: PromptVersion[] = [
+        ...(collab.promptHistory || []),
+        { prompt: collab.prompt, timestamp: collab.promptUpdatedAt || collab.startedAt || Date.now() }
+      ];
 
-      md += `## Prompt\n\n`;
-      md += `${promptText}\n\n`;
+      md += `## Prompt${allPrompts.length > 1 ? 's' : ''}\n\n`;
+      allPrompts.forEach((p, idx) => {
+        let timestamp = "Unknown time";
+        if (p.timestamp) {
+          // Handle Firestore Timestamp objects
+          const ts = p.timestamp as unknown as {
+            toDate?: () => Date;
+            seconds?: number;
+          };
+          if (ts.toDate) {
+            timestamp = ts.toDate().toLocaleString();
+          } else if (ts.seconds) {
+            timestamp = new Date(ts.seconds * 1000).toLocaleString();
+          } else {
+            timestamp = new Date(p.timestamp as number).toLocaleString();
+          }
+        }
+
+        // Strip HTML tags from prompt for markdown
+        tempDiv.innerHTML = p.prompt;
+        const promptText = tempDiv.textContent || tempDiv.innerText || '';
+
+        if (allPrompts.length > 1) {
+          md += `### ${idx + 1}. ${timestamp}\n\n`;
+        } else {
+          md += `*${timestamp}*\n\n`;
+        }
+        md += `${promptText}\n\n`;
+      });
       md += `---\n\n`;
 
       // Helper function to render a note
@@ -1359,7 +1418,13 @@ function CollabRoute() {
                   </button>
                   <button
                     onClick={async () => {
-                      await updatePrompt(collab.id, promptValue);
+                      await updatePrompt(
+                        collab.id,
+                        promptValue,
+                        collab.prompt,
+                        collab.promptUpdatedAt || collab.startedAt || Date.now(),
+                        collab.promptHistory
+                      );
                       // Create a host note documenting the prompt change
                       const message = `<p>The prompt was updated to:</p>${promptValue}`;
                       await createNote(collab.id, "Host note", message, session.userId, session.displayName);

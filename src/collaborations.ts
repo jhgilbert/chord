@@ -8,15 +8,22 @@ import {
 import { db } from "./firebase";
 import type { NoteType } from "./notes";
 
+export type PromptVersion = {
+  prompt: string; // HTML from Quill
+  timestamp: unknown; // Date.now()
+};
+
 export type Collaboration = {
   id: string;
-  prompt: string; // HTML from Quill
+  prompt: string; // HTML from Quill (current prompt)
+  promptUpdatedAt?: unknown; // Timestamp of current prompt (Date.now())
   startedBy: string;
   startedByName: string;
   startedAt?: unknown;
   active: boolean;
   paused?: boolean;
   allowedNoteTypes: NoteType[];
+  promptHistory?: PromptVersion[]; // Previous versions
 };
 
 export function subscribeCollaboration(
@@ -61,8 +68,24 @@ export async function pauseCollaboration(id: string, paused: boolean) {
   await updateDoc(doc(db, "collaborations", id), { paused });
 }
 
-export async function updatePrompt(id: string, prompt: string) {
-  await updateDoc(doc(db, "collaborations", id), { prompt });
+export async function updatePrompt(
+  id: string,
+  newPrompt: string,
+  currentPrompt: string,
+  currentPromptTimestamp: unknown,
+  existingHistory?: PromptVersion[],
+) {
+  // Add current prompt to history with its timestamp
+  const newHistoryEntry: PromptVersion = {
+    prompt: currentPrompt,
+    timestamp: currentPromptTimestamp || Date.now(),
+  };
+
+  await updateDoc(doc(db, "collaborations", id), {
+    prompt: newPrompt,
+    promptUpdatedAt: Date.now(),
+    promptHistory: [...(existingHistory || []), newHistoryEntry],
+  });
 }
 
 export async function updateAllowedNoteTypes(id: string, allowedNoteTypes: NoteType[]) {
