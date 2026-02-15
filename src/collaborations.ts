@@ -13,6 +13,7 @@ import { db } from "./firebase";
 
 export type Collaboration = {
   id: string;
+  prompt: string; // HTML from Quill
   startedBy: string;
   startedByName: string;
   startedAt?: unknown;
@@ -38,8 +39,10 @@ export function subscribeActiveCollaboration(
 export async function startCollaboration(
   sessionId: string,
   displayName: string,
+  prompt: string,
 ) {
   await addDoc(collabsCol, {
+    prompt,
     startedBy: sessionId,
     startedByName: displayName,
     startedAt: serverTimestamp(),

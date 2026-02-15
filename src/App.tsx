@@ -196,6 +196,76 @@ function StickyNote({
   );
 }
 
+function StartScreen({
+  sessionId,
+  displayName,
+}: {
+  sessionId: string;
+  displayName: string;
+}) {
+  const [prompt, setPrompt] = useState("");
+
+  const handleStart = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const isEmpty = prompt === "" || prompt === "<p><br></p>";
+    if (isEmpty) return;
+    await startCollaboration(sessionId, displayName, prompt);
+  };
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "100vh",
+        fontFamily: "system-ui, sans-serif",
+        padding: "40px 20px",
+        boxSizing: "border-box",
+      }}
+    >
+      <h1 style={{ margin: "0 0 4px" }}>Chord</h1>
+      <p style={{ margin: "0 0 24px", opacity: 0.6, fontSize: 14 }}>
+        You are: <b>{displayName}</b>
+      </p>
+      <form
+        onSubmit={handleStart}
+        style={{ width: "100%", maxWidth: 600 }}
+      >
+        <label
+          style={{ display: "block", fontWeight: 600, marginBottom: 8, fontSize: 14 }}
+        >
+          Collaboration prompt
+        </label>
+        <ReactQuill
+          theme="snow"
+          value={prompt}
+          onChange={setPrompt}
+          style={{ background: "#fff", color: "#111" }}
+        />
+        <div style={{ marginTop: 12, display: "flex", justifyContent: "flex-end" }}>
+          <button
+            type="submit"
+            style={{
+              padding: "10px 24px",
+              fontSize: 15,
+              fontWeight: 600,
+              background: "#111",
+              color: "#fff",
+              border: "none",
+              borderRadius: 6,
+              cursor: "pointer",
+            }}
+          >
+            Start collaboration
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 function CollabView({
   collab,
   sessionId,
@@ -273,6 +343,23 @@ function CollabView({
         }}
       >
         <aside style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div
+            style={{
+              border: "1px solid #e5e7eb",
+              borderRadius: 6,
+              padding: "14px 16px",
+              marginBottom: 4,
+              background: "#f9fafb",
+            }}
+          >
+            <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", opacity: 0.5, marginBottom: 8 }}>
+              Prompt
+            </div>
+            <div
+              dangerouslySetInnerHTML={{ __html: collab.prompt }}
+              style={{ fontSize: 14, lineHeight: 1.6, color: "#1a1a1a" }}
+            />
+          </div>
           {NOTE_TYPES.map((type) => (
             <NoteTypePanel
               key={type}
@@ -341,38 +428,10 @@ export default function App() {
 
   if (activeCollab === null) {
     return (
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          height: "100vh",
-          fontFamily: "system-ui, sans-serif",
-          gap: 12,
-        }}
-      >
-        <h1 style={{ margin: 0 }}>Chord</h1>
-        <p style={{ margin: 0, opacity: 0.6, fontSize: 14 }}>
-          You are: <b>{displayName}</b>
-        </p>
-        <button
-          onClick={() => startCollaboration(sessionId, displayName)}
-          style={{
-            marginTop: 8,
-            padding: "10px 24px",
-            fontSize: 15,
-            fontWeight: 600,
-            background: "#111",
-            color: "#fff",
-            border: "none",
-            borderRadius: 6,
-            cursor: "pointer",
-          }}
-        >
-          Start collaboration
-        </button>
-      </div>
+      <StartScreen
+        sessionId={sessionId}
+        displayName={displayName}
+      />
     );
   }
 
