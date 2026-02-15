@@ -1360,6 +1360,9 @@ function CollabRoute() {
                   <button
                     onClick={async () => {
                       await updatePrompt(collab.id, promptValue);
+                      // Create a host note documenting the prompt change
+                      const message = `<p>The prompt was updated to:</p><p><br></p>${promptValue}`;
+                      await createNote(collab.id, "Host note", message, session.userId, session.displayName);
                       setEditingPrompt(false);
                       setPromptValue("");
                     }}
