@@ -1728,7 +1728,7 @@ function CollabRoute() {
             <>
               {/* Participant note types */}
               {allowedNoteTypes
-                .filter((type) => type !== "Host note")
+                .filter((type) => type !== "Host note" && (type !== "Action item" || allowedNoteTypes.includes("Action item")))
                 .map((type) => (
                   <NoteTypePanel
                     key={type}
@@ -1742,18 +1742,31 @@ function CollabRoute() {
                 ))}
 
               {/* Host-only note types */}
-              {isHost && allowedNoteTypes.includes("Host note") && (
+              {isHost && (allowedNoteTypes.includes("Host note") || !allowedNoteTypes.includes("Action item")) && (
                 <>
                   <div className={styles.hostOnlyLabel}>Host only</div>
-                  <NoteTypePanel
-                    key="Host note"
-                    label="Host note"
-                    isOpen={openType === "Host note"}
-                    onToggle={() => setOpenType(openType === "Host note" ? null : "Host note")}
-                    onSubmit={(html, assignee, dueDate) =>
-                      createNote(collab.id, "Host note", html, session.userId, session.displayName, assignee, dueDate)
-                    }
-                  />
+                  {!allowedNoteTypes.includes("Action item") && (
+                    <NoteTypePanel
+                      key="Action item"
+                      label="Action item"
+                      isOpen={openType === "Action item"}
+                      onToggle={() => setOpenType(openType === "Action item" ? null : "Action item")}
+                      onSubmit={(html, assignee, dueDate) =>
+                        createNote(collab.id, "Action item", html, session.userId, session.displayName, assignee, dueDate)
+                      }
+                    />
+                  )}
+                  {allowedNoteTypes.includes("Host note") && (
+                    <NoteTypePanel
+                      key="Host note"
+                      label="Host note"
+                      isOpen={openType === "Host note"}
+                      onToggle={() => setOpenType(openType === "Host note" ? null : "Host note")}
+                      onSubmit={(html, assignee, dueDate) =>
+                        createNote(collab.id, "Host note", html, session.userId, session.displayName, assignee, dueDate)
+                      }
+                    />
+                  )}
                 </>
               )}
             </>
