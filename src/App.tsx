@@ -1592,7 +1592,7 @@ function CollabRoute() {
 
         <main className={styles.collabMain}>
           <div className={styles.filterBar}>
-            {(["Mine", "All", "Inbox", "Archived"] as const).map((t) => (
+            {(["Mine", "Inbox", "All", "Archived"] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setFilter(t)}

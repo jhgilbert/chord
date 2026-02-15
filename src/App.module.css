@@ -1061,6 +1061,12 @@
   cursor: pointer;
 }
 
+.filterDropdown:first-of-type {
+  margin-left: 24px;
+  padding-left: 16px;
+  border-left: 2px solid #d1d5db;
+}
+
 .filterDropdown[data-active="true"] {
   background: #111;
   color: #fff;
