@@ -26,6 +26,7 @@ export type NoteResponse = {
   createdAt: unknown; // timestamp (Date.now())
   createdBy: string; // userId
   createdByName: string; // displayName
+  reactions?: Record<string, Reaction>; // sessionId -> reaction
 };
 
 export type Note = {
@@ -170,6 +171,34 @@ export async function addResponse(
   };
 
   await updateDoc(noteRef, updateData);
+}
+
+export async function setResponseReaction(
+  collaborationId: string,
+  noteId: string,
+  responseIndex: number,
+  sessionId: string,
+  reaction: Reaction | null,
+  existingResponses: NoteResponse[],
+) {
+  const noteRef = doc(db, "collaborations", collaborationId, "notes", noteId);
+
+  const updatedResponses = [...existingResponses];
+  const response = updatedResponses[responseIndex];
+
+  if (!response.reactions) {
+    response.reactions = {};
+  }
+
+  if (reaction === null) {
+    delete response.reactions[sessionId];
+  } else {
+    response.reactions[sessionId] = reaction;
+  }
+
+  await updateDoc(noteRef, {
+    responses: updatedResponses,
+  });
 }
 
 export async function toggleArchive(

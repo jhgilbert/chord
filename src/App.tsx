@@ -16,6 +16,7 @@ import {
   editNote,
   removeNote,
   setReaction,
+  setResponseReaction,
   setGroupedUnder,
   subscribeNotes,
   toggleArchive,
@@ -183,6 +184,70 @@ function NoteTypePanel({
             </button>
           </div>
         </form>
+      )}
+    </div>
+  );
+}
+
+function ResponseItem({
+  response,
+  timestamp,
+  paused,
+  canReact,
+  myReaction,
+  counts,
+  getReactionOpacity,
+  handleReaction,
+}: {
+  response: { content: string; createdBy: string; createdByName: string };
+  timestamp: string;
+  paused: boolean;
+  canReact: boolean;
+  myReaction: Reaction | null;
+  counts: { agree: number; disagree: number };
+  getReactionOpacity: (r: Reaction) => number;
+  handleReaction: (r: Reaction) => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <div
+      className={styles.responseItem}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <div className={styles.responseDivider} />
+      <div className={styles.responseHeader}>
+        <span className={styles.responseAuthor}>
+          {paused && response.createdByName}
+        </span>
+        <span className={styles.responseTimestamp}>{timestamp}</span>
+      </div>
+      <div
+        dangerouslySetInnerHTML={{ __html: response.content }}
+        className={styles.responseContent}
+      />
+      {(canReact || paused) && (
+        <div className={styles.responseReactions}>
+          <button
+            onClick={canReact ? () => handleReaction("agree") : undefined}
+            className={styles.responseReactionButton}
+            data-active={myReaction === "agree"}
+            data-paused={paused}
+            style={{ opacity: paused ? getReactionOpacity("agree") : (hovered || myReaction === "agree" ? 1 : 0) }}
+          >
+            👍 {counts.agree > 0 && <span>{counts.agree}</span>}
+          </button>
+          <button
+            onClick={canReact ? () => handleReaction("disagree") : undefined}
+            className={styles.responseReactionButton}
+            data-active={myReaction === "disagree"}
+            data-paused={paused}
+            style={{ opacity: paused ? getReactionOpacity("disagree") : (hovered || myReaction === "disagree" ? 1 : 0) }}
+          >
+            👎 {counts.disagree > 0 && <span>{counts.disagree}</span>}
+          </button>
+        </div>
       )}
     </div>
   );
@@ -555,20 +620,47 @@ function StickyNote({
                   const timestamp = response.createdAt
                     ? new Date(response.createdAt as number).toLocaleString()
                     : "Unknown date";
+
+                  const myResponseReaction: Reaction | null = response.reactions?.[sessionId] ?? null;
+                  const responseCounts = { agree: 0, disagree: 0 };
+                  if (paused) {
+                    for (const r of Object.values(response.reactions ?? {})) responseCounts[r]++;
+                  } else if (myResponseReaction) {
+                    responseCounts[myResponseReaction] = 1;
+                  }
+
+                  const getResponseReactionOpacity = (r: Reaction) => {
+                    if (paused) return responseCounts[r] > 0 ? 1 : 0.25;
+                    return 1;
+                  };
+
+                  const handleResponseReaction = (r: Reaction) => {
+                    if (!paused && response.createdBy !== sessionId) {
+                      setResponseReaction(
+                        collaborationId,
+                        note.id,
+                        idx,
+                        sessionId,
+                        myResponseReaction === r ? null : r,
+                        note.responses || [],
+                      );
+                    }
+                  };
+
+                  const canReact = !paused && response.createdBy !== sessionId;
+
                   return (
-                    <div key={idx} className={styles.responseItem}>
-                      <div className={styles.responseDivider} />
-                      <div className={styles.responseHeader}>
-                        <span className={styles.responseAuthor}>
-                          {paused && response.createdByName}
-                        </span>
-                        <span className={styles.responseTimestamp}>{timestamp}</span>
-                      </div>
-                      <div
-                        dangerouslySetInnerHTML={{ __html: response.content }}
-                        className={styles.responseContent}
-                      />
-                    </div>
+                    <ResponseItem
+                      key={idx}
+                      response={response}
+                      timestamp={timestamp}
+                      paused={paused}
+                      canReact={canReact}
+                      myReaction={myResponseReaction}
+                      counts={responseCounts}
+                      getReactionOpacity={getResponseReactionOpacity}
+                      handleReaction={handleResponseReaction}
+                    />
                   );
                 })}
               </div>

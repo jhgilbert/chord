@@ -357,6 +357,46 @@
   font-size: 14px;
 }
 
+.responseReactions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.responseReactionButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: 13px;
+  border: 1px solid;
+  border-radius: 12px;
+  cursor: pointer;
+  background: transparent;
+  transition: opacity 0.15s, background-color 0.15s, border-color 0.15s;
+  color: #1a1a1a;
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.responseReactionButton:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.responseReactionButton[data-active="true"] {
+  background: #fef3c7;
+  border-color: #f59e0b;
+  font-weight: 600;
+}
+
+.responseReactionButton[data-paused="true"] {
+  cursor: default;
+}
+
+.responseReactionButton span {
+  font-size: 11px;
+  font-weight: 600;
+}
+
 .responseAddButton {
   font-size: 11px;
   padding: 3px 8px;
