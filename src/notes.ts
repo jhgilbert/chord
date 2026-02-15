@@ -21,6 +21,13 @@ export type NoteVersion = {
   editedAt: unknown; // Firestore timestamp
 };
 
+export type NoteResponse = {
+  content: string; // HTML from Quill
+  createdAt: unknown; // timestamp (Date.now())
+  createdBy: string; // userId
+  createdByName: string; // displayName
+};
+
 export type Note = {
   id: string;
   type: NoteType;
@@ -31,6 +38,7 @@ export type Note = {
   reactions?: Record<string, Reaction>; // sessionId -> reaction
   groupedUnder?: string; // parent note ID if this note is grouped
   editHistory?: NoteVersion[]; // previous versions
+  responses?: NoteResponse[]; // responses to this note
 };
 
 const notesCol = (collaborationId: string) =>
@@ -128,4 +136,28 @@ export async function editNote(
   await updateDoc(noteRef, updateData);
 
   console.log("editNote: Update completed");
+}
+
+export async function addResponse(
+  collaborationId: string,
+  noteId: string,
+  content: string,
+  userId: string,
+  displayName: string,
+  existingResponses?: NoteResponse[],
+) {
+  const noteRef = doc(db, "collaborations", collaborationId, "notes", noteId);
+
+  const newResponse: NoteResponse = {
+    content,
+    createdAt: Date.now(),
+    createdBy: userId,
+    createdByName: displayName,
+  };
+
+  const updateData = {
+    responses: [...(existingResponses || []), newResponse],
+  };
+
+  await updateDoc(noteRef, updateData);
 }

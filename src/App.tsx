@@ -11,6 +11,7 @@ import {
 } from "react-router-dom";
 import { getSession, isLoggedIn, login } from "./session";
 import {
+  addResponse,
   createNote,
   editNote,
   removeNote,
@@ -160,6 +161,7 @@ function StickyNote({
   note,
   collaborationId,
   sessionId,
+  displayName,
   canDelete,
   canReact,
   paused,
@@ -177,6 +179,7 @@ function StickyNote({
   note: Note;
   collaborationId: string;
   sessionId: string;
+  displayName: string;
   canDelete: boolean;
   canReact: boolean;
   paused: boolean;
@@ -195,6 +198,9 @@ function StickyNote({
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState("");
   const [showHistory, setShowHistory] = useState(false);
+  const [showResponses, setShowResponses] = useState(false);
+  const [isResponding, setIsResponding] = useState(false);
+  const [responseContent, setResponseContent] = useState("");
   const myReaction: Reaction | null = note.reactions?.[sessionId] ?? null;
 
   const counts = { agree: 0, disagree: 0 };
@@ -255,6 +261,32 @@ function StickyNote({
   const handleCancelEdit = () => {
     setIsEditing(false);
     setEditContent("");
+  };
+
+  const handleAddResponse = async () => {
+    const isEmpty = responseContent === "" || responseContent === "<p><br></p>";
+    if (isEmpty) return;
+
+    try {
+      await addResponse(
+        collaborationId,
+        note.id,
+        responseContent,
+        sessionId,
+        displayName,
+        note.responses,
+      );
+      setResponseContent("");
+      setIsResponding(false);
+    } catch (error) {
+      console.error("Failed to add response:", error);
+      alert("Failed to add response. Check console for details.");
+    }
+  };
+
+  const handleCancelResponse = () => {
+    setIsResponding(false);
+    setResponseContent("");
   };
 
   return (
@@ -333,7 +365,7 @@ function StickyNote({
           <span className={styles.badgeYou}>You</span>
         )}
         <span className={styles.badgeType}>{note.type}</span>
-        <span className={styles.badgeName}>{note.createdByName}</span>
+        {paused && <span className={styles.badgeName}>{note.createdByName}</span>}
         {canEdit && !isEditing && (
           <button
             onClick={(e) => {
@@ -416,6 +448,86 @@ function StickyNote({
               )}
             </div>
           )}
+          {/* Responses section */}
+          <div className={styles.responsesContainer}>
+            {note.responses && note.responses.length > 0 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowResponses(!showResponses);
+                }}
+                className={styles.responsesToggle}
+              >
+                {showResponses ? "Hide" : "Show"} {note.responses.length} response
+                {note.responses.length !== 1 ? "s" : ""}
+              </button>
+            )}
+            {showResponses && note.responses && (
+              <div className={styles.responsesList}>
+                {note.responses.map((response, idx) => {
+                  const timestamp = response.createdAt
+                    ? new Date(response.createdAt as number).toLocaleString()
+                    : "Unknown date";
+                  return (
+                    <div key={idx} className={styles.responseItem}>
+                      <div className={styles.responseDivider} />
+                      <div className={styles.responseHeader}>
+                        <span className={styles.responseAuthor}>
+                          {paused && response.createdByName}
+                        </span>
+                        <span className={styles.responseTimestamp}>{timestamp}</span>
+                      </div>
+                      <div
+                        dangerouslySetInnerHTML={{ __html: response.content }}
+                        className={styles.responseContent}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {!paused && !isResponding && (note.createdBy !== sessionId || (note.responses && note.responses.length > 0)) && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsResponding(true);
+                }}
+                className={styles.responseAddButton}
+              >
+                Add response
+              </button>
+            )}
+            {isResponding && (
+              <div className={styles.responseForm}>
+                <ReactQuill
+                  theme="snow"
+                  value={responseContent}
+                  onChange={setResponseContent}
+                  className={styles.responseEditor}
+                />
+                <div className={styles.responseActions}>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCancelResponse();
+                    }}
+                    className={styles.responseCancel}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddResponse();
+                    }}
+                    className={styles.responseSave}
+                  >
+                    Send
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </>
       )}
     </div>
@@ -817,6 +929,7 @@ function CollabRoute() {
                   note={n}
                   collaborationId={collab.id}
                   sessionId={session.userId}
+                  displayName={session.displayName}
                   canDelete={
                     !collab.paused && collab.active && n.createdBy === session.userId
                   }
