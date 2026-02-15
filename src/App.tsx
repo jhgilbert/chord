@@ -58,6 +58,13 @@ const NOTE_TYPE_COLORS: Record<NoteType, string> = {
   "Host note": "#6b7280", // gray
 };
 
+function hexToRgba(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 function LoginScreen() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -453,8 +460,15 @@ function StickyNote({
       }}
       style={
         groupDepth
-          ? { marginLeft: `${groupDepth * 20}px`, borderLeftColor: color }
-          : { borderLeftColor: color }
+          ? {
+              marginLeft: `${groupDepth * 20}px`,
+              borderLeftColor: color,
+              backgroundColor: hovered ? hexToRgba(color, 0.08) : '#ffffff'
+            }
+          : {
+              borderLeftColor: color,
+              backgroundColor: hovered ? hexToRgba(color, 0.08) : '#ffffff'
+            }
       }
     >
       {canDelete && (
@@ -462,6 +476,7 @@ function StickyNote({
           onClick={onDelete}
           aria-label="Delete note"
           className={styles.stickyNoteDelete}
+          style={{ color }}
         >
           ✕
         </button>
