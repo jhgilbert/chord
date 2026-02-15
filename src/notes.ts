@@ -40,6 +40,8 @@ export type Note = {
   editHistory?: NoteVersion[]; // previous versions
   responses?: NoteResponse[]; // responses to this note
   archived?: boolean; // whether the note is archived
+  assignee?: string; // for action items
+  dueDate?: string; // for action items (ISO date string)
 };
 
 const notesCol = (collaborationId: string) =>
@@ -65,14 +67,21 @@ export async function createNote(
   content: string,
   sessionId: string,
   displayName: string,
+  assignee?: string,
+  dueDate?: string,
 ) {
-  await addDoc(notesCol(collaborationId), {
+  const noteData: any = {
     type,
     content,
     createdAt: serverTimestamp(),
     createdBy: sessionId,
     createdByName: displayName,
-  });
+  };
+
+  if (assignee) noteData.assignee = assignee;
+  if (dueDate) noteData.dueDate = dueDate;
+
+  await addDoc(notesCol(collaborationId), noteData);
 }
 
 export async function removeNote(collaborationId: string, id: string) {

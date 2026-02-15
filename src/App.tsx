@@ -116,17 +116,23 @@ function NoteTypePanel({
   label: NoteType;
   isOpen: boolean;
   onToggle: () => void;
-  onSubmit: (html: string) => Promise<void>;
+  onSubmit: (html: string, assignee?: string, dueDate?: string) => Promise<void>;
 }) {
   const [value, setValue] = useState("");
+  const [assignee, setAssignee] = useState("");
+  const [dueDate, setDueDate] = useState("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const isEmpty = value === "" || value === "<p><br></p>";
     if (isEmpty) return;
-    await onSubmit(value);
+    await onSubmit(value, assignee || undefined, dueDate || undefined);
     setValue("");
+    setAssignee("");
+    setDueDate("");
   };
+
+  const isActionItem = label === "Action item";
 
   return (
     <div className={styles.noteTypePanel}>
@@ -148,6 +154,29 @@ function NoteTypePanel({
             onChange={setValue}
             className={styles.noteTypePanelEditor}
           />
+          {isActionItem && (
+            <div className={styles.actionItemFields}>
+              <div className={styles.actionItemField}>
+                <label htmlFor={`assignee-${label}`}>Assignee:</label>
+                <input
+                  type="text"
+                  id={`assignee-${label}`}
+                  value={assignee}
+                  onChange={(e) => setAssignee(e.target.value)}
+                  placeholder="Enter assignee name"
+                />
+              </div>
+              <div className={styles.actionItemField}>
+                <label htmlFor={`dueDate-${label}`}>Due date:</label>
+                <input
+                  type="date"
+                  id={`dueDate-${label}`}
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
           <div className={styles.noteTypePanelActions}>
             <button type="submit" className={styles.noteTypePanelSubmit}>
               Post note
@@ -418,6 +447,20 @@ function StickyNote({
           </button>
         )}
       </div>
+      {note.type === "Action item" && (note.assignee || note.dueDate) && (
+        <div className={styles.actionItemMeta}>
+          {note.assignee && (
+            <div className={styles.actionItemMetaItem}>
+              <strong>Assignee:</strong> {note.assignee}
+            </div>
+          )}
+          {note.dueDate && (
+            <div className={styles.actionItemMetaItem}>
+              <strong>Due:</strong> {new Date(note.dueDate).toLocaleDateString()}
+            </div>
+          )}
+        </div>
+      )}
       {isEditing ? (
         <div className={styles.editContainer}>
           <ReactQuill
@@ -704,14 +747,16 @@ function CollabRoute() {
     // Generate Markdown summary
     const generateMarkdown = () => {
       let md = `# Collaboration Summary\n\n`;
+      md += `**Host:** ${collab.startedByName}\n\n`;
+      md += `---\n\n`;
 
       // Strip HTML tags from prompt for markdown
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = collab.prompt;
       const promptText = tempDiv.textContent || tempDiv.innerText || '';
 
-      md += `**Prompt:** ${promptText}\n\n`;
-      md += `**Started by:** ${collab.startedByName}\n\n`;
+      md += `## Prompt\n\n`;
+      md += `${promptText}\n\n`;
       md += `---\n\n`;
 
       // Helper function to render a note
@@ -721,6 +766,17 @@ function CollabRoute() {
         const noteText = tempDiv.textContent || tempDiv.innerText || '';
 
         md += `### ${idx + 1}. ${note.type} by ${note.createdByName}\n\n`;
+
+        // Action item metadata
+        if (note.type === "Action item" && (note.assignee || note.dueDate)) {
+          if (note.assignee) md += `**Assignee:** ${note.assignee}  \n`;
+          if (note.dueDate) {
+            const dueDate = new Date(note.dueDate).toLocaleDateString();
+            md += `**Due date:** ${dueDate}  \n`;
+          }
+          md += `\n`;
+        }
+
         md += `${noteText}\n\n`;
 
         // Reactions
@@ -1074,8 +1130,8 @@ function CollabRoute() {
                 label={type}
                 isOpen={openType === type}
                 onToggle={() => setOpenType(openType === type ? null : type)}
-                onSubmit={(html) =>
-                  createNote(collab.id, type, html, session.userId, session.displayName)
+                onSubmit={(html, assignee, dueDate) =>
+                  createNote(collab.id, type, html, session.userId, session.displayName, assignee, dueDate)
                 }
               />
             ))
