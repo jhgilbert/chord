@@ -35,7 +35,7 @@ import {
   type Collaboration,
 } from "./collaborations";
 
-const NOTE_TYPES: NoteType[] = ["Question", "Requirement", "Statement", "Recommendation", "Action item"];
+const NOTE_TYPES: NoteType[] = ["Question", "Statement", "Recommendation", "Requirement", "Action item", "Host note"];
 
 function LoginScreen() {
   const [firstName, setFirstName] = useState("");
@@ -714,20 +714,28 @@ function StartScreen() {
   }, [session, navigate]);
 
   const [prompt, setPrompt] = useState("");
-  const [allowedNoteTypes, setAllowedNoteTypes] = useState<NoteType[]>(NOTE_TYPES);
+  const [allowedNoteTypes, setAllowedNoteTypes] = useState<NoteType[]>(["Question", "Statement", "Recommendation"]);
 
   if (!session) return null;
 
   const handleStart = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const isEmpty = prompt === "" || prompt === "<p><br></p>";
-    if (isEmpty) return;
+    // Check if prompt is empty by stripping HTML and checking text content
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = prompt;
+    const textContent = (tempDiv.textContent || tempDiv.innerText || '').trim();
+    if (!textContent) {
+      alert("Please enter a collaboration prompt");
+      return;
+    }
     if (allowedNoteTypes.length === 0) {
       alert("Please select at least one note type");
       return;
     }
     const id = crypto.randomUUID();
-    await startCollaboration(id, session.userId, session.displayName, prompt, allowedNoteTypes);
+    // Always include "Host note" in allowed types
+    const noteTypesWithHostNote = [...allowedNoteTypes, "Host note" as NoteType];
+    await startCollaboration(id, session.userId, session.displayName, prompt, noteTypesWithHostNote);
     navigate(`/collabs/${id}`, { replace: true });
   };
 
@@ -747,7 +755,7 @@ function StartScreen() {
       </p>
       <form onSubmit={handleStart} className={styles.startScreenForm}>
         <label className={styles.startScreenLabel}>
-          Collaboration prompt
+          Collaboration prompt <span style={{ color: 'red' }}>*</span>
         </label>
         <ReactQuill
           theme="snow"
@@ -758,7 +766,7 @@ function StartScreen() {
         <div className={styles.noteTypesSelection}>
           <label className={styles.noteTypesLabel}>Allowed note types</label>
           <div className={styles.noteTypesCheckboxes}>
-            {NOTE_TYPES.map(type => (
+            {NOTE_TYPES.filter(type => type !== "Host note").map(type => (
               <label key={type} className={styles.noteTypeCheckbox}>
                 <input
                   type="checkbox"
@@ -860,7 +868,8 @@ function CollabRoute() {
 
       // Helper function to render a note in HTML
       const renderNoteHTML = (note: Note, idx: number) => {
-        html += `<h3>${idx + 1}. ${note.type} by ${note.createdByName}</h3>`;
+        const authorName = note.createdBy === collab.startedBy && note.type !== "Host note" ? `${note.createdByName} (host)` : note.createdByName;
+        html += `<h3>${idx + 1}. ${note.type} by ${authorName}</h3>`;
 
         // Action item metadata
         if (note.type === "Action item" && (note.assignee || note.dueDate)) {
@@ -892,7 +901,8 @@ function CollabRoute() {
             const timestamp = response.createdAt
               ? new Date(response.createdAt as number).toLocaleString()
               : "Unknown time";
-            html += `<li><strong>${response.createdByName}</strong> (${timestamp}): <div style="display:inline">${response.content}</div></li>`;
+            const responseAuthorName = response.createdBy === collab.startedBy ? `${response.createdByName} (host)` : response.createdByName;
+            html += `<li><strong>${responseAuthorName}</strong> (${timestamp}): <div style="display:inline">${response.content}</div></li>`;
           });
           html += `</ul>`;
         }
@@ -953,7 +963,8 @@ function CollabRoute() {
         tempDiv.innerHTML = note.content;
         const noteText = tempDiv.textContent || tempDiv.innerText || '';
 
-        md += `### ${idx + 1}. ${note.type} by ${note.createdByName}\n\n`;
+        const authorName = note.createdBy === collab.startedBy && note.type !== "Host note" ? `${note.createdByName} (host)` : note.createdByName;
+        md += `### ${idx + 1}. ${note.type} by ${authorName}\n\n`;
 
         // Action item metadata
         if (note.type === "Action item" && (note.assignee || note.dueDate)) {
@@ -986,7 +997,8 @@ function CollabRoute() {
             const timestamp = response.createdAt
               ? new Date(response.createdAt as number).toLocaleString()
               : "Unknown time";
-            md += `- **${response.createdByName}** (${timestamp}): ${responseText}\n`;
+            const responseAuthorName = response.createdBy === collab.startedBy ? `${response.createdByName} (host)` : response.createdByName;
+            md += `- **${responseAuthorName}** (${timestamp}): ${responseText}\n`;
           });
           md += `\n`;
         }
@@ -1321,22 +1333,24 @@ function CollabRoute() {
             <div className={styles.messageStopped}>
               This collaboration has been stopped.
             </div>
-          ) : collab.paused ? (
+          ) : collab.paused && !isHost ? (
             <div className={styles.messagePaused}>
               Input is paused. New notes cannot be added.
             </div>
           ) : (
-            allowedNoteTypes.map((type) => (
-              <NoteTypePanel
-                key={type}
-                label={type}
-                isOpen={openType === type}
-                onToggle={() => setOpenType(openType === type ? null : type)}
-                onSubmit={(html, assignee, dueDate) =>
-                  createNote(collab.id, type, html, session.userId, session.displayName, assignee, dueDate)
-                }
-              />
-            ))
+            allowedNoteTypes
+              .filter((type) => type !== "Host note" || isHost)
+              .map((type) => (
+                <NoteTypePanel
+                  key={type}
+                  label={type}
+                  isOpen={openType === type}
+                  onToggle={() => setOpenType(openType === type ? null : type)}
+                  onSubmit={(html, assignee, dueDate) =>
+                    createNote(collab.id, type, html, session.userId, session.displayName, assignee, dueDate)
+                  }
+                />
+              ))
           )}
         </aside>
 
