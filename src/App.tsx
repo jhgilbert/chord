@@ -1686,7 +1686,7 @@ function StatsRoute() {
 
   const [collab, setCollab] = useState<Collaboration | null | undefined>(undefined);
   const [notes, setNotes] = useState<Note[]>([]);
-  const [currentTime] = useState(() => Date.now());
+  const [currentTime, setCurrentTime] = useState(0);
 
   useEffect(() => {
     if (!id) return;
@@ -1699,6 +1699,12 @@ function StatsRoute() {
     const unsub = subscribeNotes(id, setNotes);
     return () => unsub();
   }, [id]);
+
+  // Update current time when component mounts and whenever notes change
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCurrentTime(Date.now());
+  }, [notes]);
 
   if (!session) return null;
   if (collab === undefined) return <div className={styles.loading}>Loading...</div>;
@@ -1718,6 +1724,9 @@ function StatsRoute() {
     displayName: string;
     lastActivityTime: number;
     contributionCount: number;
+    notesCount: number;
+    reactionsCount: number;
+    responsesCount: number;
   };
 
   const userMap = new Map<string, UserActivity>();
@@ -1729,12 +1738,16 @@ function StatsRoute() {
         userId: note.createdBy,
         displayName: note.createdByName,
         lastActivityTime: 0,
-        contributionCount: 0
+        contributionCount: 0,
+        notesCount: 0,
+        reactionsCount: 0,
+        responsesCount: 0
       });
     }
 
     const user = userMap.get(note.createdBy)!;
     user.contributionCount++; // Count the note
+    user.notesCount++; // Count the note
     const noteTime = note.createdAt as unknown as {
       toDate?: () => Date;
       seconds?: number;
@@ -1761,12 +1774,16 @@ function StatsRoute() {
             userId: reactorId,
             displayName: reactorId, // We don't have the name for reactors
             lastActivityTime: timestamp, // Use note time as approximation
-            contributionCount: 0
+            contributionCount: 0,
+            notesCount: 0,
+            reactionsCount: 0,
+            responsesCount: 0
           });
         }
 
         const reactor = userMap.get(reactorId)!;
         reactor.contributionCount++; // Count the reaction
+        reactor.reactionsCount++; // Count the reaction
         if (timestamp > reactor.lastActivityTime) {
           reactor.lastActivityTime = timestamp;
         }
@@ -1781,12 +1798,16 @@ function StatsRoute() {
             userId: response.createdBy,
             displayName: response.createdByName,
             lastActivityTime: 0,
-            contributionCount: 0
+            contributionCount: 0,
+            notesCount: 0,
+            reactionsCount: 0,
+            responsesCount: 0
           });
         }
 
         const responder = userMap.get(response.createdBy)!;
         responder.contributionCount++; // Count the response
+        responder.responsesCount++; // Count the response
         const responseTime = typeof response.createdAt === 'number' ? response.createdAt : 0;
 
         if (responseTime > responder.lastActivityTime) {
@@ -1801,12 +1822,16 @@ function StatsRoute() {
                 userId: reactorId,
                 displayName: reactorId,
                 lastActivityTime: responseTime,
-                contributionCount: 0
+                contributionCount: 0,
+                notesCount: 0,
+                reactionsCount: 0,
+                responsesCount: 0
               });
             }
 
             const reactor = userMap.get(reactorId)!;
             reactor.contributionCount++; // Count the reaction
+            reactor.reactionsCount++; // Count the reaction
             if (responseTime > reactor.lastActivityTime) {
               reactor.lastActivityTime = responseTime;
             }
@@ -1816,24 +1841,49 @@ function StatsRoute() {
     }
   });
 
+  // Second pass: fix display names for users who only reacted (displayName === userId)
+  userMap.forEach((user, userId) => {
+    if (user.displayName === userId) {
+      // Try to find this user's actual name from their notes or responses
+      for (const note of notes) {
+        if (note.createdBy === userId) {
+          user.displayName = note.createdByName;
+          return;
+        }
+        if (note.responses) {
+          for (const response of note.responses) {
+            if (response.createdBy === userId) {
+              user.displayName = response.createdByName;
+              return;
+            }
+          }
+        }
+      }
+    }
+  });
+
   // Convert to array and sort by most recent activity
-  const users = Array.from(userMap.values()).sort((a, b) => b.lastActivityTime - a.lastActivityTime);
+  const usersArray = Array.from(userMap.values()).sort((a, b) => b.lastActivityTime - a.lastActivityTime);
 
-  // Format relative time
-  const formatTimeAgo = (timestamp: number): string => {
-    if (timestamp === 0) return "No activity";
+  // Pre-compute formatted times
+  const users = usersArray.map(user => {
+    let formattedTime = "No activity";
 
-    const diff = currentTime - timestamp;
-    const seconds = Math.floor(diff / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
+    if (user.lastActivityTime !== 0 && currentTime !== 0) {
+      const diff = currentTime - user.lastActivityTime;
+      const seconds = Math.floor(diff / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
 
-    if (seconds < 60) return `${seconds} second${seconds !== 1 ? 's' : ''} ago`;
-    if (minutes < 60) return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
-    if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
-    return `${days} day${days !== 1 ? 's' : ''} ago`;
-  };
+      if (seconds < 60) formattedTime = `${seconds} second${seconds !== 1 ? 's' : ''} ago`;
+      else if (minutes < 60) formattedTime = `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+      else if (hours < 24) formattedTime = `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+      else formattedTime = `${days} day${days !== 1 ? 's' : ''} ago`;
+    }
+
+    return { ...user, formattedTime };
+  });
 
   return (
     <div className={styles.container}>
@@ -1842,14 +1892,17 @@ function StatsRoute() {
           <button onClick={() => navigate(`/collabs/${id}`)} className={styles.backButton}>
             ← Back to collaboration
           </button>
-          <h1>User Activity Statistics</h1>
+          <h1>Participants ({users.length})</h1>
         </div>
         <div className={styles.statsContent}>
           <table className={styles.statsTable}>
             <thead>
               <tr>
                 <th>User</th>
-                <th>Contributions</th>
+                <th>Notes</th>
+                <th>Reactions</th>
+                <th>Responses</th>
+                <th>Total</th>
                 <th>Last Activity</th>
               </tr>
             </thead>
@@ -1857,8 +1910,11 @@ function StatsRoute() {
               {users.map(user => (
                 <tr key={user.userId}>
                   <td>{user.displayName}</td>
+                  <td>{user.notesCount}</td>
+                  <td>{user.reactionsCount}</td>
+                  <td>{user.responsesCount}</td>
                   <td>{user.contributionCount}</td>
-                  <td>{formatTimeAgo(user.lastActivityTime)}</td>
+                  <td>{user.formattedTime}</td>
                 </tr>
               ))}
             </tbody>
