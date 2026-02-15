@@ -38,9 +38,11 @@ function RichTextEditor({
 
 function StickyNote({
   note,
+  canDelete,
   onDelete,
 }: {
   note: Note;
+  canDelete: boolean;
   onDelete: () => void;
 }) {
   return (
@@ -55,24 +57,26 @@ function StickyNote({
         color: "#1a1a1a",
       }}
     >
-      <button
-        onClick={onDelete}
-        aria-label="Delete note"
-        style={{
-          position: "absolute",
-          top: 10,
-          right: 12,
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          fontSize: 16,
-          opacity: 0.45,
-          padding: 0,
-          color: "#1a1a1a",
-        }}
-      >
-        ✕
-      </button>
+      {canDelete && (
+        <button
+          onClick={onDelete}
+          aria-label="Delete note"
+          style={{
+            position: "absolute",
+            top: 10,
+            right: 12,
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            fontSize: 16,
+            opacity: 0.45,
+            padding: 0,
+            color: "#1a1a1a",
+          }}
+        >
+          ✕
+        </button>
+      )}
       <div
         style={{ fontSize: 12, fontWeight: 600, marginBottom: 10, opacity: 0.6 }}
       >
@@ -121,19 +125,12 @@ export default function App() {
       </aside>
 
       <main>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
-            gridAutoFlow: "row",
-            gap: 16,
-            alignContent: "start",
-          }}
-        >
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {notes.map((n) => (
             <StickyNote
               key={n.id}
               note={n}
+              canDelete={n.createdBy === sessionId}
               onDelete={() => removeNote(n.id)}
             />
           ))}
