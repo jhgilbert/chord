@@ -46,6 +46,17 @@ const NOTE_TYPE_EXAMPLES: Partial<Record<NoteType, string>> = {
   "Constructive feedback": "I struggled with ...",
 };
 
+const NOTE_TYPE_COLORS: Record<NoteType, string> = {
+  "Question": "#fbbf24", // yellow
+  "Statement": "#a855f7", // purple
+  "Recommendation": "#fb923c", // orange
+  "Requirement": "#3b82f6", // blue
+  "Action item": "#ec4899", // pink
+  "Positive feedback": "#10b981", // green
+  "Constructive feedback": "#ef4444", // red
+  "Host note": "#6b7280", // gray
+};
+
 function LoginScreen() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -147,9 +158,10 @@ function NoteTypePanel({
   const isActionItem = label === "Action item";
 
   const exampleText = NOTE_TYPE_EXAMPLES[label];
+  const color = NOTE_TYPE_COLORS[label];
 
   return (
-    <div className={styles.noteTypePanel} data-disabled={disabled}>
+    <div className={styles.noteTypePanel} data-disabled={disabled} style={{ borderLeftColor: color }}>
       <button
         type="button"
         onClick={disabled ? undefined : onToggle}
@@ -409,6 +421,8 @@ function StickyNote({
     onRespondingChange?.(false);
   };
 
+  const color = NOTE_TYPE_COLORS[note.type];
+
   return (
     <div
       onMouseEnter={() => setHovered(true)}
@@ -437,7 +451,9 @@ function StickyNote({
         }
       }}
       style={
-        groupDepth ? { marginLeft: `${groupDepth * 20}px` } : undefined
+        groupDepth
+          ? { marginLeft: `${groupDepth * 20}px`, borderLeftColor: color }
+          : { borderLeftColor: color }
       }
     >
       {canDelete && (
@@ -1731,7 +1747,7 @@ function CollabRoute() {
           ) : (
             <>
               {/* Participant note types */}
-              <div className={styles.sectionLabel}>Add a response</div>
+              <div className={styles.sectionLabel}>Add a note</div>
               {allowedNoteTypes
                 .filter((type) => type !== "Host note" && (type !== "Action item" || allowedNoteTypes.includes("Action item")))
                 .map((type) => (

@@ -19,13 +19,16 @@
 /* NoteTypePanel */
 .noteTypePanel {
   border: 1px solid #d1d5db;
+  border-left: 6px solid; /* Color set via inline style */
   border-radius: 6px;
   overflow: hidden;
 }
 
 .noteTypePanel[data-disabled="true"] {
   opacity: 0.6;
-  border-color: #e5e7eb;
+  border-right-color: #e5e7eb;
+  border-top-color: #e5e7eb;
+  border-bottom-color: #e5e7eb;
 }
 
 .noteTypePanelButton {
@@ -128,17 +131,20 @@
   border-radius: 4px;
   box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.18), 1px 1px 3px rgba(0, 0, 0, 0.1);
   border: 1.5px solid transparent;
+  border-left: 6px solid; /* Color set via inline style */
   padding: 18px 20px 12px 20px;
   position: relative;
   color: #1a1a1a;
 }
 
 .stickyNote[data-own="true"] {
-  border-color: #4ade80;
+  border-right-color: #4ade80;
+  border-top-color: #4ade80;
+  border-bottom-color: #4ade80;
 }
 
 .stickyNote[data-grouped="true"] {
-  border-left: 3px solid #111;
+  border-left: 6px solid #111;
   background: #fef7cd;
 }
 
