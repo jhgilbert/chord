@@ -105,7 +105,7 @@ function StickyNote({
   const myReaction: Reaction | null = note.reactions?.[sessionId] ?? null;
 
   const counts = { agree: 0, disagree: 0 };
-  for (const r of Object.values(note.reactions ?? {})) counts[r]++;
+  if (myReaction) counts[myReaction] = 1;
 
   const handleReaction = (r: Reaction) => {
     setReaction(collaborationId, note.id, sessionId, myReaction === r ? null : r);
