@@ -26,10 +26,14 @@ export type Note = {
   reactions?: Record<string, Reaction>; // sessionId -> reaction
 };
 
-const notesCol = collection(db, "notes");
+const notesCol = (collaborationId: string) =>
+  collection(db, "collaborations", collaborationId, "notes");
 
-export function subscribeNotes(cb: (notes: Note[]) => void) {
-  const q = query(notesCol, orderBy("createdAt", "asc"));
+export function subscribeNotes(
+  collaborationId: string,
+  cb: (notes: Note[]) => void,
+) {
+  const q = query(notesCol(collaborationId), orderBy("createdAt", "asc"));
   return onSnapshot(q, (snap) => {
     const notes: Note[] = snap.docs.map((d) => {
       const data = d.data() as Omit<Note, "id">;
@@ -40,12 +44,13 @@ export function subscribeNotes(cb: (notes: Note[]) => void) {
 }
 
 export async function createNote(
+  collaborationId: string,
   type: NoteType,
   content: string,
   sessionId: string,
   displayName: string,
 ) {
-  await addDoc(notesCol, {
+  await addDoc(notesCol(collaborationId), {
     type,
     content,
     createdAt: serverTimestamp(),
@@ -54,16 +59,20 @@ export async function createNote(
   });
 }
 
-export async function removeNote(id: string) {
-  await deleteDoc(doc(db, "notes", id));
+export async function removeNote(collaborationId: string, id: string) {
+  await deleteDoc(doc(db, "collaborations", collaborationId, "notes", id));
 }
 
 export async function setReaction(
+  collaborationId: string,
   noteId: string,
   sessionId: string,
   reaction: Reaction | null,
 ) {
-  await updateDoc(doc(db, "notes", noteId), {
-    [`reactions.${sessionId}`]: reaction === null ? deleteField() : reaction,
-  });
+  await updateDoc(
+    doc(db, "collaborations", collaborationId, "notes", noteId),
+    {
+      [`reactions.${sessionId}`]: reaction === null ? deleteField() : reaction,
+    },
+  );
 }

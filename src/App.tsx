@@ -11,6 +11,12 @@ import {
   type NoteType,
   type Reaction,
 } from "./notes";
+import {
+  endCollaboration,
+  startCollaboration,
+  subscribeActiveCollaboration,
+  type Collaboration,
+} from "./collaborations";
 
 const NOTE_TYPES: NoteType[] = ["Question", "Requirement"];
 
@@ -80,12 +86,14 @@ function NoteTypePanel({
 
 function StickyNote({
   note,
+  collaborationId,
   sessionId,
   canDelete,
   canReact,
   onDelete,
 }: {
   note: Note;
+  collaborationId: string;
   sessionId: string;
   canDelete: boolean;
   canReact: boolean;
@@ -98,7 +106,7 @@ function StickyNote({
   for (const r of Object.values(note.reactions ?? {})) counts[r]++;
 
   const handleReaction = (r: Reaction) => {
-    setReaction(note.id, sessionId, myReaction === r ? null : r);
+    setReaction(collaborationId, note.id, sessionId, myReaction === r ? null : r);
   };
 
   const reactionBtn = (r: Reaction): React.CSSProperties => ({
@@ -188,84 +196,191 @@ function StickyNote({
   );
 }
 
-export default function App() {
-  const { sessionId, displayName } = useMemo(() => getOrCreateSession(), []);
+function CollabView({
+  collab,
+  sessionId,
+  displayName,
+}: {
+  collab: Collaboration;
+  sessionId: string;
+  displayName: string;
+}) {
   const [notes, setNotes] = useState<Note[]>([]);
   const [openType, setOpenType] = useState<NoteType | null>(null);
   const [filter, setFilter] = useState<NoteType | "All">("All");
 
   useEffect(() => {
-    const unsub = subscribeNotes(setNotes);
+    const unsub = subscribeNotes(collab.id, setNotes);
     return () => unsub();
-  }, []);
+  }, [collab.id]);
 
-  const visibleNotes = filter === "All" ? notes : notes.filter((n) => n.type === filter);
+  const visibleNotes =
+    filter === "All" ? notes : notes.filter((n) => n.type === filter);
 
   return (
     <div
       style={{
-        margin: "40px 20px",
+        margin: "0 20px 40px",
         fontFamily: "system-ui, sans-serif",
-        display: "grid",
-        gridTemplateColumns: "380px 1fr",
-        gridTemplateRows: "auto 1fr",
-        gap: "0 24px",
-        minHeight: "calc(100vh - 80px)",
       }}
     >
-      <div style={{ gridColumn: "1 / -1", marginBottom: 20 }}>
-        <h1 style={{ marginBottom: 4 }}>Chord</h1>
-        <p style={{ margin: 0 }}>
-          You are: <b>{displayName}</b> (<code>{sessionId}</code>)
-        </p>
+      {/* Header bar */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "12px 0",
+          borderBottom: "1px solid #e5e7eb",
+          marginBottom: 24,
+        }}
+      >
+        <div>
+          <span style={{ fontWeight: 700, fontSize: 18 }}>Chord</span>
+          <span style={{ marginLeft: 16, fontSize: 13, opacity: 0.6 }}>
+            Collaboration started by <b>{collab.startedByName}</b>
+          </span>
+          <span style={{ marginLeft: 16, fontSize: 12, opacity: 0.5 }}>
+            You are: <b>{displayName}</b>
+          </span>
+        </div>
+        {collab.startedBy === sessionId && (
+          <button
+            onClick={() => endCollaboration(collab.id)}
+            style={{
+              padding: "6px 14px",
+              fontSize: 13,
+              background: "#dc2626",
+              color: "#fff",
+              border: "none",
+              borderRadius: 4,
+              cursor: "pointer",
+              fontWeight: 600,
+            }}
+          >
+            End collaboration
+          </button>
+        )}
       </div>
 
-      <aside style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        {NOTE_TYPES.map((type) => (
-          <NoteTypePanel
-            key={type}
-            label={type}
-            isOpen={openType === type}
-            onToggle={() => setOpenType(openType === type ? null : type)}
-            onSubmit={(html) => createNote(type, html, sessionId, displayName)}
-          />
-        ))}
-      </aside>
-
-      <main>
-        <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
-          {(["All", ...NOTE_TYPES] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setFilter(t)}
-              style={{
-                padding: "5px 12px",
-                fontSize: 13,
-                fontWeight: filter === t ? 600 : 400,
-                background: filter === t ? "#111" : "#f3f4f6",
-                color: filter === t ? "#fff" : "#555",
-                border: "1px solid #d1d5db",
-                borderRadius: 4,
-                cursor: "pointer",
-              }}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {visibleNotes.map((n) => (
-            <StickyNote
-              key={n.id}
-              note={n}
-              sessionId={sessionId}
-              canDelete={n.createdBy === sessionId}
-              canReact={n.createdBy !== sessionId}
-              onDelete={() => removeNote(n.id)}
+      {/* Two-column layout */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "380px 1fr",
+          gap: "0 24px",
+          minHeight: "calc(100vh - 120px)",
+        }}
+      >
+        <aside style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {NOTE_TYPES.map((type) => (
+            <NoteTypePanel
+              key={type}
+              label={type}
+              isOpen={openType === type}
+              onToggle={() => setOpenType(openType === type ? null : type)}
+              onSubmit={(html) =>
+                createNote(collab.id, type, html, sessionId, displayName)
+              }
             />
           ))}
-        </div>
-      </main>
+        </aside>
+
+        <main>
+          <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
+            {(["All", ...NOTE_TYPES] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setFilter(t)}
+                style={{
+                  padding: "5px 12px",
+                  fontSize: 13,
+                  fontWeight: filter === t ? 600 : 400,
+                  background: filter === t ? "#111" : "#f3f4f6",
+                  color: filter === t ? "#fff" : "#555",
+                  border: "1px solid #d1d5db",
+                  borderRadius: 4,
+                  cursor: "pointer",
+                }}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {visibleNotes.map((n) => (
+              <StickyNote
+                key={n.id}
+                note={n}
+                collaborationId={collab.id}
+                sessionId={sessionId}
+                canDelete={n.createdBy === sessionId}
+                canReact={n.createdBy !== sessionId}
+                onDelete={() => removeNote(collab.id, n.id)}
+              />
+            ))}
+          </div>
+        </main>
+      </div>
     </div>
+  );
+}
+
+export default function App() {
+  const { sessionId, displayName } = useMemo(() => getOrCreateSession(), []);
+  const [activeCollab, setActiveCollab] = useState<
+    Collaboration | null | undefined
+  >(undefined);
+
+  useEffect(() => {
+    const unsub = subscribeActiveCollaboration(setActiveCollab);
+    return () => unsub();
+  }, []);
+
+  if (activeCollab === undefined) return null;
+
+  if (activeCollab === null) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100vh",
+          fontFamily: "system-ui, sans-serif",
+          gap: 12,
+        }}
+      >
+        <h1 style={{ margin: 0 }}>Chord</h1>
+        <p style={{ margin: 0, opacity: 0.6, fontSize: 14 }}>
+          You are: <b>{displayName}</b>
+        </p>
+        <button
+          onClick={() => startCollaboration(sessionId, displayName)}
+          style={{
+            marginTop: 8,
+            padding: "10px 24px",
+            fontSize: 15,
+            fontWeight: 600,
+            background: "#111",
+            color: "#fff",
+            border: "none",
+            borderRadius: 6,
+            cursor: "pointer",
+          }}
+        >
+          Start collaboration
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <CollabView
+      collab={activeCollab}
+      sessionId={sessionId}
+      displayName={displayName}
+    />
   );
 }
