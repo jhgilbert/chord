@@ -269,7 +269,7 @@ function CollabRoute() {
   const [collab, setCollab] = useState<Collaboration | null | undefined>(undefined);
   const [notes, setNotes] = useState<Note[]>([]);
   const [openType, setOpenType] = useState<NoteType | null>(null);
-  const [filter, setFilter] = useState<NoteType | "All" | "Inbox">("All");
+  const [filter, setFilter] = useState<NoteType | "All" | "Inbox" | "Mine">("All");
 
   useEffect(() => {
     if (!id) return;
@@ -296,6 +296,7 @@ function CollabRoute() {
   const visibleNotes =
     filter === "All" ? notes :
     filter === "Inbox" ? notes.filter((n) => n.createdBy !== sessionId && !n.reactions?.[sessionId]) :
+    filter === "Mine" ? notes.filter((n) => n.createdBy === sessionId) :
     notes.filter((n) => n.type === filter);
 
   return (
@@ -420,7 +421,7 @@ function CollabRoute() {
 
         <main>
           <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
-            {(["All", "Inbox", ...NOTE_TYPES] as const).map((t) => (
+            {(["All", "Inbox", "Mine", ...NOTE_TYPES] as const).map((t) => (
               <button
                 key={t}
                 onClick={() => setFilter(t)}
