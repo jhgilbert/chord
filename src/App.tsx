@@ -325,15 +325,21 @@ function StickyNote({
               </button>
               {showHistory && (
                 <div className={styles.historyList}>
-                  {note.editHistory.map((version, idx) => (
-                    <div key={idx} className={styles.historyVersion}>
-                      <div className={styles.historyDivider} />
-                      <div
-                        dangerouslySetInnerHTML={{ __html: version.content }}
-                        className={styles.historyContent}
-                      />
-                    </div>
-                  ))}
+                  {note.editHistory.map((version, idx) => {
+                    const timestamp = version.editedAt
+                      ? new Date(version.editedAt as number).toLocaleString()
+                      : "Unknown date";
+                    return (
+                      <div key={idx} className={styles.historyVersion}>
+                        <div className={styles.historyDivider} />
+                        <div className={styles.historyTimestamp}>{timestamp}</div>
+                        <div
+                          dangerouslySetInnerHTML={{ __html: version.content }}
+                          className={styles.historyContent}
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
