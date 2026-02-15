@@ -2,15 +2,19 @@ import {
   addDoc,
   collection,
   deleteDoc,
+  deleteField,
   doc,
   onSnapshot,
   orderBy,
   query,
   serverTimestamp,
+  updateDoc,
 } from "firebase/firestore";
 import { db } from "./firebase";
 
 export type NoteType = "Question" | "Requirement";
+
+export type Reaction = "agree" | "disagree";
 
 export type Note = {
   id: string;
@@ -19,6 +23,7 @@ export type Note = {
   createdAt?: unknown; // Firestore timestamp
   createdBy: string; // sessionId
   createdByName: string; // displayName
+  reactions?: Record<string, Reaction>; // sessionId -> reaction
 };
 
 const notesCol = collection(db, "notes");
@@ -51,4 +56,14 @@ export async function createNote(
 
 export async function removeNote(id: string) {
   await deleteDoc(doc(db, "notes", id));
+}
+
+export async function setReaction(
+  noteId: string,
+  sessionId: string,
+  reaction: Reaction | null,
+) {
+  await updateDoc(doc(db, "notes", noteId), {
+    [`reactions.${sessionId}`]: reaction === null ? deleteField() : reaction,
+  });
 }

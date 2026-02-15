@@ -5,9 +5,11 @@ import { getOrCreateSession } from "./session";
 import {
   createNote,
   removeNote,
+  setReaction,
   subscribeNotes,
   type Note,
   type NoteType,
+  type Reaction,
 } from "./notes";
 
 const NOTE_TYPES: NoteType[] = ["Question", "Requirement"];
@@ -78,20 +80,51 @@ function NoteTypePanel({
 
 function StickyNote({
   note,
+  sessionId,
   canDelete,
+  canReact,
   onDelete,
 }: {
   note: Note;
+  sessionId: string;
   canDelete: boolean;
+  canReact: boolean;
   onDelete: () => void;
 }) {
+  const [hovered, setHovered] = useState(false);
+  const myReaction: Reaction | null = note.reactions?.[sessionId] ?? null;
+
+  const counts = { agree: 0, disagree: 0 };
+  for (const r of Object.values(note.reactions ?? {})) counts[r]++;
+
+  const handleReaction = (r: Reaction) => {
+    setReaction(note.id, sessionId, myReaction === r ? null : r);
+  };
+
+  const reactionBtn = (r: Reaction): React.CSSProperties => ({
+    display: "flex",
+    alignItems: "center",
+    gap: 4,
+    padding: "3px 8px",
+    fontSize: 13,
+    border: "1px solid",
+    borderRadius: 20,
+    cursor: "pointer",
+    transition: "opacity 0.15s",
+    opacity: hovered || myReaction === r ? 1 : 0,
+    background: myReaction === r ? "#111" : "transparent",
+    color: myReaction === r ? "#fff" : "#555",
+    borderColor: myReaction === r ? "#111" : "#bbb",
+  });
+
   return (
     <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       style={{
         background: "#fef9c3",
         borderRadius: 4,
-        boxShadow:
-          "3px 3px 10px rgba(0,0,0,0.18), 1px 1px 3px rgba(0,0,0,0.1)",
+        boxShadow: "3px 3px 10px rgba(0,0,0,0.18), 1px 1px 3px rgba(0,0,0,0.1)",
         padding: "18px 20px",
         position: "relative",
         color: "#1a1a1a",
@@ -109,9 +142,10 @@ function StickyNote({
             border: "none",
             cursor: "pointer",
             fontSize: 16,
-            opacity: 0.45,
+            opacity: hovered ? 0.45 : 0,
             padding: 0,
             color: "#1a1a1a",
+            transition: "opacity 0.15s",
           }}
         >
           ✕
@@ -140,6 +174,16 @@ function StickyNote({
         dangerouslySetInnerHTML={{ __html: note.content }}
         style={{ lineHeight: 1.6 }}
       />
+      {canReact && (
+        <div style={{ display: "flex", gap: 6, marginTop: 12 }}>
+          <button onClick={() => handleReaction("agree")} style={reactionBtn("agree")}>
+            👍 {counts.agree > 0 && <span>{counts.agree}</span>}
+          </button>
+          <button onClick={() => handleReaction("disagree")} style={reactionBtn("disagree")}>
+            👎 {counts.disagree > 0 && <span>{counts.disagree}</span>}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -214,7 +258,9 @@ export default function App() {
             <StickyNote
               key={n.id}
               note={n}
+              sessionId={sessionId}
               canDelete={n.createdBy === sessionId}
+              canReact={n.createdBy !== sessionId}
               onDelete={() => removeNote(n.id)}
             />
           ))}
