@@ -12,7 +12,7 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase";
 
-export type NoteType = "Question" | "Statement" | "Recommendation" | "Requirement" | "Action item" | "Host note" | "Positive feedback" | "Constructive feedback";
+export type NoteType = "Question" | "Statement" | "Recommendation" | "Requirement" | "Action item" | "Poll" | "Host note" | "Positive feedback" | "Constructive feedback";
 
 export type Reaction = "agree" | "disagree";
 
@@ -43,6 +43,9 @@ export type Note = {
   archived?: boolean; // whether the note is archived
   assignee?: string; // for action items
   dueDate?: string; // for action items (ISO date string)
+  pollOptions?: string[]; // for polls: the available options
+  pollVotes?: Record<string, number>; // for polls: sessionId -> option index
+  pollClosed?: boolean; // for polls: whether the poll is closed
 };
 
 const notesCol = (collaborationId: string) =>
@@ -70,6 +73,7 @@ export async function createNote(
   displayName: string,
   assignee?: string,
   dueDate?: string,
+  pollOptions?: string[],
 ) {
   const noteData: any = {
     type,
@@ -81,6 +85,7 @@ export async function createNote(
 
   if (assignee) noteData.assignee = assignee;
   if (dueDate) noteData.dueDate = dueDate;
+  if (pollOptions && pollOptions.length > 0) noteData.pollOptions = pollOptions;
 
   await addDoc(notesCol(collaborationId), noteData);
 }
@@ -210,6 +215,32 @@ export async function toggleArchive(
     doc(db, "collaborations", collaborationId, "notes", noteId),
     {
       archived: archived ? deleteField() : true,
+    },
+  );
+}
+
+export async function votePoll(
+  collaborationId: string,
+  noteId: string,
+  sessionId: string,
+  optionIndex: number,
+) {
+  await updateDoc(
+    doc(db, "collaborations", collaborationId, "notes", noteId),
+    {
+      [`pollVotes.${sessionId}`]: optionIndex,
+    },
+  );
+}
+
+export async function closePoll(
+  collaborationId: string,
+  noteId: string,
+) {
+  await updateDoc(
+    doc(db, "collaborations", collaborationId, "notes", noteId),
+    {
+      pollClosed: true,
     },
   );
 }

@@ -12,6 +12,7 @@ import {
 import { getSession, isLoggedIn, login } from "./session";
 import {
   addResponse,
+  closePoll,
   createNote,
   editNote,
   removeNote,
@@ -20,6 +21,7 @@ import {
   setGroupedUnder,
   subscribeNotes,
   toggleArchive,
+  votePoll,
   type Note,
   type NoteType,
   type Reaction,
@@ -36,7 +38,7 @@ import {
   type PromptVersion,
 } from "./collaborations";
 
-const NOTE_TYPES: NoteType[] = ["Question", "Statement", "Recommendation", "Requirement", "Positive feedback", "Constructive feedback", "Action item", "Host note"];
+const NOTE_TYPES: NoteType[] = ["Question", "Statement", "Recommendation", "Requirement", "Positive feedback", "Constructive feedback", "Action item", "Poll", "Host note"];
 
 const NOTE_TYPE_EXAMPLES: Partial<Record<NoteType, string>> = {
   "Question": "How should we ...?",
@@ -55,6 +57,7 @@ const NOTE_TYPE_COLORS: Record<NoteType, string> = {
   "Action item": "#ec4899", // pink
   "Positive feedback": "#10b981", // green
   "Constructive feedback": "#ef4444", // red
+  "Poll": "#14b8a6", // teal
   "Host note": "#6b7280", // gray
 };
 
@@ -160,24 +163,33 @@ function NoteTypePanel({
   label: NoteType;
   isOpen: boolean;
   onToggle: () => void;
-  onSubmit: (html: string, assignee?: string, dueDate?: string) => Promise<void>;
+  onSubmit: (html: string, assignee?: string, dueDate?: string, pollOptions?: string[]) => Promise<void>;
   disabled?: boolean;
 }) {
   const [value, setValue] = useState("");
   const [assignee, setAssignee] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [pollOptions, setPollOptions] = useState<string[]>(["", ""]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const isEmpty = value === "" || value === "<p><br></p>";
     if (isEmpty) return;
-    await onSubmit(value, assignee || undefined, dueDate || undefined);
+
+    // Filter out empty poll options
+    const validPollOptions = isPoll
+      ? pollOptions.filter(opt => opt.trim() !== "")
+      : undefined;
+
+    await onSubmit(value, assignee || undefined, dueDate || undefined, validPollOptions);
     setValue("");
     setAssignee("");
     setDueDate("");
+    setPollOptions(["", ""]);
   };
 
   const isActionItem = label === "Action item";
+  const isPoll = label === "Poll";
 
   const exampleText = NOTE_TYPE_EXAMPLES[label];
   const color = NOTE_TYPE_COLORS[label];
@@ -228,6 +240,44 @@ function NoteTypePanel({
                   onChange={(e) => setDueDate(e.target.value)}
                 />
               </div>
+            </div>
+          )}
+          {isPoll && (
+            <div className={styles.pollOptionsFields}>
+              <label>Poll options:</label>
+              {pollOptions.map((option, index) => (
+                <div key={index} className={styles.pollOptionField}>
+                  <input
+                    type="text"
+                    value={option}
+                    onChange={(e) => {
+                      const newOptions = [...pollOptions];
+                      newOptions[index] = e.target.value;
+                      setPollOptions(newOptions);
+                    }}
+                    placeholder={`Option ${index + 1}`}
+                  />
+                  {pollOptions.length > 2 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newOptions = pollOptions.filter((_, i) => i !== index);
+                        setPollOptions(newOptions);
+                      }}
+                      className={styles.pollOptionRemove}
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setPollOptions([...pollOptions, ""])}
+                className={styles.pollOptionAdd}
+              >
+                + Add option
+              </button>
             </div>
           )}
           <div className={styles.noteTypePanelActions}>
@@ -326,6 +376,7 @@ function StickyNote({
   canArchive,
   onRespondingChange,
   hideYouBadge,
+  isHost,
 }: {
   note: Note;
   collaborationId: string;
@@ -347,6 +398,7 @@ function StickyNote({
   canArchive?: boolean;
   onRespondingChange?: (isResponding: boolean) => void;
   hideYouBadge?: boolean;
+  isHost?: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -545,15 +597,17 @@ function StickyNote({
               {note.archived ? "📂" : "🗄️"}
             </button>
           )}
-          <button
-            onClick={canReact && note.createdBy !== sessionId ? () => handleReaction("agree") : undefined}
-            className={styles.actionButton}
-            data-active={myReaction === "agree"}
-            data-paused={paused || note.createdBy === sessionId}
-            style={{ opacity: getReactionOpacity("agree") }}
-          >
-            👍 <span>{counts.agree}</span>
-          </button>
+          {note.type !== "Poll" && (
+            <button
+              onClick={canReact && note.createdBy !== sessionId ? () => handleReaction("agree") : undefined}
+              className={styles.actionButton}
+              data-active={myReaction === "agree"}
+              data-paused={paused || note.createdBy === sessionId}
+              style={{ opacity: getReactionOpacity("agree") }}
+            >
+              👍 <span>{counts.agree}</span>
+            </button>
+          )}
           {!paused && !isResponding && (
             <button
               onClick={(e) => {
@@ -631,6 +685,57 @@ function StickyNote({
             dangerouslySetInnerHTML={{ __html: note.content }}
             className={styles.stickyNoteContent}
           />
+          {note.type === "Poll" && note.pollOptions && (
+            <div className={styles.pollOptionsDisplay}>
+              {note.pollOptions.map((option, index) => {
+                const voteCount = Object.values(note.pollVotes || {}).filter(v => v === index).length;
+                const totalVotes = Object.keys(note.pollVotes || {}).length;
+                const percentage = totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0;
+                const userVoted = note.pollVotes?.[sessionId] === index;
+                const showResults = paused;
+                const isPollClosed = !!note.pollClosed;
+
+                return (
+                  <button
+                    key={index}
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      if (!paused && !isPollClosed) {
+                        await votePoll(collaborationId, note.id, sessionId, index);
+                      }
+                    }}
+                    className={styles.pollOption}
+                    data-voted={userVoted}
+                    data-disabled={paused || isPollClosed}
+                    disabled={paused || isPollClosed}
+                  >
+                    <span className={styles.pollOptionText}>{option}</span>
+                    {showResults && (
+                      <span className={styles.pollOptionCount}>
+                        {voteCount} ({percentage}%)
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+              {isHost && paused && !note.pollClosed && (
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    await closePoll(collaborationId, note.id);
+                  }}
+                  className={styles.closePollButton}
+                >
+                  Close poll
+                </button>
+              )}
+              {note.pollClosed && (
+                <div className={styles.pollClosedMessage}>
+                  Poll closed
+                </div>
+              )}
+            </div>
+          )}
           {note.editHistory && note.editHistory.length > 0 && (
             <div className={styles.historyContainer}>
               <button
@@ -1568,13 +1673,21 @@ function CollabRoute() {
         ? notes.filter((n) => !n.archived && selectedNoteTypes.has(n.type))
         : filter === "Inbox"
           ? notes.filter(
-              (n) =>
-                n.createdBy !== session.userId &&
-                !n.reactions?.[session.userId] &&
-                (!allChildIds.has(n.id) || n.id === respondingToNoteId) &&
-                !n.archived &&
-                n.type !== "Host note" &&
-                selectedNoteTypes.has(n.type),
+              (n) => {
+                // For polls, only remove from inbox if user has voted or poll is closed
+                const hasInteracted = n.type === "Poll"
+                  ? (n.pollVotes?.[session.userId] !== undefined || n.pollClosed)
+                  : n.reactions?.[session.userId];
+
+                return (
+                  n.createdBy !== session.userId &&
+                  !hasInteracted &&
+                  (!allChildIds.has(n.id) || n.id === respondingToNoteId) &&
+                  !n.archived &&
+                  n.type !== "Host note" &&
+                  selectedNoteTypes.has(n.type)
+                );
+              },
             )
           : notes.filter((n) => n.createdBy === session.userId && !n.archived && selectedNoteTypes.has(n.type));
 
@@ -1804,48 +1917,52 @@ function CollabRoute() {
               {/* Participant note types */}
               <div className={styles.sectionLabel}>Add a note</div>
               {allowedNoteTypes
-                .filter((type) => type !== "Host note" && (type !== "Action item" || allowedNoteTypes.includes("Action item")))
+                .filter((type) => type !== "Host note" && type !== "Action item" && type !== "Poll")
                 .map((type) => (
                   <NoteTypePanel
                     key={type}
                     label={type}
                     isOpen={openType === type}
                     onToggle={() => setOpenType(openType === type ? null : type)}
-                    onSubmit={(html, assignee, dueDate) =>
-                      createNote(collab.id, type, html, session.userId, session.displayName, assignee, dueDate)
+                    onSubmit={(html, assignee, dueDate, pollOptions) =>
+                      createNote(collab.id, type, html, session.userId, session.displayName, assignee, dueDate, pollOptions)
                     }
                   />
                 ))}
 
               {/* Host-only note types */}
-              {(allowedNoteTypes.includes("Host note") || !allowedNoteTypes.includes("Action item")) && (
-                <>
-                  <div className={styles.sectionLabel}>Host only</div>
-                  {!allowedNoteTypes.includes("Action item") && (
-                    <NoteTypePanel
-                      key="Action item"
-                      label="Action item"
-                      isOpen={openType === "Action item"}
-                      onToggle={() => setOpenType(openType === "Action item" ? null : "Action item")}
-                      onSubmit={(html, assignee, dueDate) =>
-                        createNote(collab.id, "Action item", html, session.userId, session.displayName, assignee, dueDate)
-                      }
-                      disabled={!isHost}
-                    />
-                  )}
-                  {allowedNoteTypes.includes("Host note") && (
-                    <NoteTypePanel
-                      key="Host note"
-                      label="Host note"
-                      isOpen={openType === "Host note"}
-                      onToggle={() => setOpenType(openType === "Host note" ? null : "Host note")}
-                      onSubmit={(html, assignee, dueDate) =>
-                        createNote(collab.id, "Host note", html, session.userId, session.displayName, assignee, dueDate)
-                      }
-                      disabled={!isHost}
-                    />
-                  )}
-                </>
+              <div className={styles.sectionLabel}>Host only</div>
+              <NoteTypePanel
+                key="Action item"
+                label="Action item"
+                isOpen={openType === "Action item"}
+                onToggle={() => setOpenType(openType === "Action item" ? null : "Action item")}
+                onSubmit={(html, assignee, dueDate, pollOptions) =>
+                  createNote(collab.id, "Action item", html, session.userId, session.displayName, assignee, dueDate, pollOptions)
+                }
+                disabled={!isHost}
+              />
+              <NoteTypePanel
+                key="Poll"
+                label="Poll"
+                isOpen={openType === "Poll"}
+                onToggle={() => setOpenType(openType === "Poll" ? null : "Poll")}
+                onSubmit={(html, assignee, dueDate, pollOptions) =>
+                  createNote(collab.id, "Poll", html, session.userId, session.displayName, assignee, dueDate, pollOptions)
+                }
+                disabled={!isHost}
+              />
+              {allowedNoteTypes.includes("Host note") && (
+                <NoteTypePanel
+                  key="Host note"
+                  label="Host note"
+                  isOpen={openType === "Host note"}
+                  onToggle={() => setOpenType(openType === "Host note" ? null : "Host note")}
+                  onSubmit={(html, assignee, dueDate, pollOptions) =>
+                    createNote(collab.id, "Host note", html, session.userId, session.displayName, assignee, dueDate, pollOptions)
+                  }
+                  disabled={!isHost}
+                />
               )}
             </>
           )}
@@ -1955,6 +2072,7 @@ function CollabRoute() {
                     setRespondingToNoteId(isResponding ? n.id : null)
                   }
                   hideYouBadge={filter === "Mine"}
+                  isHost={isHost}
                 />
                 {isParent && !isGrouped && (
                   <div className={styles.groupIndicator}>

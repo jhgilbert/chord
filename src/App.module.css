@@ -110,6 +110,71 @@
   border-color: #111;
 }
 
+.pollOptionsFields {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pollOptionsFields > label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.pollOptionField {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.pollOptionField input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.pollOptionField input:focus {
+  outline: none;
+  border-color: #111;
+}
+
+.pollOptionRemove {
+  padding: 4px 8px;
+  font-size: 18px;
+  font-weight: bold;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #6b7280;
+  line-height: 1;
+}
+
+.pollOptionRemove:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.pollOptionAdd {
+  padding: 6px 12px;
+  font-size: 13px;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #374151;
+  font-weight: 500;
+  align-self: flex-start;
+}
+
+.pollOptionAdd:hover {
+  background: #e5e7eb;
+}
+
 .noteTypePanelActions {
   margin-top: 8px;
   display: flex;
@@ -260,6 +325,92 @@
 
 .stickyNoteContent {
   line-height: 1.6;
+}
+
+.pollOptionsDisplay {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pollOption {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #f9fafb;
+  border: 2px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  transition: all 0.15s;
+}
+
+.pollOption:hover:not([data-disabled="true"]) {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.pollOption[data-voted="true"] {
+  background: #dbeafe;
+  border-color: #3b82f6;
+  color: #1e40af;
+  font-weight: 600;
+}
+
+.pollOption[data-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.pollOptionCount {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  background: #fff;
+  padding: 2px 8px;
+  border-radius: 12px;
+  min-width: 24px;
+  text-align: center;
+}
+
+.pollOption[data-voted="true"] .pollOptionCount {
+  background: #eff6ff;
+  color: #3b82f6;
+}
+
+.closePollButton {
+  margin-top: 4px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  background: #374151;
+  color: #fff;
+  border: 1px solid #374151;
+  border-radius: 4px;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.closePollButton:hover {
+  background: #4b5563;
+  border-color: #4b5563;
+}
+
+.pollClosedMessage {
+  margin-top: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  text-align: center;
 }
 
 .editContainer {
