@@ -36,12 +36,13 @@ import {
   type PromptVersion,
 } from "./collaborations";
 
-const NOTE_TYPES: NoteType[] = ["Question", "Statement", "Recommendation", "Requirement", "Action item", "Host note", "Positive feedback", "Constructive feedback"];
+const NOTE_TYPES: NoteType[] = ["Question", "Statement", "Recommendation", "Requirement", "Positive feedback", "Constructive feedback", "Action item", "Host note"];
 
 const NOTE_TYPE_EXAMPLES: Partial<Record<NoteType, string>> = {
   "Question": "How should we ...?",
   "Statement": "I don't like ...",
   "Recommendation": "We should ...",
+  "Requirement": "The solution must ...",
   "Positive feedback": "I liked ...",
   "Constructive feedback": "I struggled with ...",
 };
@@ -972,8 +973,12 @@ function CollabRoute() {
 
   const isHost = collab.startedBy === session.userId;
 
-  // Get allowed note types for this collaboration
-  const allowedNoteTypes = collab.allowedNoteTypes || NOTE_TYPES;
+  // Get allowed note types for this collaboration, sorted by NOTE_TYPES order
+  const allowedNoteTypes = (collab.allowedNoteTypes || NOTE_TYPES).sort((a, b) => {
+    const indexA = NOTE_TYPES.indexOf(a);
+    const indexB = NOTE_TYPES.indexOf(b);
+    return indexA - indexB;
+  });
 
   const toggleNoteTypeInCollab = async (type: NoteType, enable: boolean) => {
     const newAllowedTypes = enable
