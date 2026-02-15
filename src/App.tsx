@@ -148,11 +148,14 @@ export default function App() {
   const { sessionId, displayName } = useMemo(() => getOrCreateSession(), []);
   const [notes, setNotes] = useState<Note[]>([]);
   const [openType, setOpenType] = useState<NoteType | null>(null);
+  const [filter, setFilter] = useState<NoteType | "All">("All");
 
   useEffect(() => {
     const unsub = subscribeNotes(setNotes);
     return () => unsub();
   }, []);
+
+  const visibleNotes = filter === "All" ? notes : notes.filter((n) => n.type === filter);
 
   return (
     <div
@@ -186,8 +189,28 @@ export default function App() {
       </aside>
 
       <main>
+        <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
+          {(["All", ...NOTE_TYPES] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setFilter(t)}
+              style={{
+                padding: "5px 12px",
+                fontSize: 13,
+                fontWeight: filter === t ? 600 : 400,
+                background: filter === t ? "#111" : "#f3f4f6",
+                color: filter === t ? "#fff" : "#555",
+                border: "1px solid #d1d5db",
+                borderRadius: 4,
+                cursor: "pointer",
+              }}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {notes.map((n) => (
+          {visibleNotes.map((n) => (
             <StickyNote
               key={n.id}
               note={n}
