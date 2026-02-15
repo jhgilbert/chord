@@ -1327,7 +1327,7 @@ function CollabRoute() {
                   canEdit={
                     !collab.paused && collab.active && n.createdBy === session.userId
                   }
-                  canArchive={isHost && collab.active}
+                  canArchive={isHost && collab.active && !!collab.paused}
                   onRespondingChange={(isResponding) =>
                     setRespondingToNoteId(isResponding ? n.id : null)
                   }
