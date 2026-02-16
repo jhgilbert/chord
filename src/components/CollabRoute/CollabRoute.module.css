@@ -333,7 +333,7 @@
 }
 
 .filterButton[data-active="true"][data-filter="Mine"] {
-  background: #019d6d;
+  background: var(--color-green);
   color: white;
 }
 

@@ -83,7 +83,7 @@
 }
 
 .badgeYou {
-  background: #019d6d;
+  background: var(--color-green);
   color: white;
   border-radius: 0;
 }
@@ -160,9 +160,9 @@
 }
 
 .actionButton[data-active="true"] {
-  background: #019d6d;
+  background: var(--color-green);
   color: #fff;
-  border-color: #019d6d;
+  border-color: var(--color-green);
 }
 
 .actionButton[data-active="false"] {
@@ -207,7 +207,7 @@
 
 .pollOption[data-voted="true"] {
   background: #e6f7f1;
-  border-color: #019d6d;
+  border-color: var(--color-green);
   color: #017a55;
   font-weight: 600;
 }
@@ -230,7 +230,7 @@
 
 .pollOption[data-voted="true"] .pollOptionCount {
   background: #f0faf6;
-  color: #019d6d;
+  color: var(--color-green);
 }
 
 .pollSubmitButton {
@@ -238,9 +238,9 @@
   padding: 8px 14px;
   font-size: 13px;
   font-weight: 600;
-  background: #019d6d;
+  background: var(--color-green);
   color: #fff;
-  border: 1px solid #019d6d;
+  border: 1px solid var(--color-green);
   border-radius: 4px;
   cursor: pointer;
   align-self: flex-start;
