@@ -10,12 +10,13 @@ import { auth, db } from "./firebase";
 export type Session = {
   userId: string;
   displayName: string;
+  email: string;
 };
 
 export function getSession(): Session | null {
   const user = auth.currentUser;
   if (!user) return null;
-  return { userId: user.uid, displayName: user.displayName || "Anonymous" };
+  return { userId: user.uid, displayName: user.displayName || "Anonymous", email: user.email || "" };
 }
 
 export function isLoggedIn(): boolean {
@@ -58,7 +59,7 @@ export async function signInWithGoogle(): Promise<Session> {
     { merge: true },
   );
 
-  return { userId: user.uid, displayName };
+  return { userId: user.uid, displayName, email: user.email || "" };
 }
 
 export async function logout(): Promise<void> {
@@ -71,7 +72,7 @@ export function subscribeAuth(
 ): () => void {
   return onAuthStateChanged(auth, (user) => {
     if (user) {
-      cb({ userId: user.uid, displayName: user.displayName || "Anonymous" });
+      cb({ userId: user.uid, displayName: user.displayName || "Anonymous", email: user.email || "" });
     } else {
       cb(null);
     }

@@ -28,13 +28,33 @@ service cloud.firestore {
       allow update: if isSignedIn()
         && resource.data.startedBy == request.auth.uid;
 
+      // Participants subcollection — waiting room / approval
+      match /participants/{userId} {
+        allow read: if isSignedIn();
+
+        // A user can create their own participant doc with status "pending"
+        allow create: if isSignedIn()
+          && request.auth.uid == userId
+          && request.resource.data.status == "pending";
+
+        // Only the host can update (to approve participants)
+        allow update: if isSignedIn()
+          && get(/databases/$(database)/documents/collaborations/$(collabId)).data.startedBy == request.auth.uid;
+      }
+
       // Notes subcollection
       match /notes/{noteId} {
         allow read: if isSignedIn();
 
-        // Any signed-in user can create a note, but createdBy must match their uid
+        // Only the host or approved participants can create notes
         allow create: if isSignedIn()
-          && request.resource.data.createdBy == request.auth.uid;
+          && request.resource.data.createdBy == request.auth.uid
+          && (
+            // Host can always create notes
+            get(/databases/$(database)/documents/collaborations/$(collabId)).data.startedBy == request.auth.uid
+            // Approved participants can create notes
+            || get(/databases/$(database)/documents/collaborations/$(collabId)/participants/$(request.auth.uid)).data.status == "approved"
+          );
 
         // Updates come from multiple actors: author edits, others react/respond/vote, host groups/archives
         allow update: if isSignedIn();

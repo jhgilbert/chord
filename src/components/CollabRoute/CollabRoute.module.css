@@ -573,3 +573,94 @@
   box-sizing: border-box;
   overflow-x: hidden;
 }
+
+/* Waiting room */
+.waitingRoom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-family: system-ui, sans-serif;
+  gap: 12px;
+}
+
+.waitingTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.waitingMessage {
+  font-size: 15px;
+  color: #6b7280;
+}
+
+/* Participant approval panel */
+.pendingSection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.participantRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.participantRow input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+.participantEmail {
+  margin-left: auto;
+  color: #9ca3af;
+}
+
+.selectAllLabel {
+  font-weight: 600;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.admitButton {
+  margin-top: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  background: #111;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.admitButton:hover {
+  background: #333;
+}
+
+.admitButton:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.approvedList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.approvedRow {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  color: #374151;
+  padding: 3px 0;
+}

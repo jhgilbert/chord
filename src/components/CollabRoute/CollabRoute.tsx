@@ -10,10 +10,14 @@ import {
 import {
   endCollaboration,
   pauseCollaboration,
+  requestToJoin,
   subscribeCollaboration,
+  subscribeMyParticipantStatus,
+  subscribeParticipants,
   updateAllowedNoteTypes,
   updateShowAuthorNames,
   type Collaboration,
+  type Participant,
 } from "../../collaborations";
 import { NOTE_TYPES } from "../../constants";
 import { useClickOutside } from "../../hooks/useClickOutside";
@@ -21,6 +25,7 @@ import NotesLogo from "../NotesLogo/NotesLogo";
 import CollabSummary from "./CollabSummary";
 import CollabSidebar from "./CollabSidebar";
 import CollabNotesList from "./CollabNotesList";
+import WaitingRoom from "./WaitingRoom";
 import styles from "./CollabRoute.module.css";
 
 export default function CollabRoute() {
@@ -38,6 +43,8 @@ export default function CollabRoute() {
     undefined,
   );
   const [notes, setNotes] = useState<Note[]>([]);
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [myStatus, setMyStatus] = useState<"pending" | "approved" | null>(null);
   const [showNoteTypeSettings, setShowNoteTypeSettings] = useState(false);
   const [showHostActions, setShowHostActions] = useState(false);
   const noteTypeSettingsRef = useRef<HTMLDivElement>(null);
@@ -67,6 +74,21 @@ export default function CollabRoute() {
     const unsub = subscribeNotes(id, setNotes);
     return () => unsub();
   }, [id]);
+
+  // Host subscribes to all participants; non-host subscribes to own status
+  useEffect(() => {
+    if (!id || !session || !collab) return;
+    const isHostUser = collab.startedBy === session.userId;
+    if (isHostUser) {
+      const unsub = subscribeParticipants(id, setParticipants);
+      return () => unsub();
+    } else {
+      // Request to join (no-op if already exists)
+      requestToJoin(id, session.userId, session.displayName, session.email);
+      const unsub = subscribeMyParticipantStatus(id, session.userId, setMyStatus);
+      return () => unsub();
+    }
+  }, [id, session, collab?.startedBy]);
 
   const activityTick = useMemo(() => {
     let count = notes.length;
@@ -139,6 +161,11 @@ export default function CollabRoute() {
         isHost={isHost}
       />
     );
+  }
+
+  // Non-host participants must be approved before seeing the collaboration
+  if (!isHost && myStatus !== "approved") {
+    return <WaitingRoom title={collab.title} />;
   }
 
   return (
@@ -305,6 +332,7 @@ export default function CollabRoute() {
           session={session}
           isHost={isHost}
           allowedNoteTypes={allowedNoteTypes}
+          participants={participants}
         />
         <CollabNotesList
           collab={collab}

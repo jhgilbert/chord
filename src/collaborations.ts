@@ -1,6 +1,7 @@
 import {
   collection,
   doc,
+  getDoc,
   getDocs,
   onSnapshot,
   query,
@@ -8,6 +9,7 @@ import {
   setDoc,
   updateDoc,
   where,
+  writeBatch,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import type { NoteType } from "./notes";
@@ -116,4 +118,77 @@ export async function getUserCollaborations(userId: string): Promise<Collaborati
     id: doc.id,
     ...(doc.data() as Omit<Collaboration, "id">)
   }));
+}
+
+// --- Participant approval ---
+
+export type Participant = {
+  userId: string;
+  displayName: string;
+  email: string;
+  status: "pending" | "approved";
+  requestedAt: unknown;
+};
+
+export async function requestToJoin(
+  collabId: string,
+  userId: string,
+  displayName: string,
+  email: string,
+) {
+  const ref = doc(db, "collaborations", collabId, "participants", userId);
+  const snap = await getDoc(ref);
+  if (snap.exists()) return; // already requested or approved
+  await setDoc(ref, {
+    displayName,
+    email,
+    status: "pending",
+    requestedAt: serverTimestamp(),
+  });
+}
+
+export async function approveParticipants(
+  collabId: string,
+  userIds: string[],
+) {
+  const batch = writeBatch(db);
+  for (const userId of userIds) {
+    const ref = doc(db, "collaborations", collabId, "participants", userId);
+    batch.update(ref, { status: "approved" });
+  }
+  await batch.commit();
+}
+
+export function subscribeParticipants(
+  collabId: string,
+  cb: (participants: Participant[]) => void,
+) {
+  return onSnapshot(
+    collection(db, "collaborations", collabId, "participants"),
+    (snap) => {
+      cb(
+        snap.docs.map((d) => ({
+          userId: d.id,
+          ...(d.data() as Omit<Participant, "userId">),
+        })),
+      );
+    },
+  );
+}
+
+export function subscribeMyParticipantStatus(
+  collabId: string,
+  userId: string,
+  cb: (status: "pending" | "approved" | null) => void,
+) {
+  return onSnapshot(
+    doc(db, "collaborations", collabId, "participants", userId),
+    (snap) => {
+      if (!snap.exists()) {
+        cb(null);
+      } else {
+        cb((snap.data() as Participant).status);
+      }
+    },
+  );
 }

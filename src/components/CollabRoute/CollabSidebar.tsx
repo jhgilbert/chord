@@ -1,8 +1,13 @@
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { createNote, type NoteType } from "../../notes";
-import { updatePrompt, type Collaboration } from "../../collaborations";
+import {
+  approveParticipants,
+  updatePrompt,
+  type Collaboration,
+  type Participant,
+} from "../../collaborations";
 import { QUILL_MODULES } from "../../constants";
 import type { Session } from "../../session";
 import NoteTypePanel from "../NoteTypePanel/NoteTypePanel";
@@ -13,6 +18,7 @@ interface CollabSidebarProps {
   session: Session;
   isHost: boolean;
   allowedNoteTypes: NoteType[];
+  participants: Participant[];
 }
 
 export default function CollabSidebar({
@@ -20,10 +26,21 @@ export default function CollabSidebar({
   session,
   isHost,
   allowedNoteTypes,
+  participants,
 }: CollabSidebarProps) {
   const [openType, setOpenType] = useState<NoteType | null>(null);
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [promptValue, setPromptValue] = useState("");
+  const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
+
+  const pendingParticipants = useMemo(
+    () => participants.filter((p) => p.status === "pending"),
+    [participants],
+  );
+  const approvedParticipants = useMemo(
+    () => participants.filter((p) => p.status === "approved"),
+    [participants],
+  );
 
   const submitNote =
     (type: NoteType) =>
@@ -185,6 +202,101 @@ export default function CollabSidebar({
               disabled={!isHost}
             />
           )}
+        </>
+      )}
+
+      {/* Host: participant approval panel */}
+      {isHost && (
+        <>
+          {pendingParticipants.length > 0 && (
+            <>
+              <div className={styles.sectionLabel}>Waiting to join</div>
+              <div className={styles.pendingSection}>
+                <label className={styles.participantRow}>
+                  <input
+                    type="checkbox"
+                    checked={
+                      pendingParticipants.length > 0 &&
+                      pendingParticipants.every((p) => checkedIds.has(p.userId))
+                    }
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setCheckedIds(
+                          new Set(pendingParticipants.map((p) => p.userId)),
+                        );
+                      } else {
+                        setCheckedIds(new Set());
+                      }
+                    }}
+                  />
+                  <span className={styles.selectAllLabel}>Select all</span>
+                </label>
+                {pendingParticipants.map((p) => (
+                  <label key={p.userId} className={styles.participantRow}>
+                    <input
+                      type="checkbox"
+                      checked={checkedIds.has(p.userId)}
+                      onChange={(e) => {
+                        const next = new Set(checkedIds);
+                        if (e.target.checked) {
+                          next.add(p.userId);
+                        } else {
+                          next.delete(p.userId);
+                        }
+                        setCheckedIds(next);
+                      }}
+                    />
+                    <span>{p.displayName}</span>
+                    {p.email && (
+                      <span className={styles.participantEmail}>
+                        {p.email}
+                      </span>
+                    )}
+                  </label>
+                ))}
+                <button
+                  className={styles.admitButton}
+                  disabled={checkedIds.size === 0}
+                  onClick={async () => {
+                    try {
+                      await approveParticipants(
+                        collab.id,
+                        Array.from(checkedIds),
+                      );
+                      setCheckedIds(new Set());
+                    } catch (error) {
+                      console.error("Failed to admit participants:", error);
+                      alert("Failed to admit participants. Please try again.");
+                    }
+                  }}
+                >
+                  Admit selected
+                </button>
+              </div>
+            </>
+          )}
+
+          <div className={styles.sectionLabel}>Participants ({approvedParticipants.length + 1})</div>
+          <div className={styles.approvedList}>
+            <div className={styles.approvedRow}>
+              {collab.startedByName} (host)
+              {session.email && (
+                <span className={styles.participantEmail}>
+                  {session.email}
+                </span>
+              )}
+            </div>
+            {approvedParticipants.map((p) => (
+              <div key={p.userId} className={styles.approvedRow}>
+                {p.displayName}
+                {p.email && (
+                  <span className={styles.participantEmail}>
+                    {p.email}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
         </>
       )}
     </aside>
