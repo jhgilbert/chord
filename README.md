@@ -63,15 +63,19 @@ The host's view reflects these additional options:
 
 When the conversation has reached its desired conclusion, the host ends the collaboration. (If this is done in error or the conversation spans multiple sessions, the collaboration can always be resumed where it left off.)
 
-When a collaboration has ended, its URL displays a report that can be copied as Markdown or as Google Doc-compatible HTML.
-
-The report includes key takeaways, like action items and poll results:
+When a collaboration has ended, its URL displays a report that includes key takeaways, like action items and poll results:
 
 ![Summary view](screenshots/04_report_key_takeaways.png)
 
-At the bottom of the report is the full timeline of the collaboration.
+At the bottom of the report is the full timeline of the collaboration:
 
 ![Summary view](screenshots/05_report_timeline.png)
+
+### 6. The conversation becomes a Google Doc or Markdown file to support ongoing work
+
+Nobody wants to sift through a collaboration app for information later.
+
+The collaboration report can be copied as Markdown or Google-Doc-friendly HTML, so the project can progress however it needs to from here.
 
 ## Setup
 
