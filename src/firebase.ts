@@ -2,13 +2,11 @@ import { initializeApp } from "firebase/app";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import { getAuth, connectAuthEmulator } from "firebase/auth";
 
-// For emulator usage, projectId is the key piece.
-// These values won't be used to talk to production unless you remove the emulator connections.
 const firebaseConfig = {
-  apiKey: "demo",
-  authDomain: "demo.firebaseapp.com",
-  projectId: "chord-jgilbert",
-  appId: "demo",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 export const app = initializeApp(firebaseConfig);
