@@ -333,13 +333,13 @@
 .filterButton {
   padding: 5px 12px;
   font-size: 13px;
+  font-weight: 600;
   border: 1px solid #d1d5db;
   border-radius: 4px;
   cursor: pointer;
 }
 
 .filterButton[data-active="true"] {
-  font-weight: 600;
   background: #374151;
   color: #fff;
 }
@@ -350,7 +350,6 @@
 }
 
 .filterButton[data-active="false"] {
-  font-weight: 400;
   background: #f3f4f6;
   color: #555;
 }
