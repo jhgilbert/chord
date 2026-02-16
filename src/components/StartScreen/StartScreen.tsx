@@ -238,20 +238,12 @@ export default function StartScreen() {
             ))}
           </div>
         </div>
-        <div style={{ marginTop: "20px" }}>
-          <label
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              fontSize: "14px",
-            }}
-          >
+        <div style={{ marginTop: "28px" }}>
+          <label className={styles.noteTypeCheckbox}>
             <input
               type="checkbox"
               checked={showAuthorNames}
               onChange={(e) => setShowAuthorNames(e.target.checked)}
-              style={{ cursor: "pointer", accentColor: "#7209b7" }}
             />
             <span>Show author names</span>
           </label>
