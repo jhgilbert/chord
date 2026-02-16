@@ -16,6 +16,28 @@
   margin-top: 0;
 }
 
+.sectionLabelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 24px;
+  margin-bottom: 8px;
+}
+
+.sectionLabelRow .sectionLabel {
+  margin: 0;
+}
+
+.manageUsersLink {
+  font-size: 14px;
+  color: #6366f1;
+  text-decoration: none;
+}
+
+.manageUsersLink:hover {
+  text-decoration: underline;
+}
+
 /* CollabRoute container */
 .collabContainer {
   margin: 0 20px 40px;

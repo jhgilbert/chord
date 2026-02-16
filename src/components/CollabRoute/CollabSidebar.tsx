@@ -1,6 +1,7 @@
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { createNote, type NoteType } from "../../notes";
 import {
   approveParticipants,
@@ -277,7 +278,10 @@ export default function CollabSidebar({
             </>
           )}
 
-          <div className={styles.sectionLabel}>Participants ({approvedParticipants.length + 1})</div>
+          <div className={styles.sectionLabelRow}>
+            <span className={styles.sectionLabel}>Participants ({approvedParticipants.length + 1})</span>
+            <Link to={`/collabs/${collab.id}/users`} target="_blank" className={styles.manageUsersLink}>Manage users</Link>
+          </div>
           <div className={styles.approvedList}>
             <div className={styles.approvedRow}>
               {collab.startedByName} (host)

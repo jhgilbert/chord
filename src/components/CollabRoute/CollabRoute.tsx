@@ -94,7 +94,8 @@ export default function CollabRoute() {
       );
       return () => unsub();
     }
-  }, [id, session, collab?.startedBy]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- use stable primitives to avoid tearing down the Firestore subscription on every render
+  }, [id, session?.userId, collab?.startedBy]);
 
   const activityTick = useMemo(() => {
     let count = notes.length;
