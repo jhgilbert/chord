@@ -82,11 +82,28 @@ export default function StartScreen() {
     <div className={styles.startScreen}>
       <h1 className={styles.logo}>
         {["C", "H", "O", "R", "D"].map((letter, i) => {
-          const colors = ["var(--color-magenta)", "var(--color-purple)", "var(--color-blue)", "var(--color-sky-blue)", "var(--color-cyan)"];
+          const colors = [
+            "var(--color-magenta)",
+            "var(--color-purple)",
+            "var(--color-blue)",
+            "var(--color-sky-blue)",
+            "var(--color-cyan)",
+          ];
           return (
-            <span key={letter} className={styles.logoColumn} style={{ color: colors[i] }}>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className={styles.logoNote}>
-                <path fill="currentColor" d="M16 3h-2v10.56a3.96 3.96 0 0 0-2-.56a4 4 0 1 0 4 4zm-4 16a2 2 0 1 1 2-2a2 2 0 0 1-2 2" />
+            <span
+              key={letter}
+              className={styles.logoColumn}
+              style={{ color: colors[i] }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                className={styles.logoNote}
+              >
+                <path
+                  fill="currentColor"
+                  d="M16 3h-2v10.56a3.96 3.96 0 0 0-2-.56a4 4 0 1 0 4 4zm-4 16a2 2 0 1 1 2-2a2 2 0 0 1-2 2"
+                />
               </svg>
               <span className={styles.logoLetter}>{letter}</span>
             </span>
@@ -94,7 +111,7 @@ export default function StartScreen() {
         })}
       </h1>
       <p className={styles.startScreenUser}>
-        You are: <b>{session.displayName}</b>
+        Logged in as <b>{session.displayName}</b>
       </p>
       <form onSubmit={handleStart} className={styles.startScreenForm}>
         <label className={styles.startScreenLabel}>
@@ -108,7 +125,8 @@ export default function StartScreen() {
           placeholder="Enter a title for this collaboration"
         />
         <label className={styles.startScreenLabel}>
-          Collaboration prompt <span style={{ color: "var(--color-magenta)" }}>*</span>
+          Collaboration prompt{" "}
+          <span style={{ color: "var(--color-magenta)" }}>*</span>
         </label>
         <ReactQuill
           theme="snow"
@@ -169,14 +187,16 @@ export default function StartScreen() {
                         backgroundColor: isDiscussionActive
                           ? "var(--color-sky-blue)"
                           : "#e8f2fe",
-                        color: isDiscussionActive ? "#ffffff" : "var(--color-sky-blue)",
+                        color: isDiscussionActive
+                          ? "#ffffff"
+                          : "var(--color-sky-blue)",
                         fontWeight: isDiscussionActive ? "600" : "500",
                         boxShadow: isDiscussionActive
                           ? "0 2px 4px rgba(72,149,239,0.3)"
                           : "none",
                       }}
                     >
-                      📋 Discussion
+                      Discussion
                     </button>
                     <button
                       type="button"
@@ -189,15 +209,19 @@ export default function StartScreen() {
                           ? "2px solid var(--color-sky-blue)"
                           : "1px solid var(--color-sky-blue)",
                         borderRadius: "6px",
-                        backgroundColor: isRetroActive ? "var(--color-sky-blue)" : "#e8f2fe",
-                        color: isRetroActive ? "#ffffff" : "var(--color-sky-blue)",
+                        backgroundColor: isRetroActive
+                          ? "var(--color-sky-blue)"
+                          : "#e8f2fe",
+                        color: isRetroActive
+                          ? "#ffffff"
+                          : "var(--color-sky-blue)",
                         fontWeight: isRetroActive ? "600" : "500",
                         boxShadow: isRetroActive
                           ? "0 2px 4px rgba(72,149,239,0.3)"
                           : "none",
                       }}
                     >
-                      🔄 Retro
+                      Retro
                     </button>
                     <button
                       type="button"
@@ -210,7 +234,9 @@ export default function StartScreen() {
                           ? "2px solid var(--color-sky-blue)"
                           : "1px solid var(--color-sky-blue)",
                         borderRadius: "6px",
-                        backgroundColor: isQAActive ? "var(--color-sky-blue)" : "#e8f2fe",
+                        backgroundColor: isQAActive
+                          ? "var(--color-sky-blue)"
+                          : "#e8f2fe",
                         color: isQAActive ? "#ffffff" : "var(--color-sky-blue)",
                         fontWeight: isQAActive ? "600" : "500",
                         boxShadow: isQAActive
@@ -218,7 +244,7 @@ export default function StartScreen() {
                           : "none",
                       }}
                     >
-                      ❓ Q & A
+                      Q & A
                     </button>
                   </>
                 );

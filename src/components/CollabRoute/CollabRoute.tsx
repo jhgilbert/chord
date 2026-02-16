@@ -1,7 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, useNavigate, useParams } from "react-router-dom";
 import { getSession } from "../../session";
-import { createNote, subscribeNotes, type Note, type NoteType } from "../../notes";
+import {
+  createNote,
+  subscribeNotes,
+  type Note,
+  type NoteType,
+} from "../../notes";
 import {
   endCollaboration,
   pauseCollaboration,
@@ -12,6 +17,7 @@ import {
 } from "../../collaborations";
 import { NOTE_TYPES } from "../../constants";
 import { useClickOutside } from "../../hooks/useClickOutside";
+import NotesLogo from "../NotesLogo/NotesLogo";
 import CollabSummary from "./CollabSummary";
 import CollabSidebar from "./CollabSidebar";
 import CollabNotesList from "./CollabNotesList";
@@ -56,6 +62,23 @@ export default function CollabRoute() {
     const unsub = subscribeNotes(id, setNotes);
     return () => unsub();
   }, [id]);
+
+  const activityTick = useMemo(() => {
+    let count = notes.length;
+    for (const note of notes) {
+      if (note.reactions) count += Object.keys(note.reactions).length;
+      if (note.responses) {
+        count += note.responses.length;
+        for (const r of note.responses) {
+          if (r.reactions) count += Object.keys(r.reactions).length;
+        }
+      }
+      if (note.pollVotes) count += Object.keys(note.pollVotes).length;
+      if (note.editHistory) count += note.editHistory.length;
+      if (note.archived) count += 1;
+    }
+    return count;
+  }, [notes]);
 
   if (!id) return <Navigate to="/start" replace />;
   if (!session) return null;
@@ -117,13 +140,12 @@ export default function CollabRoute() {
     <div className={styles.collabContainer}>
       {/* Header */}
       <div className={styles.collabHeader}>
-        <div>
+        <div className={styles.collabHeaderLeft}>
+          <NotesLogo tick={collab.paused ? 0 : activityTick} />
           <span className={styles.collabHeaderTitle}>{collab.title}</span>
           <span className={styles.collabHeaderMeta}>
-            Hosted by <b>{collab.startedByName}</b>
-          </span>
-          <span className={styles.collabHeaderUser}>
-            You are: <b>{session.displayName}</b>
+            Hosted by <b>{collab.startedByName}</b>{" "}
+            {isHost && <span className={styles.badgeYou}>YOU</span>}
           </span>
         </div>
         <div className={styles.collabHeaderActions}>
@@ -140,9 +162,7 @@ export default function CollabRoute() {
                 ref={noteTypeSettingsRef}
               >
                 <button
-                  onClick={() =>
-                    setShowNoteTypeSettings(!showNoteTypeSettings)
-                  }
+                  onClick={() => setShowNoteTypeSettings(!showNoteTypeSettings)}
                   className={styles.buttonNoteTypes}
                 >
                   Manage note types {showNoteTypeSettings ? "▲" : "▼"}
@@ -197,7 +217,10 @@ export default function CollabRoute() {
                       session.displayName,
                     );
                   } catch (error) {
-                    console.error("Failed to update author names setting:", error);
+                    console.error(
+                      "Failed to update author names setting:",
+                      error,
+                    );
                     alert("Failed to update setting. Please try again.");
                   }
                 }}
@@ -224,7 +247,10 @@ export default function CollabRoute() {
                       session.displayName,
                     );
                   } catch (error) {
-                    console.error("Failed to pause/resume collaboration:", error);
+                    console.error(
+                      "Failed to pause/resume collaboration:",
+                      error,
+                    );
                     alert("Failed to update collaboration. Please try again.");
                   }
                 }}

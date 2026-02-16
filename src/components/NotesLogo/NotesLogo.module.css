@@ -1,0 +1,14 @@
+.notesLogo {
+  display: flex;
+  align-items: center;
+}
+
+.note {
+  width: 32px;
+  height: 32px;
+  margin-left: -14px;
+}
+
+.note:first-child {
+  margin-left: 0;
+}
