@@ -34,16 +34,16 @@ export default function CollabSummary({
 
   const formatReactionsText = (reactions: {
     agreed: string[];
-    disagreed: string[];
     markRead: string[];
   }) => {
     let text = "";
-    if (reactions.agreed.length > 0)
-      text += `Agreed (${reactions.agreed.length}): ${reactions.agreed.join(", ")} `;
-    if (reactions.disagreed.length > 0)
-      text += `Disagreed (${reactions.disagreed.length}): ${reactions.disagreed.join(", ")} `;
-    if (reactions.markRead.length > 0)
-      text += `Marked as read (${reactions.markRead.length}): ${reactions.markRead.join(", ")}`;
+    const agreedCount = reactions.agreed.length;
+    const markReadCount = reactions.markRead.length;
+
+    if (agreedCount > 0)
+      text += `Agreed (${agreedCount}): ${reactions.agreed.join(", ")} `;
+    if (markReadCount > 0)
+      text += `Marked as read (${markReadCount}): ${reactions.markRead.join(", ")}`;
     return text;
   };
 

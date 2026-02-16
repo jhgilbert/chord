@@ -79,14 +79,13 @@ export function stripHtml(html: string): string {
   return tempDiv.textContent || tempDiv.innerText || "";
 }
 
-/** Categorize reactions into agreed/disagreed/markRead name lists */
+/** Categorize reactions into agreed/markRead name lists */
 export function categorizeReactions(
   reactions: Record<string, Reaction>,
   notes: Note[],
   hostId: string,
-): { agreed: string[]; disagreed: string[]; markRead: string[] } {
+): { agreed: string[]; markRead: string[] } {
   const agreed: string[] = [];
-  const disagreed: string[] = [];
   const markRead: string[] = [];
 
   for (const [sessionId, reaction] of Object.entries(reactions)) {
@@ -100,9 +99,8 @@ export function categorizeReactions(
     }
 
     if (reaction === "agree") agreed.push(name);
-    else if (reaction === "disagree") disagreed.push(name);
     else if (reaction === "markRead") markRead.push(name);
   }
 
-  return { agreed, disagreed, markRead };
+  return { agreed, markRead };
 }

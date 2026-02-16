@@ -1,17 +1,11 @@
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "./firebase";
-
-export function slugifyNameToId(name: string) {
-  return name
-    .trim()
-    .toLowerCase()
-    .replace(/['"]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)+/g, "");
-}
-
-const USER_ID_KEY = "chord_user_id";
-const DISPLAY_NAME_KEY = "chord_display_name";
+import { doc, setDoc } from "firebase/firestore";
+import {
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signInWithPopup,
+  signOut,
+} from "firebase/auth";
+import { auth, db } from "./firebase";
 
 export type Session = {
   userId: string;
@@ -19,53 +13,56 @@ export type Session = {
 };
 
 export function getSession(): Session | null {
-  const userId = localStorage.getItem(USER_ID_KEY);
-  const displayName = localStorage.getItem(DISPLAY_NAME_KEY);
-
-  if (userId && displayName) {
-    return { userId, displayName };
-  }
-
-  return null;
+  const user = auth.currentUser;
+  if (!user) return null;
+  return { userId: user.uid, displayName: user.displayName || "Anonymous" };
 }
 
 export function isLoggedIn(): boolean {
-  return getSession() !== null;
+  return auth.currentUser !== null;
 }
 
-export async function login(firstName: string, lastName: string): Promise<Session> {
-  const displayName = `${firstName} ${lastName}`.trim();
-  let baseUserId = slugifyNameToId(displayName);
+const ALLOWED_DOMAIN = "datadoghq.com";
 
-  // Check if this user ID exists, and find an available one if needed
-  let userId = baseUserId;
-  let counter = 2;
+export async function signInWithGoogle(): Promise<Session> {
+  const provider = new GoogleAuthProvider();
+  const result = await signInWithPopup(auth, provider);
+  const user = result.user;
 
-  while (await userIdExists(userId)) {
-    userId = `${baseUserId}-${counter}`;
-    counter++;
+  // Enforce email domain restriction
+  const email = user.email || "";
+  if (!email.endsWith(`@${ALLOWED_DOMAIN}`)) {
+    await signOut(auth);
+    throw new Error(
+      `Only @${ALLOWED_DOMAIN} accounts are allowed. You signed in with ${email}.`,
+    );
   }
 
-  // Register this user ID
-  await setDoc(doc(db, "users", userId), {
-    displayName,
-    createdAt: new Date().toISOString(),
+  const displayName = user.displayName || "Anonymous";
+
+  // Write/update user doc in Firestore
+  await setDoc(
+    doc(db, "users", user.uid),
+    { displayName, updatedAt: new Date().toISOString() },
+    { merge: true },
+  );
+
+  return { userId: user.uid, displayName };
+}
+
+export async function logout(): Promise<void> {
+  await signOut(auth);
+}
+
+/** Subscribe to auth state changes. Returns unsubscribe function. */
+export function subscribeAuth(
+  cb: (session: Session | null) => void,
+): () => void {
+  return onAuthStateChanged(auth, (user) => {
+    if (user) {
+      cb({ userId: user.uid, displayName: user.displayName || "Anonymous" });
+    } else {
+      cb(null);
+    }
   });
-
-  // Store in localStorage
-  localStorage.setItem(USER_ID_KEY, userId);
-  localStorage.setItem(DISPLAY_NAME_KEY, displayName);
-
-  return { userId, displayName };
-}
-
-export function logout() {
-  localStorage.removeItem(USER_ID_KEY);
-  localStorage.removeItem(DISPLAY_NAME_KEY);
-}
-
-async function userIdExists(userId: string): Promise<boolean> {
-  const docRef = doc(db, "users", userId);
-  const docSnap = await getDoc(docRef);
-  return docSnap.exists();
 }
