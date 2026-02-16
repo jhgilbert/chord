@@ -1,0 +1,442 @@
+.stickyNote {
+  background: #ffffff;
+  border-radius: 0;
+  border: none;
+  border-left: 2px solid; /* Color set via inline style */
+  padding: 0 16px 2px 10px;
+  margin-bottom: 4px;
+  position: relative;
+  color: #1a1a1a;
+}
+
+.stickyNote[data-grouped="true"] {
+  border-left: 6px solid #111;
+  background: #f9fafb;
+}
+
+.stickyNoteDelete,
+.stickyNoteUngroup {
+  position: absolute;
+  top: 10px;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  opacity: 0;
+}
+
+.stickyNoteDelete {
+  right: 12px;
+  background: none;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 0;
+  color: #1a1a1a;
+}
+
+.stickyNote:hover .stickyNoteDelete {
+  opacity: 0.45;
+}
+
+.stickyNoteUngroup {
+  left: 12px;
+  background: #111;
+  color: #fff;
+  font-size: 10px;
+  padding: 4px 8px;
+  border-radius: 3px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.stickyNote:hover .stickyNoteUngroup {
+  opacity: 1;
+}
+
+.stickyNoteBadges {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+  margin-left: -10px;
+}
+
+.badgeYou,
+.badgeType,
+.badgeName,
+.badgeEdit {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.badgeYou,
+.badgeType,
+.badgeEdit {
+  text-transform: uppercase;
+  padding: 2px 6px;
+}
+
+.badgeYou,
+.badgeType {
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.badgeYou {
+  background: #a7f3d7;
+  color: #14532d;
+  border-radius: 3px;
+}
+
+.badgeType {
+  color: #fff;
+  border-radius: 0;
+}
+
+.badgeName {
+  opacity: 0.6;
+}
+
+.badgeEdit {
+  background: transparent;
+  border: 1px solid #1a1a1a;
+  border-radius: 3px;
+  cursor: pointer;
+  color: #1a1a1a;
+  letter-spacing: 0.03em;
+  transition: all 0.15s;
+}
+
+.badgeEdit:hover {
+  background: #1a1a1a;
+  color: #fff;
+}
+
+.badgeTimestamp {
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.5;
+}
+
+.actionItemMeta {
+  margin-bottom: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.actionItemMetaItem {
+  font-size: 13px;
+  color: #374151;
+}
+
+.actionItemMetaItem strong {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.stickyNoteContent {
+  line-height: 1.6;
+}
+
+.stickyNoteActions {
+  display: flex;
+  gap: 6px;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: 13px;
+  border: 1px solid;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.actionButton[data-active="true"] {
+  background: #a7f3d7;
+  color: #14532d;
+  border-color: #a7f3d7;
+}
+
+.actionButton[data-active="false"] {
+  background: transparent;
+  color: #555;
+  border-color: #bbb;
+}
+
+.actionButton[data-paused="true"] {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+/* Poll styles */
+.pollOptionsDisplay {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pollOption {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #f9fafb;
+  border: 2px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  transition: all 0.15s;
+}
+
+.pollOption:hover:not([data-disabled="true"]) {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.pollOption[data-voted="true"] {
+  background: #ccfbf1;
+  border-color: #14b8a6;
+  color: #0f766e;
+  font-weight: 600;
+}
+
+.pollOption[data-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.pollOptionCount {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  background: #fff;
+  padding: 2px 8px;
+  border-radius: 12px;
+  min-width: 24px;
+  text-align: center;
+}
+
+.pollOption[data-voted="true"] .pollOptionCount {
+  background: #f0fdfa;
+  color: #14b8a6;
+}
+
+.pollSubmitButton {
+  margin-top: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  background: #3b82f6;
+  color: #fff;
+  border: 1px solid #3b82f6;
+  border-radius: 4px;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.pollSubmitButton:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.closePollButton {
+  margin-top: 4px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  background: #374151;
+  color: #fff;
+  border: 1px solid #374151;
+  border-radius: 4px;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.closePollButton:hover {
+  background: #4b5563;
+  border-color: #4b5563;
+}
+
+.pollClosedMessage {
+  margin-top: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  text-align: center;
+}
+
+/* Edit styles */
+.editContainer {
+  margin-top: 8px;
+}
+
+.editEditor {
+  background: #fff;
+  color: #111;
+  margin-bottom: 8px;
+}
+
+.editActions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.editCancel {
+  font-size: 12px;
+  padding: 4px 12px;
+  background: #fff;
+  border: 1px solid #1a1a1a;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.editSave {
+  font-size: 12px;
+  padding: 4px 12px;
+  background: #1a1a1a;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* History styles */
+.historyContainer {
+  margin-top: 12px;
+}
+
+.historyToggle {
+  font-size: 11px;
+  padding: 3px 8px;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 3px;
+  cursor: pointer;
+  color: #555;
+  font-weight: 600;
+}
+
+.historyList {
+  margin-top: 8px;
+}
+
+.historyVersion {
+  margin-top: 8px;
+}
+
+.historyDivider {
+  height: 1px;
+  background: #d1d5db;
+  margin: 8px 0;
+}
+
+.historyTimestamp {
+  font-size: 10px;
+  color: #6b7280;
+  font-weight: 600;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.historyContent {
+  line-height: 1.6;
+  opacity: 0.7;
+  font-size: 14px;
+}
+
+/* Responses styles */
+.responsesContainer {
+  margin-top: 8px;
+}
+
+.responsesToggle {
+  font-size: 11px;
+  padding: 3px 8px;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 3px;
+  cursor: pointer;
+  color: #555;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.responsesList {
+  margin-top: 8px;
+}
+
+.responseAddButton {
+  font-size: 11px;
+  padding: 3px 8px;
+  background: #111;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-top: 4px;
+  transition: opacity 0.15s;
+}
+
+.responseAddButton:hover {
+  background: #333;
+}
+
+.responseForm {
+  margin-top: 8px;
+}
+
+.responseEditor {
+  background: #fff;
+  color: #111;
+  margin-bottom: 8px;
+}
+
+.responseActions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.responseCancel {
+  font-size: 12px;
+  padding: 4px 12px;
+  background: #fff;
+  border: 1px solid #1a1a1a;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.responseSave {
+  font-size: 12px;
+  padding: 4px 12px;
+  background: #1a1a1a;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+}

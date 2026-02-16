@@ -1,0 +1,101 @@
+.startScreen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: system-ui, sans-serif;
+  padding: 40px 20px;
+  box-sizing: border-box;
+}
+
+.startScreenTitle {
+  margin: 0 0 4px;
+}
+
+.startScreenUser {
+  margin: 0 0 24px;
+  opacity: 0.6;
+  font-size: 14px;
+}
+
+.startScreenForm {
+  width: 100%;
+  max-width: 600px;
+}
+
+.startScreenLabel {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.startScreenInput {
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+  font-family: system-ui, sans-serif;
+}
+
+.startScreenInput:focus {
+  outline: none;
+  border-color: #0066cc;
+}
+
+.startScreenEditor {
+  background: #fff;
+  color: #111;
+}
+
+.noteTypesSelection {
+  margin-top: 20px;
+}
+
+.noteTypesLabel {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.noteTypesCheckboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.noteTypeCheckbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.noteTypeCheckbox input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+.startScreenActions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.startScreenSubmit {
+  padding: 10px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  background: #111;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}

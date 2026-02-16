@@ -1,0 +1,81 @@
+.responseItem {
+  margin-top: 8px;
+  position: relative;
+}
+
+.responseDivider {
+  height: 1px;
+  background: #d1d5db;
+  margin: 8px 0;
+}
+
+.responseHeader {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.responseAuthor {
+  font-size: 11px;
+  font-weight: 600;
+  color: #111;
+}
+
+.responseTimestamp {
+  font-size: 10px;
+  color: #6b7280;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.responseContent {
+  line-height: 1.6;
+}
+
+.responseReactions {
+  display: flex;
+  gap: 6px;
+  position: absolute;
+  top: 8px;
+  right: 0;
+}
+
+.responseReactionButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: 13px;
+  border: 1px solid;
+  border-radius: 12px;
+  cursor: pointer;
+  background: transparent;
+  transition:
+    opacity 0.15s,
+    background-color 0.15s,
+    border-color 0.15s;
+  color: #1a1a1a;
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.responseReactionButton:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.responseReactionButton[data-active="true"] {
+  background: #a7f3d7;
+  border-color: #a7f3d7;
+  color: #14532d;
+  font-weight: 600;
+}
+
+.responseReactionButton[data-paused="true"] {
+  cursor: default;
+}
+
+.responseReactionButton span {
+  font-size: 11px;
+  font-weight: 600;
+}

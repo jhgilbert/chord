@@ -1,0 +1,182 @@
+.noteTypePanel {
+  border: 1px solid #e5e7eb;
+  border-left: 6px solid; /* Color set via inline style */
+  border-radius: 0;
+  overflow: hidden;
+  margin-bottom: -1px;
+}
+
+.noteTypePanel[data-disabled="true"] {
+  opacity: 0.6;
+  border-color: #e5e7eb #e5e7eb #e5e7eb #d1d5db;
+}
+
+.noteTypePanelButton {
+  width: 100%;
+  padding: 10px 14px;
+  text-align: left;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f9fafb;
+  color: #111;
+}
+
+.noteTypePanelButton:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: -2px;
+  border-radius: 0;
+}
+
+.noteTypePanelButton[data-disabled="true"] {
+  cursor: not-allowed;
+  color: #9ca3af;
+}
+
+.noteTypePanelExample {
+  font-size: 12px;
+  font-style: italic;
+  opacity: 0.5;
+  margin-left: auto;
+  margin-right: 12px;
+  font-weight: 400;
+}
+
+.noteTypePanelArrow {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.noteTypePanelForm {
+  padding: 10px;
+  background: #fff;
+}
+
+.noteTypePanelEditor {
+  background: #fff;
+  color: #111;
+}
+
+.actionItemFields {
+  margin-top: 12px;
+  display: flex;
+  gap: 12px;
+}
+
+.actionItemField {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.actionItemField label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.actionItemField input {
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.actionItemField input:focus {
+  outline: none;
+  border-color: #111;
+}
+
+.pollOptionsFields {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pollOptionsFields > label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.pollOptionField {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.pollOptionField input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.pollOptionField input:focus {
+  outline: none;
+  border-color: #111;
+}
+
+.pollOptionRemove {
+  padding: 4px 8px;
+  font-size: 18px;
+  font-weight: bold;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #6b7280;
+  line-height: 1;
+}
+
+.pollOptionRemove:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.pollOptionAdd {
+  padding: 6px 12px;
+  font-size: 13px;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #374151;
+  font-weight: 500;
+  align-self: flex-start;
+}
+
+.pollOptionAdd:hover {
+  background: #e5e7eb;
+}
+
+.pollMultipleChoiceLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #374151;
+  cursor: pointer;
+}
+
+.pollMultipleChoiceLabel input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.noteTypePanelActions {
+  margin-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.noteTypePanelSubmit {
+  padding: 8px 16px;
+}

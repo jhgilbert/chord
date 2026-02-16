@@ -1,0 +1,63 @@
+.screenContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: system-ui, sans-serif;
+  padding: 40px 20px;
+  box-sizing: border-box;
+}
+
+.screenTitle {
+  margin: 0 0 4px;
+}
+
+.screenUser {
+  margin: 0 0 24px;
+  opacity: 0.6;
+  font-size: 14px;
+}
+
+.actionButton {
+  padding: 10px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  background: #111;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.collabsTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.collabsTable th {
+  background: #f9fafb;
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.collabsTable td {
+  padding: 16px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.collabsTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.collabsTable tbody tr:hover {
+  background: #f9fafb;
+}
