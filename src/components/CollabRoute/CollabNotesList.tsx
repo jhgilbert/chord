@@ -35,7 +35,7 @@ export default function CollabNotesList({
     new Set(NOTE_TYPES.filter((t) => t !== "Host note")),
   );
   const [showNoteTypeFilter, setShowNoteTypeFilter] = useState(false);
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc" | "upvotes">("desc");
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [draggedNoteId, setDraggedNoteId] = useState<string | null>(null);
   const [respondingToNoteId, setRespondingToNoteId] = useState<string | null>(
@@ -130,7 +130,13 @@ export default function CollabNotesList({
 
   // Apply sort order (Inbox always shows oldest first)
   const effectiveSortOrder = filter === "Inbox" ? "asc" : sortOrder;
-  if (effectiveSortOrder === "desc") {
+  if (effectiveSortOrder === "upvotes") {
+    visibleNotes = [...visibleNotes].sort((a, b) => {
+      const aCount = Object.values(a.reactions ?? {}).filter((r) => r === "agree").length;
+      const bCount = Object.values(b.reactions ?? {}).filter((r) => r === "agree").length;
+      return bCount - aCount;
+    });
+  } else if (effectiveSortOrder === "desc") {
     visibleNotes = [...visibleNotes].reverse();
   }
 
@@ -249,9 +255,9 @@ export default function CollabNotesList({
         <div className={styles.sortOrderContainer}>
           <select
             value={filter === "Inbox" ? "asc" : sortOrder}
-            onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
+            onChange={(e) => setSortOrder(e.target.value as "asc" | "desc" | "upvotes")}
             className={styles.filterButton}
-            data-active={sortOrder === "asc"}
+            data-active={sortOrder !== "desc"}
             disabled={filter === "Inbox"}
             title={
               filter === "Inbox"
@@ -261,6 +267,7 @@ export default function CollabNotesList({
           >
             <option value="desc">Newest first</option>
             <option value="asc">Oldest first</option>
+            <option value="upvotes">Most upvotes</option>
           </select>
         </div>
       </div>
