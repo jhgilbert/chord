@@ -12,19 +12,19 @@ import {
 import { sanitizeHtml } from "../../utils";
 import styles from "./CollabRoute.module.css";
 
-interface CollabSummaryProps {
+interface CollabReportProps {
   collab: Collaboration;
   notes: Note[];
   session: Session;
   isHost: boolean;
 }
 
-export default function CollabSummary({
+export default function CollabReport({
   collab,
   notes,
   session: _session,
   isHost,
-}: CollabSummaryProps) {
+}: CollabReportProps) {
   const allPrompts = buildPromptTimeline(collab);
   const hostId = collab.startedBy;
 
@@ -409,10 +409,10 @@ export default function CollabSummary({
           </button>
         )}
       </div>
-      <div className={styles.stoppedSummary}>
-        <div className={styles.summaryHeader}>
-          <h2 className={styles.summaryTitle}>Results</h2>
-          <div className={styles.summaryControls}>
+      <div className={styles.stoppedReport}>
+        <div className={styles.reportHeader}>
+          <h2 className={styles.reportTitle}>Results</h2>
+          <div className={styles.reportControls}>
             <button
               onClick={async () => {
                 await navigator.clipboard.writeText(generateMarkdown());
@@ -441,7 +441,7 @@ export default function CollabSummary({
           </div>
         </div>
         <div
-          className={styles.summaryContent}
+          className={styles.reportContent}
           dangerouslySetInnerHTML={{
             __html: generateHTML().replace(/&nbsp;/g, " "),
           }}

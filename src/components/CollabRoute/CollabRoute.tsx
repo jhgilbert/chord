@@ -22,7 +22,7 @@ import {
 import { NOTE_TYPES } from "../../constants";
 import { useClickOutside } from "../../hooks/useClickOutside";
 import NotesLogo from "../NotesLogo/NotesLogo";
-import CollabSummary from "./CollabSummary";
+import CollabReport from "./CollabReport";
 import CollabSidebar from "./CollabSidebar";
 import CollabNotesList from "./CollabNotesList";
 import WaitingRoom from "./WaitingRoom";
@@ -169,7 +169,7 @@ export default function CollabRoute() {
 
   if (!collab.active) {
     return (
-      <CollabSummary
+      <CollabReport
         collab={collab}
         notes={notes}
         session={session}

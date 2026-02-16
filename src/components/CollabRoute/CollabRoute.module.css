@@ -450,7 +450,7 @@
   background: #333;
 }
 
-/* StoppedScreen / Summary styles */
+/* StoppedScreen / Report styles */
 .stoppedScreen {
   display: flex;
   flex-direction: column;
@@ -495,7 +495,7 @@
   background: #333;
 }
 
-.stoppedSummary {
+.stoppedReport {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -505,7 +505,7 @@
   background: #fff;
 }
 
-.summaryHeader {
+.reportHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -514,13 +514,13 @@
   background: #f9fafb;
 }
 
-.summaryTitle {
+.reportTitle {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
 }
 
-.summaryControls {
+.reportControls {
   display: flex;
   gap: 12px;
   align-items: center;
@@ -541,7 +541,7 @@
   background: #333;
 }
 
-.summaryContent {
+.reportContent {
   flex: 1;
   padding: 20px;
   margin: 0;
@@ -557,12 +557,12 @@
   box-sizing: border-box;
 }
 
-.summaryContent * {
+.reportContent * {
   word-break: break-word;
   overflow-wrap: break-word;
 }
 
-.summaryContent pre {
+.reportContent pre {
   margin: 0;
   font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
   white-space: pre-wrap;
