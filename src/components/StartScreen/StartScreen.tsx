@@ -80,13 +80,25 @@ export default function StartScreen() {
 
   return (
     <div className={styles.startScreen}>
-      <h1 className={styles.startScreenTitle}>chord</h1>
+      <h1 className={styles.logo}>
+        {["C", "H", "O", "R", "D"].map((letter, i) => {
+          const colors = ["#b5179e", "#7209b7", "#3f37c9", "#4895ef", "#4cc9f0"];
+          return (
+            <span key={letter} className={styles.logoColumn} style={{ color: colors[i] }}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className={styles.logoNote}>
+                <path fill="currentColor" d="M16 3h-2v10.56a3.96 3.96 0 0 0-2-.56a4 4 0 1 0 4 4zm-4 16a2 2 0 1 1 2-2a2 2 0 0 1-2 2" />
+              </svg>
+              <span className={styles.logoLetter}>{letter}</span>
+            </span>
+          );
+        })}
+      </h1>
       <p className={styles.startScreenUser}>
         You are: <b>{session.displayName}</b>
       </p>
       <form onSubmit={handleStart} className={styles.startScreenForm}>
         <label className={styles.startScreenLabel}>
-          Title <span style={{ color: "red" }}>*</span>
+          Title <span style={{ color: "#b5179e" }}>*</span>
         </label>
         <input
           type="text"
@@ -96,7 +108,7 @@ export default function StartScreen() {
           placeholder="Enter a title for this collaboration"
         />
         <label className={styles.startScreenLabel}>
-          Collaboration prompt <span style={{ color: "red" }}>*</span>
+          Collaboration prompt <span style={{ color: "#b5179e" }}>*</span>
         </label>
         <ReactQuill
           theme="snow"
@@ -151,16 +163,16 @@ export default function StartScreen() {
                         fontSize: "14px",
                         cursor: "pointer",
                         border: isDiscussionActive
-                          ? "2px solid #0066cc"
-                          : "1px solid #0066cc",
+                          ? "2px solid #4895ef"
+                          : "1px solid #4895ef",
                         borderRadius: "6px",
                         backgroundColor: isDiscussionActive
-                          ? "#0066cc"
-                          : "#e6f2ff",
-                        color: isDiscussionActive ? "#ffffff" : "#0066cc",
+                          ? "#4895ef"
+                          : "#e8f2fe",
+                        color: isDiscussionActive ? "#ffffff" : "#4895ef",
                         fontWeight: isDiscussionActive ? "600" : "500",
                         boxShadow: isDiscussionActive
-                          ? "0 2px 4px rgba(0,102,204,0.3)"
+                          ? "0 2px 4px rgba(72,149,239,0.3)"
                           : "none",
                       }}
                     >
@@ -174,14 +186,14 @@ export default function StartScreen() {
                         fontSize: "14px",
                         cursor: "pointer",
                         border: isRetroActive
-                          ? "2px solid #0066cc"
-                          : "1px solid #0066cc",
+                          ? "2px solid #4895ef"
+                          : "1px solid #4895ef",
                         borderRadius: "6px",
-                        backgroundColor: isRetroActive ? "#0066cc" : "#e6f2ff",
-                        color: isRetroActive ? "#ffffff" : "#0066cc",
+                        backgroundColor: isRetroActive ? "#4895ef" : "#e8f2fe",
+                        color: isRetroActive ? "#ffffff" : "#4895ef",
                         fontWeight: isRetroActive ? "600" : "500",
                         boxShadow: isRetroActive
-                          ? "0 2px 4px rgba(0,102,204,0.3)"
+                          ? "0 2px 4px rgba(72,149,239,0.3)"
                           : "none",
                       }}
                     >
@@ -195,14 +207,14 @@ export default function StartScreen() {
                         fontSize: "14px",
                         cursor: "pointer",
                         border: isQAActive
-                          ? "2px solid #0066cc"
-                          : "1px solid #0066cc",
+                          ? "2px solid #4895ef"
+                          : "1px solid #4895ef",
                         borderRadius: "6px",
-                        backgroundColor: isQAActive ? "#0066cc" : "#e6f2ff",
-                        color: isQAActive ? "#ffffff" : "#0066cc",
+                        backgroundColor: isQAActive ? "#4895ef" : "#e8f2fe",
+                        color: isQAActive ? "#ffffff" : "#4895ef",
                         fontWeight: isQAActive ? "600" : "500",
                         boxShadow: isQAActive
-                          ? "0 2px 4px rgba(0,102,204,0.3)"
+                          ? "0 2px 4px rgba(72,149,239,0.3)"
                           : "none",
                       }}
                     >
@@ -239,7 +251,7 @@ export default function StartScreen() {
               type="checkbox"
               checked={showAuthorNames}
               onChange={(e) => setShowAuthorNames(e.target.checked)}
-              style={{ cursor: "pointer" }}
+              style={{ cursor: "pointer", accentColor: "#7209b7" }}
             />
             <span>Show author names</span>
           </label>

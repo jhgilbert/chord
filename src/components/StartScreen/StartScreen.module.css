@@ -9,8 +9,28 @@
   box-sizing: border-box;
 }
 
-.startScreenTitle {
-  margin: 0 0 4px;
+.logo {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 24px;
+}
+
+.logoColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.logoNote {
+  width: 32px;
+  height: 32px;
+}
+
+.logoLetter {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1;
 }
 
 .startScreenUser {
@@ -44,7 +64,7 @@
 
 .startScreenInput:focus {
   outline: none;
-  border-color: #0066cc;
+  border-color: #7209b7;
 }
 
 .startScreenEditor {
@@ -81,6 +101,7 @@
   cursor: pointer;
   width: 16px;
   height: 16px;
+  accent-color: #7209b7;
 }
 
 .startScreenActions {
@@ -93,9 +114,13 @@
   padding: 10px 24px;
   font-size: 15px;
   font-weight: 600;
-  background: #111;
+  background: #b5179e;
   color: #fff;
   border: none;
   border-radius: 6px;
   cursor: pointer;
+}
+
+.startScreenSubmit:hover {
+  background: #90127e;
 }
