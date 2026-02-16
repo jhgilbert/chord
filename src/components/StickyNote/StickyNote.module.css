@@ -206,9 +206,9 @@
 }
 
 .pollOption[data-voted="true"] {
-  background: #e6f7f1;
+  background: var(--color-green);
   border-color: var(--color-green);
-  color: #017a55;
+  color: #fff;
   font-weight: 600;
 }
 
@@ -229,8 +229,8 @@
 }
 
 .pollOption[data-voted="true"] .pollOptionCount {
-  background: #f0faf6;
-  color: var(--color-green);
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
 }
 
 .pollSubmitButton {
@@ -238,17 +238,17 @@
   padding: 8px 14px;
   font-size: 13px;
   font-weight: 600;
-  background: var(--color-green);
+  background: var(--color-grape);
   color: #fff;
-  border: 1px solid var(--color-green);
+  border: 1px solid var(--color-grape);
   border-radius: 4px;
   cursor: pointer;
   align-self: flex-start;
 }
 
 .pollSubmitButton:hover {
-  background: #017a55;
-  border-color: #017a55;
+  background: #430996;
+  border-color: #430996;
 }
 
 .closePollButton {
@@ -256,17 +256,17 @@
   padding: 8px 14px;
   font-size: 13px;
   font-weight: 600;
-  background: #374151;
+  background: var(--color-grape);
   color: #fff;
-  border: 1px solid #374151;
+  border: 1px solid var(--color-grape);
   border-radius: 4px;
   cursor: pointer;
   align-self: flex-start;
 }
 
 .closePollButton:hover {
-  background: #4b5563;
-  border-color: #4b5563;
+  background: #430996;
+  border-color: #430996;
 }
 
 .pollClosedMessage {
