@@ -1,4 +1,5 @@
 import type { Reaction } from "../../notes";
+import { sanitizeHtml } from "../../utils";
 import styles from "./ResponseItem.module.css";
 
 export default function ResponseItem({
@@ -48,7 +49,7 @@ export default function ResponseItem({
       </div>
       <div
         dangerouslySetInnerHTML={{
-          __html: response.content.replace(/&nbsp;/g, " "),
+          __html: sanitizeHtml(response.content.replace(/&nbsp;/g, " ")),
         }}
         className={styles.responseContent}
       />

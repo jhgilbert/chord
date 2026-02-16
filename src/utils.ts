@@ -1,3 +1,9 @@
+import DOMPurify from "dompurify";
+
+export function sanitizeHtml(html: string): string {
+  return DOMPurify.sanitize(html);
+}
+
 export function getRelativeTime(timestamp: number): string {
   const now = Date.now();
   const diff = now - timestamp;

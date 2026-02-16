@@ -57,7 +57,12 @@ service cloud.firestore {
           );
 
         // Updates come from multiple actors: author edits, others react/respond/vote, host groups/archives
-        allow update: if isSignedIn();
+        // Only the host or approved participants can update notes
+        allow update: if isSignedIn()
+          && (
+            get(/databases/$(database)/documents/collaborations/$(collabId)).data.startedBy == request.auth.uid
+            || get(/databases/$(database)/documents/collaborations/$(collabId)/participants/$(request.auth.uid)).data.status == "approved"
+          );
 
         // Only the note author can delete
         allow delete: if isSignedIn()

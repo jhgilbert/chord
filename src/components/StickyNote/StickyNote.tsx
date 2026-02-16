@@ -13,7 +13,7 @@ import {
   type Reaction,
 } from "../../notes";
 import { NOTE_TYPE_COLORS, QUILL_MODULES } from "../../constants";
-import { getRelativeTime } from "../../utils";
+import { getRelativeTime, sanitizeHtml } from "../../utils";
 import ResponseItem from "../ResponseItem/ResponseItem";
 import styles from "./StickyNote.module.css";
 
@@ -395,7 +395,7 @@ export default function StickyNote({
         <>
           <div
             dangerouslySetInnerHTML={{
-              __html: note.content.replace(/&nbsp;/g, " "),
+              __html: sanitizeHtml(note.content.replace(/&nbsp;/g, " ")),
             }}
             className={styles.stickyNoteContent}
           />
@@ -556,7 +556,7 @@ export default function StickyNote({
                         </div>
                         <div
                           dangerouslySetInnerHTML={{
-                            __html: version.content.replace(/&nbsp;/g, " "),
+                            __html: sanitizeHtml(version.content.replace(/&nbsp;/g, " ")),
                           }}
                           className={styles.historyContent}
                         />

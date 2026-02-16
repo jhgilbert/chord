@@ -9,6 +9,7 @@ import {
   getPromptForNote,
   stripHtml,
 } from "./summaryUtils";
+import { sanitizeHtml } from "../../utils";
 import styles from "./CollabRoute.module.css";
 
 interface CollabSummaryProps {
@@ -67,7 +68,7 @@ export default function CollabSummary({
         html += `</p>`;
       }
 
-      html += `<div>${note.content}</div>`;
+      html += `<div>${sanitizeHtml(note.content)}</div>`;
 
       if (note.reactions && Object.keys(note.reactions).length > 0) {
         const reactions = categorizeReactions(note.reactions, notes, hostId);
@@ -87,7 +88,7 @@ export default function CollabSummary({
             hostId,
             response.createdByName,
           );
-          html += `<li><strong>${responseAuthorName}</strong> (${timestamp}): <div style="display:inline">${response.content}</div></li>`;
+          html += `<li><strong>${responseAuthorName}</strong> (${timestamp}): <div style="display:inline">${sanitizeHtml(response.content)}</div></li>`;
         });
         html += `</ul>`;
       }
@@ -98,7 +99,7 @@ export default function CollabSummary({
           const timestamp = version.editedAt
             ? new Date(version.editedAt as number).toLocaleString()
             : "Unknown time";
-          html += `<li>${timestamp}: <div style="display:inline">${version.content}</div></li>`;
+          html += `<li>${timestamp}: <div style="display:inline">${sanitizeHtml(version.content)}</div></li>`;
         });
         html += `</ol>`;
       }
@@ -138,7 +139,7 @@ export default function CollabSummary({
             : "-";
           html += `<tr>`;
           html += `<td style="padding: 8px 12px; max-width: 300px; overflow: hidden; text-overflow: ellipsis;">${getPromptForNote(note, allPrompts)}</td>`;
-          html += `<td style="padding: 8px 12px;">${note.content}</td>`;
+          html += `<td style="padding: 8px 12px;">${sanitizeHtml(note.content)}</td>`;
           html += `<td style="padding: 8px 12px;">${authorName}</td>`;
           html += `<td style="padding: 8px 12px;">${assignee}</td>`;
           html += `<td style="padding: 8px 12px;">${dueDate}</td>`;
@@ -161,7 +162,7 @@ export default function CollabSummary({
           );
           html += `<tr>`;
           html += `<td style="padding: 8px 12px; max-width: 300px; overflow: hidden; text-overflow: ellipsis;">${getPromptForNote(note, allPrompts)}</td>`;
-          html += `<td style="padding: 8px 12px;">${note.content}</td>`;
+          html += `<td style="padding: 8px 12px;">${sanitizeHtml(note.content)}</td>`;
           html += `<td style="padding: 8px 12px;">${authorName}</td>`;
           html += `</tr>`;
         });

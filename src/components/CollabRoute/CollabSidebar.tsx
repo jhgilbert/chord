@@ -9,6 +9,7 @@ import {
   type Participant,
 } from "../../collaborations";
 import { QUILL_MODULES } from "../../constants";
+import { sanitizeHtml } from "../../utils";
 import type { Session } from "../../session";
 import NoteTypePanel from "../NoteTypePanel/NoteTypePanel";
 import styles from "./CollabRoute.module.css";
@@ -137,7 +138,7 @@ export default function CollabSidebar({
         ) : (
           <div
             dangerouslySetInnerHTML={{
-              __html: collab.prompt.replace(/&nbsp;/g, " "),
+              __html: sanitizeHtml(collab.prompt.replace(/&nbsp;/g, " ")),
             }}
             className={styles.promptContent}
           />
