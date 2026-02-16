@@ -113,11 +113,13 @@ export default function CollabSummary({
     const constructiveFeedback = notes.filter(
       (n) => n.type === "Constructive feedback",
     );
+    const polls = notes.filter((n) => n.type === "Poll" && n.pollOptions);
 
     if (
       actionItems.length > 0 ||
       requirements.length > 0 ||
-      constructiveFeedback.length > 0
+      constructiveFeedback.length > 0 ||
+      polls.length > 0
     ) {
       html += `<h2>Key Takeaways</h2>`;
 
@@ -173,6 +175,36 @@ export default function CollabSummary({
         renderSimpleTableHTML("Requirements", requirements);
       if (constructiveFeedback.length > 0)
         renderSimpleTableHTML("Constructive Feedback", constructiveFeedback);
+
+      if (polls.length > 0) {
+        html += `<h3>Polls</h3>`;
+        polls.forEach((note) => {
+          const authorName = getAuthorName(
+            note.createdBy,
+            hostId,
+            note.createdByName,
+            note.type,
+          );
+          const totalVoters = Object.keys(note.pollVotes || {}).length;
+          html += `<h4>${sanitizeHtml(note.content)}</h4>`;
+          html += `<p>Created by ${authorName} · ${totalVoters} vote${totalVoters !== 1 ? "s" : ""}${note.pollMultipleChoice ? " · Multiple choice" : ""}</p>`;
+          html += `<table border="1" style="width:100%; border-collapse:collapse; margin-bottom:20px;">`;
+          html += `<thead><tr><th style="padding: 8px 12px;">Option</th><th style="padding: 8px 12px;">Votes</th><th style="padding: 8px 12px;">%</th></tr></thead>`;
+          html += `<tbody>`;
+          note.pollOptions!.forEach((option, idx) => {
+            const voteCount = Object.values(note.pollVotes || {}).filter((v) =>
+              Array.isArray(v) ? v.includes(idx) : v === idx,
+            ).length;
+            const percentage = totalVoters > 0 ? Math.round((voteCount / totalVoters) * 100) : 0;
+            html += `<tr>`;
+            html += `<td style="padding: 8px 12px;">${option}</td>`;
+            html += `<td style="padding: 8px 12px;">${voteCount}</td>`;
+            html += `<td style="padding: 8px 12px;">${percentage}%</td>`;
+            html += `</tr>`;
+          });
+          html += `</tbody></table>`;
+        });
+      }
     }
 
     if (notes.length > 0) {
@@ -254,11 +286,13 @@ export default function CollabSummary({
     const constructiveFeedback = notes.filter(
       (n) => n.type === "Constructive feedback",
     );
+    const polls = notes.filter((n) => n.type === "Poll" && n.pollOptions);
 
     if (
       actionItems.length > 0 ||
       requirements.length > 0 ||
-      constructiveFeedback.length > 0
+      constructiveFeedback.length > 0 ||
+      polls.length > 0
     ) {
       md += `## Key Takeaways\n\n`;
 
@@ -314,6 +348,33 @@ export default function CollabSummary({
         renderSimpleTableMd("Requirements", requirements);
       if (constructiveFeedback.length > 0)
         renderSimpleTableMd("Constructive Feedback", constructiveFeedback);
+
+      if (polls.length > 0) {
+        md += `### Polls\n\n`;
+        polls.forEach((note) => {
+          const authorName = getAuthorName(
+            note.createdBy,
+            hostId,
+            note.createdByName,
+            note.type,
+          );
+          const noteText = stripHtml(note.content).replace(/\n/g, " ");
+          const totalVoters = Object.keys(note.pollVotes || {}).length;
+          md += `**${noteText}**\n\n`;
+          md += `Created by ${authorName} · ${totalVoters} vote${totalVoters !== 1 ? "s" : ""}${note.pollMultipleChoice ? " · Multiple choice" : ""}\n\n`;
+          md += `| Option | Votes | % |\n`;
+          md += `|--------|-------|---|\n`;
+          note.pollOptions!.forEach((option, idx) => {
+            const voteCount = Object.values(note.pollVotes || {}).filter((v) =>
+              Array.isArray(v) ? v.includes(idx) : v === idx,
+            ).length;
+            const percentage = totalVoters > 0 ? Math.round((voteCount / totalVoters) * 100) : 0;
+            const escapedOption = option.replace(/\|/g, "\\|").replace(/\n/g, " ");
+            md += `| ${escapedOption} | ${voteCount} | ${percentage}% |\n`;
+          });
+          md += `\n`;
+        });
+      }
     }
 
     if (notes.length > 0) {
