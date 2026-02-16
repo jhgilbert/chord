@@ -9,17 +9,6 @@
   box-sizing: border-box;
 }
 
-.loginTitle {
-  margin: 0 0 8px;
-  font-size: 32px;
-}
-
-.loginSubtitle {
-  margin: 0 0 32px;
-  opacity: 0.6;
-  font-size: 16px;
-}
-
 .loginForm {
   width: 100%;
   max-width: 400px;
@@ -57,7 +46,7 @@
 }
 
 .loginActions {
-  margin-top: 24px;
+  margin-top: 64px;
   display: flex;
   justify-content: center;
 }
@@ -66,7 +55,7 @@
   padding: 12px 32px;
   font-size: 16px;
   font-weight: 600;
-  background: #111;
+  background: var(--color-magenta);
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -74,7 +63,7 @@
 }
 
 .loginSubmit:hover:not(:disabled) {
-  background: #333;
+  background: #90127e;
 }
 
 .loginSubmit:disabled {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { isLoggedIn, signInWithGoogle } from "../../session";
+import Logo from "../Logo/Logo";
 import styles from "./LoginScreen.module.css";
 
 export default function LoginScreen() {
@@ -29,8 +30,7 @@ export default function LoginScreen() {
 
   return (
     <div className={styles.loginScreen}>
-      <h1 className={styles.loginTitle}>Welcome to chord</h1>
-      <p className={styles.loginSubtitle}>Sign in to start collaborating</p>
+      <Logo />
       <div className={styles.loginActions}>
         <button
           onClick={handleSignIn}

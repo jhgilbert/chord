@@ -9,30 +9,6 @@
   box-sizing: border-box;
 }
 
-.logo {
-  display: flex;
-  gap: 8px;
-  margin: 0 0 24px;
-}
-
-.logoColumn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.logoNote {
-  width: 32px;
-  height: 32px;
-}
-
-.logoLetter {
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  font-size: 1.2rem;
-  font-weight: 600;
-  line-height: 1;
-}
-
 .startScreenUser {
   margin: 0 0 24px;
   opacity: 0.6;
