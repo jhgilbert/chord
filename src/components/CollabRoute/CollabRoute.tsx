@@ -149,8 +149,13 @@ export default function CollabRoute() {
           <NotesLogo tick={collab.paused ? 0 : activityTick} />
           <span className={styles.collabHeaderTitle}>{collab.title}</span>
           <span className={styles.collabHeaderMeta}>
-            Hosted by <b>{collab.startedByName}</b>{" "}
-            {isHost && <span className={styles.badgeYou}>YOU</span>}
+            {isHost ? (
+              "You are the host."
+            ) : (
+              <>
+                Hosted by <b>{collab.startedByName}</b>
+              </>
+            )}
           </span>
         </div>
         <div className={styles.collabHeaderActions}>
