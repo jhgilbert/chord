@@ -13,7 +13,7 @@ import {
   type Reaction,
 } from "../../notes";
 import { NOTE_TYPE_COLORS, QUILL_MODULES } from "../../constants";
-import { hexToRgba, getRelativeTime } from "../../utils";
+import { getRelativeTime } from "../../utils";
 import ResponseItem from "../ResponseItem/ResponseItem";
 import styles from "./StickyNote.module.css";
 
@@ -198,11 +198,11 @@ export default function StickyNote({
           ? {
               marginLeft: `${groupDepth * 20}px`,
               borderLeftColor: color,
-              backgroundColor: hovered ? hexToRgba(color, 0.08) : "#ffffff",
+              backgroundColor: hovered ? `color-mix(in srgb, ${color} 8%, transparent)` : "#ffffff",
             }
           : {
               borderLeftColor: color,
-              backgroundColor: hovered ? hexToRgba(color, 0.08) : "#ffffff",
+              backgroundColor: hovered ? `color-mix(in srgb, ${color} 8%, transparent)` : "#ffffff",
             }
       }
     >

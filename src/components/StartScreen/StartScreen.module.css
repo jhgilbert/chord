@@ -64,7 +64,7 @@
 
 .startScreenInput:focus {
   outline: none;
-  border-color: #7209b7;
+  border-color: var(--color-purple);
 }
 
 .startScreenEditor {
@@ -101,7 +101,7 @@
   cursor: pointer;
   width: 16px;
   height: 16px;
-  accent-color: #7209b7;
+  accent-color: var(--color-purple);
 }
 
 .startScreenActions {
@@ -114,7 +114,7 @@
   padding: 10px 24px;
   font-size: 15px;
   font-weight: 600;
-  background: #b5179e;
+  background: var(--color-magenta);
   color: #fff;
   border: none;
   border-radius: 6px;

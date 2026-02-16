@@ -22,14 +22,14 @@ export const NOTE_TYPE_EXAMPLES: Partial<Record<NoteType, string>> = {
 };
 
 export const NOTE_TYPE_COLORS: Record<NoteType, string> = {
-  Question: "#f72585",
-  Statement: "#b5179e",
-  Recommendation: "#7209b7",
-  Requirement: "#560bad",
-  "Action item": "#3f37c9",
-  "Positive feedback": "#560bad",
-  "Constructive feedback": "#b5179e",
-  Poll: "#560bad",
+  Question: "var(--color-raspberry)",
+  Statement: "var(--color-magenta)",
+  Recommendation: "var(--color-purple)",
+  Requirement: "var(--color-grape)",
+  "Action item": "var(--color-blue)",
+  "Positive feedback": "var(--color-grape)",
+  "Constructive feedback": "var(--color-magenta)",
+  Poll: "var(--color-grape)",
   "Host note": "#6b7280",
 };
 

@@ -11,6 +11,19 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* Palette */
+  /* Source: https://coolors.co/palette/f72585-b5179e-7209b7-560bad-480ca8-3a0ca3-3f37c9-4361ee-4895ef-4cc9f0 */
+  --color-raspberry: #f72585;
+  --color-magenta: #b5179e;
+  --color-purple: #7209b7;
+  --color-grape: #560bad;
+  --color-indigo: #480ca8;
+  --color-deep-indigo: #3a0ca3;
+  --color-blue: #3f37c9;
+  --color-royal-blue: #4361ee;
+  --color-sky-blue: #4895ef;
+  --color-cyan: #4cc9f0;
 }
 
 a {

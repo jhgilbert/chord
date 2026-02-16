@@ -161,7 +161,7 @@
 
 .actionButton[data-active="true"] {
   background: #019d6d;
-  color: black;
+  color: #fff;
   border-color: #019d6d;
 }
 
@@ -206,9 +206,9 @@
 }
 
 .pollOption[data-voted="true"] {
-  background: #ccfbf1;
-  border-color: #14b8a6;
-  color: #0f766e;
+  background: #e6f7f1;
+  border-color: #019d6d;
+  color: #017a55;
   font-weight: 600;
 }
 
@@ -229,8 +229,8 @@
 }
 
 .pollOption[data-voted="true"] .pollOptionCount {
-  background: #f0fdfa;
-  color: #14b8a6;
+  background: #f0faf6;
+  color: #019d6d;
 }
 
 .pollSubmitButton {
@@ -238,17 +238,17 @@
   padding: 8px 14px;
   font-size: 13px;
   font-weight: 600;
-  background: #3b82f6;
+  background: #019d6d;
   color: #fff;
-  border: 1px solid #3b82f6;
+  border: 1px solid #019d6d;
   border-radius: 4px;
   cursor: pointer;
   align-self: flex-start;
 }
 
 .pollSubmitButton:hover {
-  background: #2563eb;
-  border-color: #2563eb;
+  background: #017a55;
+  border-color: #017a55;
 }
 
 .closePollButton {

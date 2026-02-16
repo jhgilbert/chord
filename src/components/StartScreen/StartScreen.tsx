@@ -82,7 +82,7 @@ export default function StartScreen() {
     <div className={styles.startScreen}>
       <h1 className={styles.logo}>
         {["C", "H", "O", "R", "D"].map((letter, i) => {
-          const colors = ["#b5179e", "#7209b7", "#3f37c9", "#4895ef", "#4cc9f0"];
+          const colors = ["var(--color-magenta)", "var(--color-purple)", "var(--color-blue)", "var(--color-sky-blue)", "var(--color-cyan)"];
           return (
             <span key={letter} className={styles.logoColumn} style={{ color: colors[i] }}>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className={styles.logoNote}>
@@ -98,7 +98,7 @@ export default function StartScreen() {
       </p>
       <form onSubmit={handleStart} className={styles.startScreenForm}>
         <label className={styles.startScreenLabel}>
-          Title <span style={{ color: "#b5179e" }}>*</span>
+          Title <span style={{ color: "var(--color-magenta)" }}>*</span>
         </label>
         <input
           type="text"
@@ -108,7 +108,7 @@ export default function StartScreen() {
           placeholder="Enter a title for this collaboration"
         />
         <label className={styles.startScreenLabel}>
-          Collaboration prompt <span style={{ color: "#b5179e" }}>*</span>
+          Collaboration prompt <span style={{ color: "var(--color-magenta)" }}>*</span>
         </label>
         <ReactQuill
           theme="snow"
@@ -163,13 +163,13 @@ export default function StartScreen() {
                         fontSize: "14px",
                         cursor: "pointer",
                         border: isDiscussionActive
-                          ? "2px solid #4895ef"
-                          : "1px solid #4895ef",
+                          ? "2px solid var(--color-sky-blue)"
+                          : "1px solid var(--color-sky-blue)",
                         borderRadius: "6px",
                         backgroundColor: isDiscussionActive
-                          ? "#4895ef"
+                          ? "var(--color-sky-blue)"
                           : "#e8f2fe",
-                        color: isDiscussionActive ? "#ffffff" : "#4895ef",
+                        color: isDiscussionActive ? "#ffffff" : "var(--color-sky-blue)",
                         fontWeight: isDiscussionActive ? "600" : "500",
                         boxShadow: isDiscussionActive
                           ? "0 2px 4px rgba(72,149,239,0.3)"
@@ -186,11 +186,11 @@ export default function StartScreen() {
                         fontSize: "14px",
                         cursor: "pointer",
                         border: isRetroActive
-                          ? "2px solid #4895ef"
-                          : "1px solid #4895ef",
+                          ? "2px solid var(--color-sky-blue)"
+                          : "1px solid var(--color-sky-blue)",
                         borderRadius: "6px",
-                        backgroundColor: isRetroActive ? "#4895ef" : "#e8f2fe",
-                        color: isRetroActive ? "#ffffff" : "#4895ef",
+                        backgroundColor: isRetroActive ? "var(--color-sky-blue)" : "#e8f2fe",
+                        color: isRetroActive ? "#ffffff" : "var(--color-sky-blue)",
                         fontWeight: isRetroActive ? "600" : "500",
                         boxShadow: isRetroActive
                           ? "0 2px 4px rgba(72,149,239,0.3)"
@@ -207,11 +207,11 @@ export default function StartScreen() {
                         fontSize: "14px",
                         cursor: "pointer",
                         border: isQAActive
-                          ? "2px solid #4895ef"
-                          : "1px solid #4895ef",
+                          ? "2px solid var(--color-sky-blue)"
+                          : "1px solid var(--color-sky-blue)",
                         borderRadius: "6px",
-                        backgroundColor: isQAActive ? "#4895ef" : "#e8f2fe",
-                        color: isQAActive ? "#ffffff" : "#4895ef",
+                        backgroundColor: isQAActive ? "var(--color-sky-blue)" : "#e8f2fe",
+                        color: isQAActive ? "#ffffff" : "var(--color-sky-blue)",
                         fontWeight: isQAActive ? "600" : "500",
                         boxShadow: isQAActive
                           ? "0 2px 4px rgba(72,149,239,0.3)"
