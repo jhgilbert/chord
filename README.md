@@ -77,6 +77,43 @@ Nobody wants to sift through a collaboration app for information later.
 
 The collaboration report can be copied as Markdown or Google-Doc-friendly HTML, so the project can progress however it needs to from here.
 
+## Security measures
+
+### Authentication
+
+Chord does not allow anonymous access to the app. Only Google sign-in is supported, through Google OAuth.
+
+### Collaboration access
+
+The host of a collaboration must approve each participant's access.
+
+### Email domain restrictions
+
+You can restrict sign-in to specific email domains using two complementary mechanisms:
+
+**Client-side:** Set the `VITE_ALLOWED_DOMAINS` environment variable to a comma-separated list of domains (e.g. `example.com,other.org`). If a user signs in with a Google account outside these domains, they are immediately signed out and shown an error. Leave this variable empty to allow any Google account.
+
+**Firestore rules:** For server-side enforcement, uncomment and edit the `email.matches` line in the `isSignedIn()` function in `firestore.rules`:
+
+```
+function isSignedIn() {
+  return request.auth != null
+    && request.auth.token.email.matches('.*@(example[.]com|other[.]org)');
+}
+```
+
+For a production deployment, you should configure both.
+
+### Firestore security rules
+
+The rules in `firestore.rules` enforce access control at the database level.
+
+When deploying, run `firebase deploy --only firestore:rules` to push these rules to your project.
+
+### Input sanitization
+
+All user-generated HTML content (notes, responses, prompts, edit history) is sanitized with DOMPurify before rendering to prevent XSS attacks.
+
 ## Setup
 
 ### Install the Firebase Emulator
