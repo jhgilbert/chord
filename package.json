@@ -8,7 +8,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy-firestore-rules": "firebase deploy --only firestore:rules",
+    "deploy-hosting": "firebase deploy --only hosting",
+    "deploy": "npm run deploy-firestore-rules && npm run build && npm run deploy-hosting"
   },
   "dependencies": {
     "dompurify": "^3.3.1",

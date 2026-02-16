@@ -1,18 +1,19 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { getSession } from "../../session";
 import { getUserCollaborations, type Collaboration } from "../../collaborations";
 import styles from "./CollabsListScreen.module.css";
 
 export default function CollabsListScreen() {
   const navigate = useNavigate();
+  const location = useLocation();
   const session = getSession();
   const [collabs, setCollabs] = useState<Collaboration[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!session) {
-      navigate("/login", { replace: true });
+      navigate("/login", { replace: true, state: { from: location.pathname } });
       return;
     }
 

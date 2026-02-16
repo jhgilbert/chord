@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
+import {
+  Link,
+  Navigate,
+  useLocation,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import { getSession } from "../../session";
 import {
   createNote,
@@ -31,13 +37,14 @@ import styles from "./CollabRoute.module.css";
 export default function CollabRoute() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const session = getSession();
 
   useEffect(() => {
     if (!session) {
-      navigate("/login", { replace: true });
+      navigate("/login", { replace: true, state: { from: location.pathname } });
     }
-  }, [session, navigate]);
+  }, [session, navigate, location.pathname]);
 
   const [collab, setCollab] = useState<Collaboration | null | undefined>(
     undefined,

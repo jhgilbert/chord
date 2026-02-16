@@ -91,7 +91,10 @@ Chord does not allow anonymous access to the app. Only Google sign-in is support
 
 ### Collaboration access
 
-The host of a collaboration must approve each participant's access.
+The host of a collaboration
+
+- must approve each participant's access
+- can revoke a participants' access at any time
 
 ### Email domain restrictions
 

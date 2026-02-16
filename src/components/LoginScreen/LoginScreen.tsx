@@ -1,23 +1,25 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { isLoggedIn, signInWithGoogle } from "../../session";
 import styles from "./LoginScreen.module.css";
 
 export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo = (location.state as { from?: string })?.from || "/";
 
   useEffect(() => {
     if (isLoggedIn()) {
-      navigate("/", { replace: true });
+      navigate(redirectTo, { replace: true });
     }
-  }, [navigate]);
+  }, [navigate, redirectTo]);
 
   const handleSignIn = async () => {
     setIsLoading(true);
     try {
       await signInWithGoogle();
-      navigate("/", { replace: true });
+      navigate(redirectTo, { replace: true });
     } catch (error) {
       console.error("Sign-in failed:", error);
       alert("Sign-in failed. Please try again.");

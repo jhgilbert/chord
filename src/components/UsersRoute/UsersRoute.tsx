@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { getSession } from "../../session";
 import {
   revokeParticipant,
@@ -14,14 +14,15 @@ import styles from "./UsersRoute.module.css";
 export default function UsersRoute() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const session = getSession();
 
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!session) {
-      navigate("/login", { replace: true });
+      navigate("/login", { replace: true, state: { from: location.pathname } });
     }
-  }, [session, navigate]);
+  }, [session, navigate, location.pathname]);
 
   const [collab, setCollab] = useState<Collaboration | null | undefined>(
     undefined,

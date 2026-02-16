@@ -1,7 +1,7 @@
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getSession } from "../../session";
 import { startCollaboration } from "../../collaborations";
 import { type NoteType } from "../../notes";
@@ -10,14 +10,15 @@ import styles from "./StartScreen.module.css";
 
 export default function StartScreen() {
   const navigate = useNavigate();
+  const location = useLocation();
   const session = getSession();
 
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!session) {
-      navigate("/login", { replace: true });
+      navigate("/login", { replace: true, state: { from: location.pathname } });
     }
-  }, [session, navigate]);
+  }, [session, navigate, location.pathname]);
 
   const [title, setTitle] = useState("");
   const [prompt, setPrompt] = useState("");
