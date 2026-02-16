@@ -84,27 +84,32 @@ export default function CollabSidebar({
               </button>
               <button
                 onClick={async () => {
-                  const timestamp =
-                    collab.promptUpdatedAt ||
-                    collab.startedAt ||
-                    Date.now();
-                  await updatePrompt(
-                    collab.id,
-                    promptValue,
-                    collab.prompt,
-                    timestamp,
-                    collab.promptHistory,
-                  );
-                  const message = `<p>The prompt was updated to:</p>${promptValue}`;
-                  await createNote(
-                    collab.id,
-                    "Host note",
-                    message,
-                    session.userId,
-                    session.displayName,
-                  );
-                  setEditingPrompt(false);
-                  setPromptValue("");
+                  try {
+                    const timestamp =
+                      collab.promptUpdatedAt ||
+                      collab.startedAt ||
+                      Date.now();
+                    await updatePrompt(
+                      collab.id,
+                      promptValue,
+                      collab.prompt,
+                      timestamp,
+                      collab.promptHistory,
+                    );
+                    const message = `<p>The prompt was updated to:</p>${promptValue}`;
+                    await createNote(
+                      collab.id,
+                      "Host note",
+                      message,
+                      session.userId,
+                      session.displayName,
+                    );
+                    setEditingPrompt(false);
+                    setPromptValue("");
+                  } catch (error) {
+                    console.error("Failed to update prompt:", error);
+                    alert("Failed to update prompt. Please try again.");
+                  }
                 }}
                 className={styles.promptSave}
               >

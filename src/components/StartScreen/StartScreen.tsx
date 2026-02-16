@@ -55,16 +55,21 @@ export default function StartScreen() {
       ...allowedNoteTypes,
       "Host note" as NoteType,
     ];
-    await startCollaboration(
-      id,
-      session.userId,
-      session.displayName,
-      title,
-      prompt,
-      noteTypesWithHostNote,
-      showAuthorNames,
-    );
-    navigate(`/collabs/${id}`, { replace: true });
+    try {
+      await startCollaboration(
+        id,
+        session.userId,
+        session.displayName,
+        title,
+        prompt,
+        noteTypesWithHostNote,
+        showAuthorNames,
+      );
+      navigate(`/collabs/${id}`, { replace: true });
+    } catch (error) {
+      console.error("Failed to start collaboration:", error);
+      alert("Failed to start collaboration. Please try again.");
+    }
   };
 
   const toggleNoteType = (type: NoteType) => {

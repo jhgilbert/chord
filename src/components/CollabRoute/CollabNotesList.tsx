@@ -282,7 +282,14 @@ export default function CollabNotesList({
                 n.createdBy !== session.userId
               }
               paused={!!collab.paused}
-              onDelete={() => removeNote(collab.id, n.id)}
+              onDelete={async () => {
+                try {
+                  await removeNote(collab.id, n.id);
+                } catch (error) {
+                  console.error("Failed to delete note:", error);
+                  alert("Failed to delete note. Please try again.");
+                }
+              }}
               canDrag={isHost && !isGrouped}
               onDragStart={() => setDraggedNoteId(n.id)}
               onDragOver={(e) => e.preventDefault()}

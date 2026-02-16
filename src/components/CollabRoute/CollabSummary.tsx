@@ -338,7 +338,14 @@ export default function CollabSummary({
         </p>
         {isHost && (
           <button
-            onClick={() => resumeCollaboration(collab.id)}
+            onClick={async () => {
+              try {
+                await resumeCollaboration(collab.id);
+              } catch (error) {
+                console.error("Failed to reopen collaboration:", error);
+                alert("Failed to reopen collaboration. Please try again.");
+              }
+            }}
             className={styles.resumeButton}
           >
             Reopen collaboration

@@ -89,7 +89,7 @@ export default function StickyNote({
       note.id,
       sessionId,
       myReaction === r ? null : r,
-    );
+    ).catch(console.error);
   };
 
   const getReactionOpacity = (_r: Reaction) => {
@@ -254,7 +254,7 @@ export default function StickyNote({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                toggleArchive(collaborationId, note.id, !!note.archived);
+                toggleArchive(collaborationId, note.id, !!note.archived).catch(console.error);
               }}
               className={styles.actionButton}
               data-active={false}
@@ -475,13 +475,18 @@ export default function StickyNote({
                                 ? []
                                 : 0
                               : pendingPollSelection;
-                          await votePoll(
-                            collaborationId,
-                            note.id,
-                            sessionId,
-                            voteToSubmit,
-                          );
-                          setPendingPollSelection(null);
+                          try {
+                            await votePoll(
+                              collaborationId,
+                              note.id,
+                              sessionId,
+                              voteToSubmit,
+                            );
+                            setPendingPollSelection(null);
+                          } catch (error) {
+                            console.error("Failed to submit vote:", error);
+                            alert("Failed to submit vote. Please try again.");
+                          }
                         }}
                         className={styles.pollSubmitButton}
                       >
@@ -492,7 +497,12 @@ export default function StickyNote({
                     <button
                       onClick={async (e) => {
                         e.stopPropagation();
-                        await closePoll(collaborationId, note.id);
+                        try {
+                          await closePoll(collaborationId, note.id);
+                        } catch (error) {
+                          console.error("Failed to close poll:", error);
+                          alert("Failed to close poll. Please try again.");
+                        }
                       }}
                       className={styles.closePollButton}
                     >
@@ -589,7 +599,7 @@ export default function StickyNote({
                         sessionId,
                         myResponseReaction === r ? null : r,
                         note.responses || [],
-                      );
+                      ).catch(console.error);
                     }
                   };
 
