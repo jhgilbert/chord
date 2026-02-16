@@ -39,7 +39,9 @@ export default function CollabRoute() {
   );
   const [notes, setNotes] = useState<Note[]>([]);
   const [showNoteTypeSettings, setShowNoteTypeSettings] = useState(false);
+  const [showHostActions, setShowHostActions] = useState(false);
   const noteTypeSettingsRef = useRef<HTMLDivElement>(null);
+  const hostActionsRef = useRef<HTMLDivElement>(null);
 
   const closeNoteTypeSettings = useCallback(
     () => setShowNoteTypeSettings(false),
@@ -50,6 +52,9 @@ export default function CollabRoute() {
     closeNoteTypeSettings,
     showNoteTypeSettings,
   );
+
+  const closeHostActions = useCallback(() => setShowHostActions(false), []);
+  useClickOutside(hostActionsRef, closeHostActions, showHostActions);
 
   useEffect(() => {
     if (!id) return;
@@ -195,42 +200,66 @@ export default function CollabRoute() {
                   </div>
                 )}
               </div>
-              <button
-                onClick={() => navigate(`/collabs/${collab.id}/stats`)}
-                className={styles.buttonStats}
+              <div
+                className={styles.noteTypeSettingsContainer}
+                ref={hostActionsRef}
               >
-                Stats
-              </button>
-              <button
-                onClick={async () => {
-                  try {
-                    const willShow = collab.showAuthorNames === false;
-                    await updateShowAuthorNames(collab.id, willShow);
-                    const message = willShow
-                      ? "<p>The host set author names to 'displayed'.</p>"
-                      : "<p>The host set author names to 'hidden'.</p>";
-                    await createNote(
-                      collab.id,
-                      "Host note",
-                      message,
-                      session.userId,
-                      session.displayName,
-                    );
-                  } catch (error) {
-                    console.error(
-                      "Failed to update author names setting:",
-                      error,
-                    );
-                    alert("Failed to update setting. Please try again.");
-                  }
-                }}
-                className={styles.buttonToggle}
-                data-active={collab.showAuthorNames !== false}
-              >
-                {collab.showAuthorNames !== false
-                  ? "Hide authors"
-                  : "Show authors"}
-              </button>
+                <button
+                  onClick={() => setShowHostActions(!showHostActions)}
+                  className={styles.buttonNoteTypes}
+                >
+                  Host actions {showHostActions ? "▲" : "▼"}
+                </button>
+                {showHostActions && (
+                  <div className={styles.noteTypeSettingsDropdown}>
+                    <button
+                      onClick={async () => {
+                        try {
+                          const willShow = collab.showAuthorNames === false;
+                          await updateShowAuthorNames(collab.id, willShow);
+                          const message = willShow
+                            ? "<p>The host set author names to 'displayed'.</p>"
+                            : "<p>The host set author names to 'hidden'.</p>";
+                          await createNote(
+                            collab.id,
+                            "Host note",
+                            message,
+                            session.userId,
+                            session.displayName,
+                          );
+                        } catch (error) {
+                          console.error(
+                            "Failed to update author names setting:",
+                            error,
+                          );
+                          alert("Failed to update setting. Please try again.");
+                        }
+                      }}
+                      className={styles.noteTypeSettingsOption}
+                    >
+                      {collab.showAuthorNames !== false
+                        ? "Hide author names"
+                        : "Show author names"}
+                    </button>
+                    <button
+                      onClick={async () => {
+                        try {
+                          await endCollaboration(collab.id);
+                        } catch (error) {
+                          console.error("Failed to end collaboration:", error);
+                          alert(
+                            "Failed to end collaboration. Please try again.",
+                          );
+                        }
+                      }}
+                      className={styles.noteTypeSettingsOption}
+                      style={{ color: "#dc2626" }}
+                    >
+                      End collaboration
+                    </button>
+                  </div>
+                )}
+              </div>
               <button
                 onClick={async () => {
                   try {
@@ -258,19 +287,6 @@ export default function CollabRoute() {
                 data-paused={collab.paused}
               >
                 {collab.paused ? "Resume" : "Pause"}
-              </button>
-              <button
-                onClick={async () => {
-                  try {
-                    await endCollaboration(collab.id);
-                  } catch (error) {
-                    console.error("Failed to end collaboration:", error);
-                    alert("Failed to end collaboration. Please try again.");
-                  }
-                }}
-                className={styles.buttonEnd}
-              >
-                End collaboration
               </button>
             </>
           )}

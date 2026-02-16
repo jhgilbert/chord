@@ -156,7 +156,7 @@ export default function CollabsListScreen() {
                     <td style={{ fontSize: "13px", color: "#666" }}>
                       {createdDate}
                     </td>
-                    <td>
+                    <td style={{ display: "flex", gap: "6px" }}>
                       <button
                         onClick={() => navigate(`/collabs/${collab.id}`)}
                         style={{
@@ -171,6 +171,21 @@ export default function CollabsListScreen() {
                         }}
                       >
                         View
+                      </button>
+                      <button
+                        onClick={() => navigate(`/collabs/${collab.id}/stats`)}
+                        style={{
+                          padding: "6px 12px",
+                          fontSize: "13px",
+                          background: "#374151",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          fontWeight: 600,
+                        }}
+                      >
+                        Stats
                       </button>
                     </td>
                   </tr>

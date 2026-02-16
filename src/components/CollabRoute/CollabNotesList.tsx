@@ -41,6 +41,7 @@ export default function CollabNotesList({
   const [respondingToNoteId, setRespondingToNoteId] = useState<string | null>(
     null,
   );
+  const [expandAllResponses, setExpandAllResponses] = useState(false);
   const noteTypeFilterRef = useRef<HTMLDivElement>(null);
 
   const closeNoteTypeFilter = useCallback(
@@ -236,6 +237,15 @@ export default function CollabNotesList({
             </div>
           )}
         </div>
+        {isHost && (
+          <button
+            onClick={() => setExpandAllResponses((prev) => !prev)}
+            className={styles.filterButton}
+            data-active={expandAllResponses}
+          >
+            {expandAllResponses ? "Collapse responses" : "Expand responses"}
+          </button>
+        )}
         <div className={styles.sortOrderContainer}>
           <select
             value={filter === "Inbox" ? "asc" : sortOrder}
@@ -315,6 +325,7 @@ export default function CollabNotesList({
               hideYouBadge={filter === "Mine"}
               isHost={isHost}
               showAuthorNames={collab.showAuthorNames}
+              forceExpandResponses={expandAllResponses}
             />
             {isParent && !isGrouped && (
               <div className={styles.groupIndicator}>

@@ -40,6 +40,7 @@ export default function StickyNote({
   hideYouBadge,
   isHost,
   showAuthorNames,
+  forceExpandResponses,
 }: {
   note: Note;
   collaborationId: string;
@@ -63,12 +64,14 @@ export default function StickyNote({
   onRespondingChange?: (isResponding: boolean) => void;
   hideYouBadge?: boolean;
   isHost?: boolean;
+  forceExpandResponses?: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState("");
   const [showHistory, setShowHistory] = useState(false);
   const [showResponses, setShowResponses] = useState(false);
+  const responsesVisible = forceExpandResponses || showResponses;
   const [isResponding, setIsResponding] = useState(false);
   const [responseContent, setResponseContent] = useState("");
   const [pendingPollSelection, setPendingPollSelection] = useState<
@@ -568,12 +571,12 @@ export default function StickyNote({
                 }}
                 className={styles.responsesToggle}
               >
-                {showResponses ? "Hide" : "Show"} {note.responses.length}{" "}
+                {responsesVisible ? "Hide" : "Show"} {note.responses.length}{" "}
                 response
                 {note.responses.length !== 1 ? "s" : ""}
               </button>
             )}
-            {showResponses && note.responses && (
+            {responsesVisible && note.responses && (
               <div className={styles.responsesList}>
                 {note.responses.map((response, idx) => {
                   const timestamp = response.createdAt
