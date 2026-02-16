@@ -189,17 +189,24 @@ export default function CollabReport({
           html += `<h4>${sanitizeHtml(note.content)}</h4>`;
           html += `<p>Created by ${authorName} · ${totalVoters} vote${totalVoters !== 1 ? "s" : ""}${note.pollMultipleChoice ? " · Multiple choice" : ""}</p>`;
           html += `<table border="1" style="width:100%; border-collapse:collapse; margin-bottom:20px;">`;
-          html += `<thead><tr><th style="padding: 8px 12px;">Option</th><th style="padding: 8px 12px;">Votes</th><th style="padding: 8px 12px;">%</th></tr></thead>`;
+          html += `<thead><tr><th style="padding: 8px 12px;">Option</th><th style="padding: 8px 12px;">Votes</th><th style="padding: 8px 12px;">%</th><th style="padding: 8px 12px;">Participants</th></tr></thead>`;
           html += `<tbody>`;
           note.pollOptions!.forEach((option, idx) => {
-            const voteCount = Object.values(note.pollVotes || {}).filter((v) =>
+            const voters = Object.entries(note.pollVotes || {}).filter(([, v]) =>
               Array.isArray(v) ? v.includes(idx) : v === idx,
-            ).length;
+            );
+            const voteCount = voters.length;
             const percentage = totalVoters > 0 ? Math.round((voteCount / totalVoters) * 100) : 0;
+            const voterNames = voters.map(([sessionId]) => {
+              const noteByUser = notes.find((n) => n.createdBy === sessionId);
+              if (!noteByUser) return sessionId;
+              return sessionId === hostId ? `${noteByUser.createdByName} (host)` : noteByUser.createdByName;
+            });
             html += `<tr>`;
             html += `<td style="padding: 8px 12px;">${option}</td>`;
             html += `<td style="padding: 8px 12px;">${voteCount}</td>`;
             html += `<td style="padding: 8px 12px;">${percentage}%</td>`;
+            html += `<td style="padding: 8px 12px;">${voterNames.join(", ")}</td>`;
             html += `</tr>`;
           });
           html += `</tbody></table>`;
@@ -362,15 +369,21 @@ export default function CollabReport({
           const totalVoters = Object.keys(note.pollVotes || {}).length;
           md += `**${noteText}**\n\n`;
           md += `Created by ${authorName} · ${totalVoters} vote${totalVoters !== 1 ? "s" : ""}${note.pollMultipleChoice ? " · Multiple choice" : ""}\n\n`;
-          md += `| Option | Votes | % |\n`;
-          md += `|--------|-------|---|\n`;
+          md += `| Option | Votes | % | Participants |\n`;
+          md += `|--------|-------|---|---------------|\n`;
           note.pollOptions!.forEach((option, idx) => {
-            const voteCount = Object.values(note.pollVotes || {}).filter((v) =>
+            const voters = Object.entries(note.pollVotes || {}).filter(([, v]) =>
               Array.isArray(v) ? v.includes(idx) : v === idx,
-            ).length;
+            );
+            const voteCount = voters.length;
             const percentage = totalVoters > 0 ? Math.round((voteCount / totalVoters) * 100) : 0;
             const escapedOption = option.replace(/\|/g, "\\|").replace(/\n/g, " ");
-            md += `| ${escapedOption} | ${voteCount} | ${percentage}% |\n`;
+            const voterNames = voters.map(([sessionId]) => {
+              const noteByUser = notes.find((n) => n.createdBy === sessionId);
+              if (!noteByUser) return sessionId;
+              return sessionId === hostId ? `${noteByUser.createdByName} (host)` : noteByUser.createdByName;
+            });
+            md += `| ${escapedOption} | ${voteCount} | ${percentage}% | ${voterNames.join(", ")} |\n`;
           });
           md += `\n`;
         });
