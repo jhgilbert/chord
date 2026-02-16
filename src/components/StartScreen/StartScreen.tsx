@@ -236,7 +236,7 @@ export default function StartScreen() {
               onChange={(e) => setShowAuthorNames(e.target.checked)}
               style={{ cursor: "pointer" }}
             />
-            <span>Show author names while collaboration is active</span>
+            <span>Show author names</span>
           </label>
         </div>
         <div className={styles.startScreenActions}>
