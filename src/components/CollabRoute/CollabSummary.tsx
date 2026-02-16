@@ -123,7 +123,7 @@ export default function CollabSummary({
       if (actionItems.length > 0) {
         html += `<h3>Action Items</h3>`;
         html += `<table border="1" style="width:100%; border-collapse:collapse; margin-bottom:20px;">`;
-        html += `<thead><tr><th style="padding: 8px 12px;">Prompt</th><th style="padding: 8px 12px;">Note</th><th style="padding: 8px 12px;">Author</th><th style="padding: 8px 12px;">Assignee</th><th style="padding: 8px 12px;">Due Date</th></tr></thead>`;
+        html += `<thead><tr><th style="padding: 8px 12px; max-width: 300px;">Prompt</th><th style="padding: 8px 12px;">Note</th><th style="padding: 8px 12px;">Author</th><th style="padding: 8px 12px;">Assignee</th><th style="padding: 8px 12px;">Due Date</th></tr></thead>`;
         html += `<tbody>`;
         actionItems.forEach((note) => {
           const authorName = getAuthorName(
@@ -137,7 +137,7 @@ export default function CollabSummary({
             ? new Date(note.dueDate).toLocaleDateString()
             : "-";
           html += `<tr>`;
-          html += `<td style="padding: 8px 12px;">${getPromptForNote(note, allPrompts)}</td>`;
+          html += `<td style="padding: 8px 12px; max-width: 300px; overflow: hidden; text-overflow: ellipsis;">${getPromptForNote(note, allPrompts)}</td>`;
           html += `<td style="padding: 8px 12px;">${note.content}</td>`;
           html += `<td style="padding: 8px 12px;">${authorName}</td>`;
           html += `<td style="padding: 8px 12px;">${assignee}</td>`;
@@ -150,7 +150,7 @@ export default function CollabSummary({
       const renderSimpleTableHTML = (title: string, items: Note[]) => {
         html += `<h3>${title}</h3>`;
         html += `<table border="1" style="width:100%; border-collapse:collapse; margin-bottom:20px;">`;
-        html += `<thead><tr><th style="padding: 8px 12px;">Prompt</th><th style="padding: 8px 12px;">Note</th><th style="padding: 8px 12px;">Author</th></tr></thead>`;
+        html += `<thead><tr><th style="padding: 8px 12px; max-width: 300px;">Prompt</th><th style="padding: 8px 12px;">Note</th><th style="padding: 8px 12px;">Author</th></tr></thead>`;
         html += `<tbody>`;
         items.forEach((note) => {
           const authorName = getAuthorName(
@@ -160,7 +160,7 @@ export default function CollabSummary({
             note.type,
           );
           html += `<tr>`;
-          html += `<td style="padding: 8px 12px;">${getPromptForNote(note, allPrompts)}</td>`;
+          html += `<td style="padding: 8px 12px; max-width: 300px; overflow: hidden; text-overflow: ellipsis;">${getPromptForNote(note, allPrompts)}</td>`;
           html += `<td style="padding: 8px 12px;">${note.content}</td>`;
           html += `<td style="padding: 8px 12px;">${authorName}</td>`;
           html += `</tr>`;
@@ -326,7 +326,7 @@ export default function CollabSummary({
   return (
     <div className={styles.stoppedScreen}>
       <div className={styles.stoppedHeader}>
-        <h1 className={styles.stoppedTitle}>Collaboration Results</h1>
+        <h1 className={styles.stoppedTitle}>Collaboration results</h1>
         <p className={styles.stoppedMessage}>
           This collaboration was closed by the host,{" "}
           <b>{collab.startedByName}</b>.

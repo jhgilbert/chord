@@ -630,6 +630,7 @@ export default function StickyNote({
                       counts={responseCounts}
                       getReactionOpacity={getResponseReactionOpacity}
                       handleReaction={handleResponseReaction}
+                      showAuthorNames={showAuthorNames}
                     />
                   );
                 })}

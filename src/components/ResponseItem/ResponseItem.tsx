@@ -10,6 +10,7 @@ export default function ResponseItem({
   counts,
   getReactionOpacity,
   handleReaction,
+  showAuthorNames,
 }: {
   response: { content: string; createdBy: string; createdByName: string };
   timestamp: string;
@@ -19,6 +20,7 @@ export default function ResponseItem({
   counts: { agree: number; disagree: number; markRead: number };
   getReactionOpacity: (r: Reaction) => number;
   handleReaction: (r: Reaction) => void;
+  showAuthorNames?: boolean;
 }) {
   return (
     <div className={styles.responseItem}>
@@ -38,7 +40,7 @@ export default function ResponseItem({
       )}
       <div className={styles.responseHeader}>
         <span className={styles.responseTimestamp}>{timestamp}</span>
-        {paused && (
+        {showAuthorNames !== false && (
           <span className={styles.responseAuthor}>
             {response.createdByName}
           </span>

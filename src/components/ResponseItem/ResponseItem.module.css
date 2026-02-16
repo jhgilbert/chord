@@ -20,6 +20,7 @@
   font-size: 11px;
   font-weight: 600;
   color: #111;
+  opacity: 0.6;
 }
 
 .responseTimestamp {

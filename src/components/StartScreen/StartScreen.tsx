@@ -135,6 +135,16 @@ export default function StartScreen() {
           className={styles.startScreenEditor}
           modules={QUILL_MODULES}
         />
+        <div style={{ marginTop: "28px" }}>
+          <label className={styles.noteTypeCheckbox}>
+            <input
+              type="checkbox"
+              checked={showAuthorNames}
+              onChange={(e) => setShowAuthorNames(e.target.checked)}
+            />
+            <span>Show author names</span>
+          </label>
+        </div>
         <div className={styles.noteTypesSelection}>
           <label className={styles.noteTypesLabel}>Allowed note types</label>
           <div style={{ marginBottom: "16px" }}>
@@ -263,16 +273,6 @@ export default function StartScreen() {
               </label>
             ))}
           </div>
-        </div>
-        <div style={{ marginTop: "28px" }}>
-          <label className={styles.noteTypeCheckbox}>
-            <input
-              type="checkbox"
-              checked={showAuthorNames}
-              onChange={(e) => setShowAuthorNames(e.target.checked)}
-            />
-            <span>Show author names</span>
-          </label>
         </div>
         <div className={styles.startScreenActions}>
           <button type="submit" className={styles.startScreenSubmit}>
