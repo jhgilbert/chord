@@ -22,20 +22,31 @@ export function isLoggedIn(): boolean {
   return auth.currentUser !== null;
 }
 
-const ALLOWED_DOMAIN = "datadoghq.com";
+const ALLOWED_DOMAINS: string[] = (
+  import.meta.env.VITE_ALLOWED_DOMAINS || ""
+)
+  .split(",")
+  .map((d: string) => d.trim())
+  .filter(Boolean);
 
 export async function signInWithGoogle(): Promise<Session> {
   const provider = new GoogleAuthProvider();
   const result = await signInWithPopup(auth, provider);
   const user = result.user;
 
-  // Enforce email domain restriction
-  const email = user.email || "";
-  if (!email.endsWith(`@${ALLOWED_DOMAIN}`)) {
-    await signOut(auth);
-    throw new Error(
-      `Only @${ALLOWED_DOMAIN} accounts are allowed. You signed in with ${email}.`,
+  // Enforce email domain restriction (skip if no domains configured)
+  if (ALLOWED_DOMAINS.length > 0) {
+    const email = user.email || "";
+    const allowed = ALLOWED_DOMAINS.some((domain) =>
+      email.endsWith(`@${domain}`),
     );
+    if (!allowed) {
+      await signOut(auth);
+      const domainList = ALLOWED_DOMAINS.map((d) => `@${d}`).join(", ");
+      throw new Error(
+        `Only ${domainList} accounts are allowed. You signed in with ${email}.`,
+      );
+    }
   }
 
   const displayName = user.displayName || "Anonymous";

@@ -2,9 +2,12 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // To restrict access to specific email domains, use a regex like:
+    //   && request.auth.token.email.matches('.*@(example[.]com|other[.]org)');
+    // To allow any Google account, remove the email.matches line.
     function isSignedIn() {
       return request.auth != null
-        && request.auth.token.email.matches('.*@datadoghq[.]com');
+        // && request.auth.token.email.matches('.*@datadoghq[.]com');
     }
 
     // Users — can only write your own doc
