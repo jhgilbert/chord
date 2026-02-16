@@ -201,11 +201,15 @@ export default function StickyNote({
           ? {
               marginLeft: `${groupDepth * 20}px`,
               borderLeftColor: color,
-              backgroundColor: hovered ? `color-mix(in srgb, ${color} 8%, transparent)` : "#ffffff",
+              backgroundColor: hovered
+                ? `color-mix(in srgb, ${color} 8%, transparent)`
+                : "#ffffff",
             }
           : {
               borderLeftColor: color,
-              backgroundColor: hovered ? `color-mix(in srgb, ${color} 8%, transparent)` : "#ffffff",
+              backgroundColor: hovered
+                ? `color-mix(in srgb, ${color} 8%, transparent)`
+                : "#ffffff",
             }
       }
     >
@@ -259,7 +263,9 @@ export default function StickyNote({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                toggleArchive(collaborationId, note.id, !!note.archived).catch(console.error);
+                toggleArchive(collaborationId, note.id, !!note.archived).catch(
+                  console.error,
+                );
               }}
               className={styles.actionButton}
               data-active={false}

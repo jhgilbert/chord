@@ -13,8 +13,8 @@ export const NOTE_TYPES: NoteType[] = [
 ];
 
 export const NOTE_TYPE_EXAMPLES: Partial<Record<NoteType, string>> = {
-  Question: "Are we expected to ...?",
-  Statement: "I'm planning to ...",
+  Question: "Is it possible to ...?",
+  Statement: "My preference is ...",
   Recommendation: "We should ...",
   Requirement: "The solution must ...",
   "Positive feedback": "I liked ...",
