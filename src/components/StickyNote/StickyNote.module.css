@@ -139,6 +139,10 @@
   line-height: 1.6;
 }
 
+.stickyNoteContent p {
+  margin: 0;
+}
+
 .stickyNoteActions {
   display: flex;
   gap: 6px;
