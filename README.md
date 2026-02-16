@@ -2,6 +2,12 @@
 
 Chord is a collaboration app written almost entirely by AI. I'm usually very strict about what I allow AI to contribute to my codebases, but this project had only one mantra: **Let go and let Claude.**
 
+Chord performs three main tasks:
+
+- Collect notes from everyone.
+- Allow participants to react to each other's notes.
+- Create a text artifact from that collaboration that can be copy-pasted into a Google Doc or Markdown file.
+
 ## How it works
 
 ### 1. Someone creates a collaboration
