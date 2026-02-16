@@ -65,9 +65,9 @@
 }
 
 .responseReactionButton[data-active="true"] {
-  background: #a7f3d7;
-  border-color: #a7f3d7;
-  color: #14532d;
+  background: #019d6d;
+  border-color: #019d6d;
+  color: white;
   font-weight: 600;
 }
 

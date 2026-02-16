@@ -64,8 +64,9 @@ export default function NoteTypePanel({
     <div
       className={styles.noteTypePanel}
       data-disabled={disabled}
-      style={{ borderLeftColor: color }}
     >
+      <div className={styles.colorBar} style={{ backgroundColor: color }} />
+      <div className={styles.noteTypePanelContent}>
       <button
         type="button"
         onClick={disabled ? undefined : onToggle}
@@ -184,6 +185,7 @@ export default function NoteTypePanel({
           </div>
         </form>
       )}
+      </div>
     </div>
   );
 }

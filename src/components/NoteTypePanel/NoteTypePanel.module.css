@@ -1,6 +1,6 @@
 .noteTypePanel {
+  display: flex;
   border: 1px solid #e5e7eb;
-  border-left: 6px solid; /* Color set via inline style */
   border-radius: 0;
   overflow: hidden;
   margin-bottom: -1px;
@@ -8,7 +8,20 @@
 
 .noteTypePanel[data-disabled="true"] {
   opacity: 0.6;
-  border-color: #e5e7eb #e5e7eb #e5e7eb #d1d5db;
+}
+
+.colorBar {
+  width: 6px;
+  flex-shrink: 0;
+}
+
+.noteTypePanel[data-disabled="true"] .colorBar {
+  background-color: #d1d5db !important;
+}
+
+.noteTypePanelContent {
+  flex: 1;
+  min-width: 0;
 }
 
 .noteTypePanelButton {

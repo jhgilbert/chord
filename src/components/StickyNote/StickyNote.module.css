@@ -83,9 +83,9 @@
 }
 
 .badgeYou {
-  background: #a7f3d7;
-  color: #14532d;
-  border-radius: 3px;
+  background: #019d6d;
+  color: white;
+  border-radius: 0;
 }
 
 .badgeType {
@@ -160,9 +160,9 @@
 }
 
 .actionButton[data-active="true"] {
-  background: #a7f3d7;
-  color: #14532d;
-  border-color: #a7f3d7;
+  background: #019d6d;
+  color: black;
+  border-color: #019d6d;
 }
 
 .actionButton[data-active="false"] {

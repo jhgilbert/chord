@@ -32,7 +32,7 @@ export default function CollabNotesList({
     "Mine",
   );
   const [selectedNoteTypes, setSelectedNoteTypes] = useState<Set<NoteType>>(
-    new Set(NOTE_TYPES),
+    new Set(NOTE_TYPES.filter((t) => t !== "Host note")),
   );
   const [showNoteTypeFilter, setShowNoteTypeFilter] = useState(false);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
@@ -58,7 +58,7 @@ export default function CollabNotesList({
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelectedNoteTypes((prevSelected) => {
       const newTypes = Array.from(existingTypes).filter(
-        (type) => !prevSelected.has(type),
+        (type) => !prevSelected.has(type) && type !== "Host note",
       );
       if (newTypes.length > 0) {
         const newSet = new Set(prevSelected);
