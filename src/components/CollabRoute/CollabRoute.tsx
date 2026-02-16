@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Navigate, useNavigate, useParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import { getSession } from "../../session";
 import {
   createNote,
@@ -339,6 +339,10 @@ export default function CollabRoute() {
               </button>
             </>
           )}
+          <div className={styles.userMenu}>
+            <span className={styles.userEmail}>{session.email}</span>
+            <Link to="/logout" className={styles.buttonLogout}>Sign out</Link>
+          </div>
         </div>
       </div>
 

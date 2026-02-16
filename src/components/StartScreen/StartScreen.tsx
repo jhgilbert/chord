@@ -1,7 +1,7 @@
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getSession } from "../../session";
 import { startCollaboration } from "../../collaborations";
 import { type NoteType } from "../../notes";
@@ -111,7 +111,8 @@ export default function StartScreen() {
         })}
       </h1>
       <p className={styles.startScreenUser}>
-        Logged in as <b>{session.displayName}</b>
+        Signed in as <b>{session.displayName}</b>.{" "}
+        <Link to="/logout" className={styles.signOutLink}>Sign out</Link>
       </p>
       <form onSubmit={handleStart} className={styles.startScreenForm}>
         <label className={styles.startScreenLabel}>

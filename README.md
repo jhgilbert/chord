@@ -46,6 +46,10 @@ Participants can
 
 Any of these actions will dismiss the note from their inbox.
 
+In addition to the above, the host can also group duplicate notes by dragging and dropping them on top of one another.
+
+![Inbox responses](screenshots/inbox_responses.png)
+
 ### 4. The host guides the conversation
 
 The host can act as a participant, but also has additional facilitation privileges.

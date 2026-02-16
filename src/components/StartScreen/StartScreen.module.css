@@ -39,6 +39,11 @@
   font-size: 14px;
 }
 
+.signOutLink {
+  color: inherit;
+  text-decoration: underline;
+}
+
 .startScreenForm {
   width: 100%;
   max-width: 600px;

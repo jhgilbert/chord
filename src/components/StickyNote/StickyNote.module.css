@@ -10,7 +10,7 @@
 }
 
 .stickyNote[data-grouped="true"] {
-  border-left: 6px solid #111;
+  border-left: 2px solid #111;
   background: #f9fafb;
 }
 
@@ -221,6 +221,10 @@
   opacity: 0.7;
 }
 
+.pollOption[data-disabled="true"][data-voted="true"] {
+  opacity: 1;
+}
+
 .pollOptionCount {
   font-size: 13px;
   font-weight: 600;
@@ -294,6 +298,10 @@
   background: #fff;
   color: #111;
   margin-bottom: 8px;
+}
+
+.editEditor :global(.ql-editor) {
+  font-size: 16px;
 }
 
 .editActions {
@@ -415,6 +423,10 @@
   background: #fff;
   color: #111;
   margin-bottom: 8px;
+}
+
+.responseEditor :global(.ql-editor) {
+  font-size: 16px;
 }
 
 .responseActions {

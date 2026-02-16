@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { getSession } from "../../session";
 import {
   revokeParticipant,
@@ -292,14 +292,20 @@ export default function UsersRoute() {
   return (
     <div className={styles.container}>
       <div className={styles.usersPage}>
-        <div className={styles.usersHeader}>
-          <button
-            onClick={() => navigate(`/collabs/${id}`)}
-            className={styles.backButton}
-          >
-            ← Back to collaboration
-          </button>
-          <h1>Participants ({users.length})</h1>
+        <div className={styles.usersHeaderRow}>
+          <div className={styles.usersHeader}>
+            <button
+              onClick={() => navigate(`/collabs/${id}`)}
+              className={styles.backButton}
+            >
+              ← Back to collaboration
+            </button>
+            <h1>Participants ({users.length})</h1>
+          </div>
+          <div className={styles.userMenu}>
+            <span className={styles.userEmail}>{session.email}</span>
+            <Link to="/logout" className={styles.signOutLink}>Sign out</Link>
+          </div>
         </div>
         <div className={styles.usersContent}>
           <table className={styles.usersTable}>

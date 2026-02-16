@@ -661,6 +661,7 @@ export default function StickyNote({
                       handleAddResponse();
                     }}
                     className={styles.responseSave}
+                    style={{ background: color }}
                   >
                     Send
                   </button>

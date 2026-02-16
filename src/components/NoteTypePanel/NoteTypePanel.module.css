@@ -74,6 +74,10 @@
   color: #111;
 }
 
+.noteTypePanelEditor :global(.ql-editor) {
+  font-size: 16px;
+}
+
 .actionItemFields {
   margin-top: 12px;
   display: flex;
