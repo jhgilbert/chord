@@ -388,7 +388,7 @@ export default function CollabSummary({
   return (
     <div className={styles.stoppedScreen}>
       <div className={styles.stoppedHeader}>
-        <h1 className={styles.stoppedTitle}>Collaboration results</h1>
+        <h1 className={styles.stoppedTitle}>Collaboration: {collab.title}</h1>
         <p className={styles.stoppedMessage}>
           This collaboration was closed by the host,{" "}
           <b>{collab.startedByName}</b>.
@@ -411,7 +411,7 @@ export default function CollabSummary({
       </div>
       <div className={styles.stoppedSummary}>
         <div className={styles.summaryHeader}>
-          <h2 className={styles.summaryTitle}>Summary</h2>
+          <h2 className={styles.summaryTitle}>Results</h2>
           <div className={styles.summaryControls}>
             <button
               onClick={async () => {
