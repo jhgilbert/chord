@@ -152,6 +152,21 @@ export default function CollabRoute() {
     }
   };
 
+  // Non-host users must be approved before seeing anything
+  if (!isHost && myStatus !== "approved") {
+    if (!collab.active) {
+      return (
+        <div className={styles.notFound}>
+          <p>This collaboration has ended.</p>
+          <button onClick={() => navigate("/")} className={styles.homeButton}>
+            Go to Home
+          </button>
+        </div>
+      );
+    }
+    return <WaitingRoom title={collab.title} />;
+  }
+
   if (!collab.active) {
     return (
       <CollabSummary
@@ -161,11 +176,6 @@ export default function CollabRoute() {
         isHost={isHost}
       />
     );
-  }
-
-  // Non-host participants must be approved before seeing the collaboration
-  if (!isHost && myStatus !== "approved") {
-    return <WaitingRoom title={collab.title} />;
   }
 
   return (
