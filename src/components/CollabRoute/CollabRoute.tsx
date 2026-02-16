@@ -44,7 +44,9 @@ export default function CollabRoute() {
   );
   const [notes, setNotes] = useState<Note[]>([]);
   const [participants, setParticipants] = useState<Participant[]>([]);
-  const [myStatus, setMyStatus] = useState<"pending" | "approved" | null>(null);
+  const [myStatus, setMyStatus] = useState<
+    "pending" | "approved" | "revoked" | null
+  >(null);
   const [showNoteTypeSettings, setShowNoteTypeSettings] = useState(false);
   const [showHostActions, setShowHostActions] = useState(false);
   const noteTypeSettingsRef = useRef<HTMLDivElement>(null);
@@ -85,7 +87,11 @@ export default function CollabRoute() {
     } else {
       // Request to join (no-op if already exists)
       requestToJoin(id, session.userId, session.displayName, session.email);
-      const unsub = subscribeMyParticipantStatus(id, session.userId, setMyStatus);
+      const unsub = subscribeMyParticipantStatus(
+        id,
+        session.userId,
+        setMyStatus,
+      );
       return () => unsub();
     }
   }, [id, session, collab?.startedBy]);

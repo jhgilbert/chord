@@ -126,7 +126,7 @@ export type Participant = {
   userId: string;
   displayName: string;
   email: string;
-  status: "pending" | "approved";
+  status: "pending" | "approved" | "revoked";
   requestedAt: unknown;
 };
 
@@ -159,6 +159,14 @@ export async function approveParticipants(
   await batch.commit();
 }
 
+export async function revokeParticipant(
+  collabId: string,
+  userId: string,
+) {
+  const ref = doc(db, "collaborations", collabId, "participants", userId);
+  await updateDoc(ref, { status: "revoked" });
+}
+
 export function subscribeParticipants(
   collabId: string,
   cb: (participants: Participant[]) => void,
@@ -179,7 +187,7 @@ export function subscribeParticipants(
 export function subscribeMyParticipantStatus(
   collabId: string,
   userId: string,
-  cb: (status: "pending" | "approved" | null) => void,
+  cb: (status: "pending" | "approved" | "revoked" | null) => void,
 ) {
   return onSnapshot(
     doc(db, "collaborations", collabId, "participants", userId),

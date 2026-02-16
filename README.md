@@ -18,6 +18,8 @@ The collaboration's prompt shares more details about the kind of input she's loo
 
 ![Start screen](screenshots/01_start_collab.png)
 
+Jen clicks `Start collaboration`, which takes her to the unique URL of a new, active collaboration.
+
 ### 2. Participants join the collaboration
 
 Jen is automatically the host.

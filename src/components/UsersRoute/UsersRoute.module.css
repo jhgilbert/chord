@@ -15,17 +15,17 @@
   color: #dc2626;
 }
 
-.statsPage {
+.usersPage {
   max-width: 900px;
   margin: 0 auto;
   padding: 40px 20px;
 }
 
-.statsHeader {
+.usersHeader {
   margin-bottom: 30px;
 }
 
-.statsHeader h1 {
+.usersHeader h1 {
   font-size: 28px;
   font-weight: 700;
   margin: 20px 0 0 0;
@@ -47,23 +47,23 @@
   background: #e5e7eb;
 }
 
-.statsContent {
+.usersContent {
   background: #fff;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   overflow: hidden;
 }
 
-.statsTable {
+.usersTable {
   width: 100%;
   border-collapse: collapse;
 }
 
-.statsTable thead {
+.usersTable thead {
   background: #f9fafb;
 }
 
-.statsTable th {
+.usersTable th {
   text-align: left;
   padding: 12px 16px;
   font-weight: 600;
@@ -72,17 +72,55 @@
   border-bottom: 1px solid #e5e7eb;
 }
 
-.statsTable td {
+.usersTable td {
   padding: 12px 16px;
   font-size: 14px;
   color: #111;
   border-bottom: 1px solid #f3f4f6;
 }
 
-.statsTable tbody tr:last-child td {
+.usersTable tbody tr:last-child td {
   border-bottom: none;
 }
 
-.statsTable tbody tr:hover {
+.usersTable tbody tr:hover {
   background: #f9fafb;
+}
+
+.revokeButton {
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #fff;
+  color: #dc2626;
+  border: 1px solid #dc2626;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.revokeButton:hover {
+  background: #dc2626;
+  color: #fff;
+}
+
+.statusBadge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.statusBadge[data-status="host"] {
+  background: #111;
+  color: #fff;
+}
+
+.statusBadge[data-status="approved"] {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.statusBadge[data-status="revoked"] {
+  background: #fee2e2;
+  color: #991b1b;
 }

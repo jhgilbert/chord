@@ -173,7 +173,7 @@ export default function CollabsListScreen() {
                         View
                       </button>
                       <button
-                        onClick={() => navigate(`/collabs/${collab.id}/stats`)}
+                        onClick={() => navigate(`/collabs/${collab.id}/users`)}
                         style={{
                           padding: "6px 12px",
                           fontSize: "13px",
@@ -185,7 +185,7 @@ export default function CollabsListScreen() {
                           fontWeight: 600,
                         }}
                       >
-                        Stats
+                        Users
                       </button>
                     </td>
                   </tr>

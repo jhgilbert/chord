@@ -1,11 +1,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getSession } from "../../session";
-import { subscribeCollaboration, type Collaboration } from "../../collaborations";
+import {
+  revokeParticipant,
+  subscribeCollaboration,
+  subscribeParticipants,
+  type Collaboration,
+  type Participant,
+} from "../../collaborations";
 import { subscribeNotes, type Note } from "../../notes";
-import styles from "./StatsRoute.module.css";
+import styles from "./UsersRoute.module.css";
 
-export default function StatsRoute() {
+export default function UsersRoute() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const session = getSession();
@@ -21,6 +27,7 @@ export default function StatsRoute() {
     undefined,
   );
   const [notes, setNotes] = useState<Note[]>([]);
+  const [participants, setParticipants] = useState<Participant[]>([]);
   const [currentTime, setCurrentTime] = useState(0);
 
   useEffect(() => {
@@ -32,6 +39,12 @@ export default function StatsRoute() {
   useEffect(() => {
     if (!id) return;
     const unsub = subscribeNotes(id, setNotes);
+    return () => unsub();
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    const unsub = subscribeParticipants(id, setParticipants);
     return () => unsub();
   }, [id]);
 
@@ -200,10 +213,44 @@ export default function StatsRoute() {
     }
   });
 
+  // Third pass: add participants who haven't submitted anything yet
+  for (const p of participants) {
+    if (!userMap.has(p.userId)) {
+      userMap.set(p.userId, {
+        userId: p.userId,
+        displayName: p.displayName,
+        lastActivityTime: 0,
+        contributionCount: 0,
+        notesCount: 0,
+        reactionsCount: 0,
+        responsesCount: 0,
+      });
+    }
+  }
+
+  // Ensure the host always appears
+  if (!userMap.has(collab.startedBy)) {
+    userMap.set(collab.startedBy, {
+      userId: collab.startedBy,
+      displayName: collab.startedByName,
+      lastActivityTime: 0,
+      contributionCount: 0,
+      notesCount: 0,
+      reactionsCount: 0,
+      responsesCount: 0,
+    });
+  }
+
   // Convert to array and sort by most recent activity
   const usersArray = Array.from(userMap.values()).sort(
     (a, b) => b.lastActivityTime - a.lastActivityTime,
   );
+
+  // Build participant status lookup
+  const participantStatusMap = new Map<string, Participant["status"]>();
+  for (const p of participants) {
+    participantStatusMap.set(p.userId, p.status);
+  }
 
   // Pre-compute formatted times
   const users = usersArray.map((user) => {
@@ -225,13 +272,27 @@ export default function StatsRoute() {
       else formattedTime = `${days} day${days !== 1 ? "s" : ""} ago`;
     }
 
-    return { ...user, formattedTime };
+    const isHostUser = user.userId === collab.startedBy;
+    const status = isHostUser
+      ? "host" as const
+      : (participantStatusMap.get(user.userId) || "approved");
+
+    return { ...user, formattedTime, isHostUser, status };
   });
+
+  const handleRevoke = async (userId: string) => {
+    try {
+      await revokeParticipant(id!, userId);
+    } catch (error) {
+      console.error("Failed to revoke participant:", error);
+      alert("Failed to revoke participant. Please try again.");
+    }
+  };
 
   return (
     <div className={styles.container}>
-      <div className={styles.statsPage}>
-        <div className={styles.statsHeader}>
+      <div className={styles.usersPage}>
+        <div className={styles.usersHeader}>
           <button
             onClick={() => navigate(`/collabs/${id}`)}
             className={styles.backButton}
@@ -240,8 +301,8 @@ export default function StatsRoute() {
           </button>
           <h1>Participants ({users.length})</h1>
         </div>
-        <div className={styles.statsContent}>
-          <table className={styles.statsTable}>
+        <div className={styles.usersContent}>
+          <table className={styles.usersTable}>
             <thead>
               <tr>
                 <th>User</th>
@@ -250,6 +311,7 @@ export default function StatsRoute() {
                 <th>Responses</th>
                 <th>Total</th>
                 <th>Last Activity</th>
+                <th>Access</th>
               </tr>
             </thead>
             <tbody>
@@ -261,6 +323,35 @@ export default function StatsRoute() {
                   <td>{user.responsesCount}</td>
                   <td>{user.contributionCount}</td>
                   <td>{user.formattedTime}</td>
+                  <td>
+                    {user.isHostUser ? (
+                      <span className={styles.statusBadge} data-status="host">
+                        Host
+                      </span>
+                    ) : user.status === "revoked" ? (
+                      <span
+                        className={styles.statusBadge}
+                        data-status="revoked"
+                      >
+                        Revoked
+                      </span>
+                    ) : (
+                      <>
+                        <span
+                          className={styles.statusBadge}
+                          data-status="approved"
+                        >
+                          Active
+                        </span>{" "}
+                        <button
+                          onClick={() => handleRevoke(user.userId)}
+                          className={styles.revokeButton}
+                        >
+                          Revoke
+                        </button>
+                      </>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -37,7 +37,7 @@ service cloud.firestore {
           && request.auth.uid == userId
           && request.resource.data.status == "pending";
 
-        // Only the host can update (to approve participants)
+        // Only the host can update (to approve or revoke participants)
         allow update: if isSignedIn()
           && get(/databases/$(database)/documents/collaborations/$(collabId)).data.startedBy == request.auth.uid;
       }

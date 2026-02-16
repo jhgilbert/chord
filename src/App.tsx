@@ -5,7 +5,7 @@ import LoginScreen from "./components/LoginScreen/LoginScreen";
 import StartScreen from "./components/StartScreen/StartScreen";
 import CollabsListScreen from "./components/CollabsListScreen/CollabsListScreen";
 import CollabRoute from "./components/CollabRoute/CollabRoute";
-import StatsRoute from "./components/StatsRoute/StatsRoute";
+import UsersRoute from "./components/UsersRoute/UsersRoute";
 
 export default function App() {
   const [authReady, setAuthReady] = useState(false);
@@ -29,7 +29,7 @@ export default function App() {
       <Route path="/" element={<StartScreen />} />
       <Route path="/collabs" element={<CollabsListScreen />} />
       <Route path="/collabs/:id" element={<CollabRoute />} />
-      <Route path="/collabs/:id/stats" element={<StatsRoute />} />
+      <Route path="/collabs/:id/users" element={<UsersRoute />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
