@@ -231,6 +231,7 @@ export default function StickyNote({
               className={styles.actionButton}
               data-active={false}
               aria-label="Edit note"
+              title="Edit"
               style={{ opacity: hovered ? 1 : 0 }}
             >
               ✏️
@@ -245,6 +246,7 @@ export default function StickyNote({
               className={styles.actionButton}
               data-active={false}
               aria-label="Delete note"
+              title="Delete"
               style={{ opacity: hovered ? 1 : 0 }}
             >
               🗑️
@@ -275,6 +277,7 @@ export default function StickyNote({
               className={styles.actionButton}
               data-active={myReaction === "agree"}
               data-paused={paused || note.createdBy === sessionId}
+              title="Upvote"
               style={{ opacity: getReactionOpacity("agree") }}
             >
               ➕ <span>{counts.agree}</span>
@@ -290,6 +293,7 @@ export default function StickyNote({
               className={styles.actionButton}
               data-active={false}
               aria-label="Add response"
+              title="Add comment"
             >
               💬 <span>{note.responses?.length || 0}</span>
             </button>
@@ -303,9 +307,10 @@ export default function StickyNote({
             className={styles.actionButton}
             data-active={myReaction === "markRead"}
             data-paused={paused || note.createdBy === sessionId}
+            title="Mark as read"
             style={{ opacity: getReactionOpacity("markRead") }}
           >
-            📬 <span>{counts.markRead}</span>
+            📖 <span>{counts.markRead}</span>
           </button>
         </div>
       )}

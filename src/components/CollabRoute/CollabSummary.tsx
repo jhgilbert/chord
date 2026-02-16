@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { resumeCollaboration, type Collaboration } from "../../collaborations";
 import type { Note } from "../../notes";
 import type { Session } from "../../session";
@@ -25,10 +24,6 @@ export default function CollabSummary({
   session: _session,
   isHost,
 }: CollabSummaryProps) {
-  const [summaryFormat, setSummaryFormat] = useState<"html" | "markdown">(
-    "html",
-  );
-
   const allPrompts = buildPromptTimeline(collab);
   const hostId = collab.startedBy;
 
@@ -356,57 +351,39 @@ export default function CollabSummary({
         <div className={styles.summaryHeader}>
           <h2 className={styles.summaryTitle}>Summary</h2>
           <div className={styles.summaryControls}>
-            <div className={styles.formatToggle}>
-              <button
-                onClick={() => setSummaryFormat("html")}
-                className={styles.formatButton}
-                data-active={summaryFormat === "html"}
-              >
-                HTML
-              </button>
-              <button
-                onClick={() => setSummaryFormat("markdown")}
-                className={styles.formatButton}
-                data-active={summaryFormat === "markdown"}
-              >
-                Markdown
-              </button>
-            </div>
             <button
               onClick={async () => {
-                if (summaryFormat === "markdown") {
-                  await navigator.clipboard.writeText(generateMarkdown());
-                  alert("Copied Markdown to clipboard!");
-                } else {
-                  const html = generateHTML();
-                  const blob = new Blob([html], { type: "text/html" });
-                  const clipboardItem = new ClipboardItem({
-                    "text/html": blob,
-                  });
-                  await navigator.clipboard.write([clipboardItem]);
-                  alert(
-                    "Copied HTML to clipboard! Paste into Google Docs to preserve formatting.",
-                  );
-                }
+                await navigator.clipboard.writeText(generateMarkdown());
+                alert("Copied Markdown to clipboard!");
               }}
               className={styles.copyButton}
             >
-              Copy
+              Copy as Markdown
+            </button>
+            <button
+              onClick={async () => {
+                const html = generateHTML();
+                const blob = new Blob([html], { type: "text/html" });
+                const clipboardItem = new ClipboardItem({
+                  "text/html": blob,
+                });
+                await navigator.clipboard.write([clipboardItem]);
+                alert(
+                  "Copied to clipboard! Paste into Google Docs to preserve formatting.",
+                );
+              }}
+              className={styles.copyButton}
+            >
+              Copy for Google Docs
             </button>
           </div>
         </div>
-        {summaryFormat === "markdown" ? (
-          <pre className={styles.summaryContent}>
-            {generateMarkdown().replace(/&nbsp;/g, " ")}
-          </pre>
-        ) : (
-          <div
-            className={styles.summaryContent}
-            dangerouslySetInnerHTML={{
-              __html: generateHTML().replace(/&nbsp;/g, " "),
-            }}
-          />
-        )}
+        <div
+          className={styles.summaryContent}
+          dangerouslySetInnerHTML={{
+            __html: generateHTML().replace(/&nbsp;/g, " "),
+          }}
+        />
       </div>
     </div>
   );

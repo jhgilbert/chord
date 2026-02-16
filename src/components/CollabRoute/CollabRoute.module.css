@@ -515,40 +515,6 @@
   align-items: center;
 }
 
-.formatToggle {
-  display: flex;
-  gap: 0;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.formatButton {
-  padding: 6px 14px;
-  font-size: 13px;
-  font-weight: 500;
-  background: #fff;
-  color: #6b7280;
-  border: none;
-  border-right: 1px solid #d1d5db;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.formatButton:last-child {
-  border-right: none;
-}
-
-.formatButton[data-active="true"] {
-  background: #111;
-  color: #fff;
-  font-weight: 600;
-}
-
-.formatButton:hover:not([data-active="true"]) {
-  background: #f3f4f6;
-}
-
 .copyButton {
   padding: 8px 16px;
   font-size: 14px;
@@ -575,7 +541,6 @@
   color: #1a1a1a;
   background: #fff;
   width: 100%;
-  max-width: 800px;
   word-break: break-word;
   overflow-wrap: break-word;
   box-sizing: border-box;
