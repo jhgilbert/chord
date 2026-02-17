@@ -10,7 +10,7 @@
 }
 
 .startScreenUser {
-  margin: 0 0 24px;
+  margin: 24px 0 24px;
   opacity: 0.6;
   font-size: 14px;
 }
@@ -29,7 +29,7 @@
   display: block;
   font-weight: 600;
   margin-bottom: 8px;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .startScreenInput {
@@ -64,8 +64,8 @@
 .noteTypesLabel {
   display: block;
   font-weight: 600;
-  margin-bottom: 8px;
-  font-size: 14px;
+  margin-bottom: 12px;
+  font-size: 15px;
 }
 
 .noteTypesCheckboxes {

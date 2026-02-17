@@ -110,6 +110,7 @@ export default function StartScreen() {
           modules={QUILL_MODULES}
         />
         <div style={{ marginTop: "28px" }}>
+          <label className={styles.startScreenLabel}>Anonymity</label>
           <label className={styles.noteTypeCheckbox}>
             <input
               type="checkbox"
@@ -121,13 +122,10 @@ export default function StartScreen() {
         </div>
         <div className={styles.noteTypesSelection}>
           <label className={styles.noteTypesLabel}>Allowed note types</label>
-          <div style={{ marginBottom: "16px" }}>
-            <div
-              style={{ fontSize: "13px", color: "#666", marginBottom: "8px" }}
-            >
+          <div style={{ marginBottom: "16px", display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
+            <span style={{ fontSize: "13px", color: "#666" }}>
               Quick presets:
-            </div>
-            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+            </span>
               {(() => {
                 const discussionPreset: NoteType[] = [
                   "Question",
@@ -161,7 +159,7 @@ export default function StartScreen() {
                       type="button"
                       onClick={() => setAllowedNoteTypes(discussionPreset)}
                       style={{
-                        padding: "8px 14px",
+                        padding: "4px 10px",
                         fontSize: "14px",
                         cursor: "pointer",
                         border: isDiscussionActive
@@ -186,7 +184,7 @@ export default function StartScreen() {
                       type="button"
                       onClick={() => setAllowedNoteTypes(retroPreset)}
                       style={{
-                        padding: "8px 14px",
+                        padding: "4px 10px",
                         fontSize: "14px",
                         cursor: "pointer",
                         border: isRetroActive
@@ -211,7 +209,7 @@ export default function StartScreen() {
                       type="button"
                       onClick={() => setAllowedNoteTypes(qaPreset)}
                       style={{
-                        padding: "8px 14px",
+                        padding: "4px 10px",
                         fontSize: "14px",
                         cursor: "pointer",
                         border: isQAActive
@@ -233,7 +231,6 @@ export default function StartScreen() {
                   </>
                 );
               })()}
-            </div>
           </div>
           <div className={styles.noteTypesCheckboxes}>
             {NOTE_TYPES.filter((type) => type !== "Host note").map((type) => (
