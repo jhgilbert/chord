@@ -63,7 +63,7 @@ test("host starts a collaboration", async ({ page, browser }) => {
   await expect(page.getByLabel("Question")).not.toBeChecked();
 
   // Screenshot with the changed preset
-  await expect(page).toHaveScreenshot("01-changed-preset.png");
+  await expect(page).toHaveScreenshot("changed-preset.png");
 
   // Switch back to Discussion
   await page.getByRole("button", { name: "Discussion" }).click();
@@ -72,7 +72,7 @@ test("host starts a collaboration", async ({ page, browser }) => {
   await expect(page.getByLabel("Recommendation")).toBeChecked();
 
   // Screenshot the completed start screen
-  await expect(page).toHaveScreenshot("02-completed-start-screen.png");
+  await expect(page).toHaveScreenshot("completed-start-screen.png");
 
   // Start the collaboration
   await page.getByRole("button", { name: "Start collaboration" }).click();
@@ -85,7 +85,7 @@ test("host starts a collaboration", async ({ page, browser }) => {
   await expect(page.getByText("You are the host.")).toBeVisible();
 
   // Screenshot the new empty collaboration
-  await expect(page).toHaveScreenshot("03-new-active-empty-collaboration.png");
+  await expect(page).toHaveScreenshot("new-active-empty-collaboration.png");
 
   // --- Participants join ---
 
@@ -115,7 +115,7 @@ test("host starts a collaboration", async ({ page, browser }) => {
   }
 
   // Screenshot participants awaiting approval
-  await expect(page).toHaveScreenshot("04-participants-awaiting-approval.png");
+  await expect(page).toHaveScreenshot("participants-awaiting-approval.png");
 
   // Host admits all participants via "Select all" then "Admit selected"
   await page.getByText("Select all").click();
@@ -125,7 +125,7 @@ test("host starts a collaboration", async ({ page, browser }) => {
   await expect(page.getByText("Participants (4)")).toBeVisible();
 
   // Screenshot participants accepted
-  await expect(page).toHaveScreenshot("05-participants-accepted.png");
+  await expect(page).toHaveScreenshot("participants-accepted.png");
 
   // --- Participants submit notes ---
 
@@ -192,7 +192,7 @@ test("host starts a collaboration", async ({ page, browser }) => {
 
   // Screenshot: Alfie views all notes
   await expect(alfiePage).toHaveScreenshot(
-    "06-participant-alfie-views-all-notes.png",
+    "participant-alfie-views-all-notes.png",
   );
 
   // Host clicks "All" and verifies all notes are visible
@@ -202,7 +202,7 @@ test("host starts a collaboration", async ({ page, browser }) => {
   await expect(page.getByText("MEOW")).toBeVisible();
 
   // Screenshot: Host views all notes
-  await expect(page).toHaveScreenshot("07-host-views-all-notes.png");
+  await expect(page).toHaveScreenshot("host-views-all-notes.png");
 
   // --- Host responds to notes ---
 
@@ -231,7 +231,7 @@ test("host starts a collaboration", async ({ page, browser }) => {
   await frankNote.locator('[data-testid="upvote"]').click();
 
   // Screenshot: Host responded to notes
-  await expect(page).toHaveScreenshot("08-host-responded-to-notes.png");
+  await expect(page).toHaveScreenshot("host-responded-to-notes.png");
 
   // --- More recommendations ---
 
@@ -293,7 +293,7 @@ test("host starts a collaboration", async ({ page, browser }) => {
   ).toBeVisible();
 
   // Screenshot: Host prepares poll
-  await expect(page).toHaveScreenshot("09-host-prepares-poll.png");
+  await expect(page).toHaveScreenshot("host-prepares-poll.png");
 
   // --- Host submits the poll ---
   await page.getByRole("button", { name: "Post note" }).click();
@@ -369,7 +369,7 @@ test("host starts a collaboration", async ({ page, browser }) => {
   await expect(hostPoll.getByText("1 (25%)")).toBeVisible();
 
   // Screenshot: Host views poll results
-  await expect(page).toHaveScreenshot("10-host-views-poll-results.png");
+  await expect(page).toHaveScreenshot("host-views-poll-results.png");
 
   // Screenshot: Participant views poll results during pause
   await alfiePage.getByRole("button", { name: "All" }).click();
@@ -381,7 +381,7 @@ test("host starts a collaboration", async ({ page, browser }) => {
   });
   await expect(alfiePoll.getByText("4 (100%)")).toBeVisible();
   await expect(alfiePage).toHaveScreenshot(
-    "11-participant-views-poll-results.png",
+    "participant-views-poll-results.png",
   );
 
   // --- Host verifies upvotes and sorts by most upvotes ---
@@ -413,7 +413,11 @@ test("host starts a collaboration", async ({ page, browser }) => {
   await expect(allUpvoteButtons.nth(5)).toHaveText("0");
 
   // Screenshot: Host views upvotes sorted
-  await expect(page).toHaveScreenshot("12-host-views-upvotes.png");
+  await expect(page).toHaveScreenshot("host-views-upvotes.png");
+
+  // Verify participants do NOT have the "Most upvotes" sort option
+  const alfieSortOptions = await alfiePage.getByRole("combobox").locator("option").allTextContents();
+  expect(alfieSortOptions).not.toContain("Most upvotes");
 
   // --- Host unpauses and adds an action item ---
 
@@ -446,13 +450,30 @@ test("host starts a collaboration", async ({ page, browser }) => {
   // Verify the action item is visible
   await expect(page.getByText("Order pizza")).toBeVisible();
 
+  // --- Host marks Evey's note as a duplicate ---
+
+  const meowNote = findNote("MEOW");
+  await meowNote.hover();
+  await meowNote.getByLabel("Mark as duplicate").click();
+
+  // Verify the DUPLICATE badge appears on the host's view
+  await expect(meowNote.getByText("Duplicate")).toBeVisible();
+
+  // Verify a participant also sees the badge
+  await expect(
+    alfiePage
+      .locator('[data-testid="note"]')
+      .filter({ hasText: "MEOW" })
+      .getByText("Duplicate"),
+  ).toBeVisible();
+
   // Screenshot: Host final view
-  await expect(page).toHaveScreenshot("13-host-view-final.png");
+  await expect(page).toHaveScreenshot("host-view-final.png");
 
   // Screenshot: Participant final view
   await frankPage.getByRole("button", { name: "All" }).click();
   await expect(frankPage.getByText("Order pizza")).toBeVisible();
-  await expect(frankPage).toHaveScreenshot("14-participant-view-final.png");
+  await expect(frankPage).toHaveScreenshot("participant-view-final.png");
 
   // --- Host views users page ---
 
@@ -469,7 +490,7 @@ test("host starts a collaboration", async ({ page, browser }) => {
   await expect(usersTable.getByText("Evey Cat")).toBeVisible();
 
   // Screenshot: Users page
-  await expect(page).toHaveScreenshot("15-collab-users-page.png");
+  await expect(page).toHaveScreenshot("collab-users-page.png");
 
   // --- Host revokes Evey's access ---
 
@@ -514,12 +535,12 @@ test("host starts a collaboration", async ({ page, browser }) => {
   await expect(page.getByRole("cell", { name: "25%" })).toBeVisible(); // Plants
 
   // Screenshot: Final report (host view)
-  await expect(page).toHaveScreenshot("16-collab-final-report-host-view.png");
+  await expect(page).toHaveScreenshot("collab-final-report-host-view.png");
 
   // Screenshot: Final report (participant view)
   await expect(frankPage.getByText("Results")).toBeVisible();
   await expect(frankPage).toHaveScreenshot(
-    "17-collab-final-report-participant-view.png",
+    "collab-final-report-participant-view.png",
   );
 
   // Verify Evey cannot see the report (she was revoked)

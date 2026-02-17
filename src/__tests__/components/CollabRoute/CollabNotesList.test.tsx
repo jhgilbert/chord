@@ -124,6 +124,42 @@ describe("CollabNotesList", () => {
     expect(screen.getByText("Archived (0)")).toBeInTheDocument();
   });
 
+  it("shows 'Most upvotes' sort option for host", () => {
+    render(
+      <CollabNotesList
+        collab={baseCollab}
+        notes={[]}
+        session={session}
+        isHost={true}
+        allowedNoteTypes={allowedNoteTypes}
+      />,
+    );
+
+    const sortSelect = screen.getByRole("combobox");
+    const options = Array.from(sortSelect.querySelectorAll("option")).map(
+      (o) => o.textContent,
+    );
+    expect(options).toContain("Most upvotes");
+  });
+
+  it("hides 'Most upvotes' sort option for non-host", () => {
+    render(
+      <CollabNotesList
+        collab={baseCollab}
+        notes={[]}
+        session={session}
+        isHost={false}
+        allowedNoteTypes={allowedNoteTypes}
+      />,
+    );
+
+    const sortSelect = screen.getByRole("combobox");
+    const options = Array.from(sortSelect.querySelectorAll("option")).map(
+      (o) => o.textContent,
+    );
+    expect(options).not.toContain("Most upvotes");
+  });
+
   it("hides hint text after switching away from Mine filter", async () => {
     const user = userEvent.setup();
 

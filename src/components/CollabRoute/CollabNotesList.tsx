@@ -168,7 +168,7 @@ export default function CollabNotesList({
           >
             <option value="desc">Newest first</option>
             <option value="asc">Oldest first</option>
-            <option value="upvotes">Most upvotes</option>
+            {isHost && <option value="upvotes">Most upvotes</option>}
           </select>
         </div>
       </div>
