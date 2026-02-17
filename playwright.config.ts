@@ -10,10 +10,12 @@ export default defineConfig({
     baseURL: "http://localhost:5173",
     screenshot: "only-on-failure",
     trace: "on-first-retry",
+    deviceScaleFactor: 2,
   },
   expect: {
     toHaveScreenshot: {
       maxDiffPixelRatio: 0.01,
+      scale: "device",
     },
   },
   projects: [
