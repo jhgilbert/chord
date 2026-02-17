@@ -50,6 +50,10 @@ The host can respond to any note with a threaded comment. Here, the host replies
 
 ![Host responded to notes](collaboration.spec.ts-snapshots/host-responded-to-notes-chromium-darwin.png)
 
+Participants can also comment on each other's notes. Here, Alfie responds to Frank's pizza recommendation with *"I love pizza"*. Threaded responses are expandable so the conversation stays tidy.
+
+![Participant comments on a note](collaboration.spec.ts-snapshots/participant-alfie-comments-on-note-chromium-darwin.png)
+
 ## Creating a poll
 
 The host (or any participant) can create a poll. This one is a multi-select poll asking *"Which of these would you eat for dinner?"* with three options: Pizza, Indian food, and Plants from the yard.
@@ -79,6 +83,10 @@ Notes can be upvoted by any participant. The host can sort by **Most upvotes** t
 ## Action items
 
 The host resumes the collaboration and creates an action item: *"Order pizza"*, assigned to Jen. Action items are a distinct note type with optional assignee and due date fields.
+
+## Marking duplicates
+
+The host can mark any note as a duplicate. Duplicate notes display a **Duplicate** badge and are automatically hidden from participants' Inboxes, keeping the focus on unique contributions.
 
 ![Host final view](collaboration.spec.ts-snapshots/host-view-final-chromium-darwin.png)
 

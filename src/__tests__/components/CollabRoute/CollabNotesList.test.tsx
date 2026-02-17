@@ -160,6 +160,27 @@ describe("CollabNotesList", () => {
     expect(options).not.toContain("Most upvotes");
   });
 
+  it("excludes duplicate notes from inbox count", () => {
+    render(
+      <CollabNotesList
+        collab={baseCollab}
+        notes={[
+          makeNote({
+            id: "note-dup",
+            createdBy: "other-user",
+            createdByName: "Other",
+            markedDuplicate: true,
+          }),
+        ]}
+        session={session}
+        isHost={false}
+        allowedNoteTypes={allowedNoteTypes}
+      />,
+    );
+
+    expect(screen.getByText("Inbox (0)")).toBeInTheDocument();
+  });
+
   it("hides hint text after switching away from Mine filter", async () => {
     const user = userEvent.setup();
 

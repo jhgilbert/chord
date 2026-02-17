@@ -277,6 +277,7 @@ function getInboxCount(notes: Note[], userId: string, allChildIds: Set<string>) 
       !interacted &&
       !allChildIds.has(n.id) &&
       !n.archived &&
+      !n.markedDuplicate &&
       n.type !== "Host note"
     );
   }).length;
@@ -303,6 +304,7 @@ function filterNotes(
           !interacted &&
           (!allChildIds.has(n.id) || n.id === respondingToNoteId) &&
           !n.archived &&
+          !n.markedDuplicate &&
           n.type !== "Host note" &&
           selectedNoteTypes.has(n.type)
         );

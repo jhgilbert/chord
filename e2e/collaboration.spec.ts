@@ -328,10 +328,27 @@ test("host starts a collaboration", async ({ page, browser }) => {
 
   // Alfie clicks Inbox and votes for all three
   await alfiePage.getByRole("button", { name: /Inbox/ }).click();
-  // Alfie upvotes Frank's recommendation for pizza
+  // Alfie comments on Frank's pizza note
   const frankPizzaNote = alfiePage.locator('[data-testid="note"]').filter({
     hasText: "We should get pizza.",
   });
+  await frankPizzaNote.getByRole("button", { name: "Add response" }).click();
+  const alfieResponseEditor = frankPizzaNote.locator(".ql-editor").first();
+  await alfieResponseEditor.click();
+  await alfieResponseEditor.fill("I love pizza");
+  await frankPizzaNote.getByRole("button", { name: "Send" }).click();
+
+  // Expand the thread and verify the comment
+  await frankPizzaNote.getByText("Show 1 response").click();
+  await expect(frankPizzaNote.getByText("I love pizza")).toBeVisible();
+  await expect(frankPizzaNote.getByText("Alfie Dog")).toBeVisible();
+
+  // Screenshot: Alfie comments on a note
+  await expect(alfiePage).toHaveScreenshot(
+    "participant-alfie-comments-on-note.png",
+  );
+
+  // Alfie upvotes Frank's recommendation for pizza
   await frankPizzaNote.locator('[data-testid="upvote"]').click();
 
   // Alfie upvotes the host's recommendation for Indian food
@@ -340,6 +357,7 @@ test("host starts a collaboration", async ({ page, browser }) => {
   });
   await hostIndianNote.locator('[data-testid="upvote"]').click();
 
+  // Alfie votes in the poll
   await expect(
     alfiePage.getByText("Which of these would you eat for dinner?"),
   ).toBeVisible();
@@ -391,13 +409,31 @@ test("host starts a collaboration", async ({ page, browser }) => {
     page.locator('[data-testid="note"]').filter({ hasText: text });
 
   // Notes with 1 upvote each:
-  await expect(findNote("We should avoid spicy foods.").locator('[data-testid="upvote"] span')).toHaveText("1");
-  await expect(findNote("We should get pizza.").locator('[data-testid="upvote"] span')).toHaveText("1");
-  await expect(findNote("I would love to get Indian food").locator('[data-testid="upvote"] span')).toHaveText("1");
+  await expect(
+    findNote("We should avoid spicy foods.").locator(
+      '[data-testid="upvote"] span',
+    ),
+  ).toHaveText("1");
+  await expect(
+    findNote("We should get pizza.").locator('[data-testid="upvote"] span'),
+  ).toHaveText("1");
+  await expect(
+    findNote("I would love to get Indian food").locator(
+      '[data-testid="upvote"] span',
+    ),
+  ).toHaveText("1");
   // Notes with 0 upvotes:
-  await expect(findNote("MEOW").locator('[data-testid="upvote"] span')).toHaveText("0");
-  await expect(findNote("What time is dinner?").locator('[data-testid="upvote"] span')).toHaveText("0");
-  await expect(findNote("We could eat the plants in the yard").locator('[data-testid="upvote"] span')).toHaveText("0");
+  await expect(
+    findNote("MEOW").locator('[data-testid="upvote"] span'),
+  ).toHaveText("0");
+  await expect(
+    findNote("What time is dinner?").locator('[data-testid="upvote"] span'),
+  ).toHaveText("0");
+  await expect(
+    findNote("We could eat the plants in the yard").locator(
+      '[data-testid="upvote"] span',
+    ),
+  ).toHaveText("0");
 
   // Sort by most upvotes
   await page.getByRole("combobox").selectOption("upvotes");
@@ -416,7 +452,10 @@ test("host starts a collaboration", async ({ page, browser }) => {
   await expect(page).toHaveScreenshot("host-views-upvotes.png");
 
   // Verify participants do NOT have the "Most upvotes" sort option
-  const alfieSortOptions = await alfiePage.getByRole("combobox").locator("option").allTextContents();
+  const alfieSortOptions = await alfiePage
+    .getByRole("combobox")
+    .locator("option")
+    .allTextContents();
   expect(alfieSortOptions).not.toContain("Most upvotes");
 
   // --- Host unpauses and adds an action item ---
@@ -466,6 +505,13 @@ test("host starts a collaboration", async ({ page, browser }) => {
       .filter({ hasText: "MEOW" })
       .getByText("Duplicate"),
   ).toBeVisible();
+
+  // Verify the duplicate note is hidden from Alfie's Inbox
+  await expect(
+    alfiePage.getByRole("button", { name: "Inbox (2)" }),
+  ).toBeVisible();
+  await alfiePage.getByRole("button", { name: /Inbox/ }).click();
+  await expect(alfiePage.getByText("MEOW")).not.toBeVisible();
 
   // Screenshot: Host final view
   await expect(page).toHaveScreenshot("host-view-final.png");
@@ -523,7 +569,9 @@ test("host starts a collaboration", async ({ page, browser }) => {
   // Verify the action item is in key takeaways
   await expect(page.getByText("Action Items")).toBeVisible();
   await expect(page.getByRole("cell", { name: "Order pizza" })).toBeVisible();
-  await expect(page.getByRole("cell", { name: "Jen", exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("cell", { name: "Jen", exact: true }),
+  ).toBeVisible();
 
   // Verify poll results in the report
   await expect(page.getByText("Polls")).toBeVisible();
