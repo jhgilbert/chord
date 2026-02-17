@@ -84,24 +84,28 @@ export default function CollabRoute() {
     return () => unsub();
   }, [id]);
 
-  // Host subscribes to all participants; non-host subscribes to own status
+  // Subscribe to own participant status immediately (no need to wait for collab)
+  useEffect(() => {
+    if (!id || !session) return;
+    const unsub = subscribeMyParticipantStatus(
+      id,
+      session.userId,
+      setMyStatus,
+    );
+    return () => unsub();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- use stable primitives
+  }, [id, session?.userId]);
+
+  // Once collab loads: host subscribes to all participants; non-host requests to join
   useEffect(() => {
     if (!id || !session || !collab) return;
-    const isHostUser = collab.startedBy === session.userId;
-    if (isHostUser) {
+    if (collab.startedBy === session.userId) {
       const unsub = subscribeParticipants(id, setParticipants);
       return () => unsub();
     } else {
-      // Request to join (no-op if already exists)
       requestToJoin(id, session.userId, session.displayName, session.email);
-      const unsub = subscribeMyParticipantStatus(
-        id,
-        session.userId,
-        setMyStatus,
-      );
-      return () => unsub();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- use stable primitives to avoid tearing down the Firestore subscription on every render
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- use stable primitives
   }, [id, session?.userId, collab?.startedBy]);
 
   const activityTick = useMemo(() => {
