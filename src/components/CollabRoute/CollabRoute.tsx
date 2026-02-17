@@ -234,113 +234,23 @@ export default function CollabRoute() {
 
   return (
     <div className={styles.collabContainer}>
-      {/* Header */}
-      <div className={styles.collabHeader}>
-        <div className={styles.collabHeaderLeft}>
-          <NotesLogo tick={collab.paused ? 0 : activityTick} />
-          <span className={styles.collabHeaderTitle}>{collab.title}</span>
-          <span className={styles.collabHeaderMeta}>
-            {isHost ? (
-              "You are the host."
-            ) : (
-              <>
-                Hosted by <b>{collab.startedByName}</b>
-              </>
-            )}
-          </span>
-        </div>
-        <div className={styles.collabHeaderActions}>
-          {!collab.active && (
-            <span className={styles.badgeStopped}>Stopped</span>
-          )}
-          {collab.paused && collab.active && (
-            <span className={styles.badgePaused}>Input paused</span>
-          )}
-          {isHost && collab.active && (
-            <>
-              <div
-                className={styles.noteTypeSettingsContainer}
-                ref={noteTypeSettingsRef}
-              >
-                <button
-                  onClick={() => setShowNoteTypeSettings(!showNoteTypeSettings)}
-                  className={styles.buttonNoteTypes}
-                >
-                  Manage note types {showNoteTypeSettings ? "▲" : "▼"}
-                </button>
-                {showNoteTypeSettings && (
-                  <div className={styles.noteTypeSettingsDropdown}>
-                    <div className={styles.noteTypeSettingsHeader}>
-                      Note types:
-                    </div>
-                    {NOTE_TYPES.filter((type) => type !== "Host note").map(
-                      (type) => {
-                        const isEnabled = allowedNoteTypes.includes(type);
-                        return (
-                          <label
-                            key={type}
-                            className={styles.noteTypeSettingsOption}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={isEnabled}
-                              onChange={() =>
-                                toggleNoteTypeInCollab(type, !isEnabled)
-                              }
-                            />
-                            <span>{type}</span>
-                          </label>
-                        );
-                      },
-                    )}
-                  </div>
-                )}
-              </div>
-              <div
-                className={styles.noteTypeSettingsContainer}
-                ref={hostActionsRef}
-              >
-                <button
-                  onClick={() => setShowHostActions(!showHostActions)}
-                  className={styles.buttonNoteTypes}
-                >
-                  Host actions {showHostActions ? "▲" : "▼"}
-                </button>
-                {showHostActions && (
-                  <div className={styles.noteTypeSettingsDropdown}>
-                    <button
-                      onClick={handleToggleAuthorNames}
-                      className={styles.noteTypeSettingsOption}
-                    >
-                      {collab.showAuthorNames !== false
-                        ? "Hide author names"
-                        : "Show author names"}
-                    </button>
-                    <button
-                      onClick={handleEndCollaboration}
-                      className={styles.noteTypeSettingsOption}
-                      style={{ color: "#dc2626" }}
-                    >
-                      End collaboration
-                    </button>
-                  </div>
-                )}
-              </div>
-              <button
-                onClick={handleTogglePause}
-                className={styles.buttonPause}
-                data-paused={collab.paused}
-              >
-                {collab.paused ? "Resume" : "Pause"}
-              </button>
-            </>
-          )}
-          <div className={styles.userMenu}>
-            <span className={styles.userEmail}>{session.email}</span>
-            <Link to="/logout" className={styles.buttonLogout}>Sign out</Link>
-          </div>
-        </div>
-      </div>
+      <CollabHeader
+        collab={collab}
+        session={session}
+        isHost={isHost}
+        activityTick={activityTick}
+        allowedNoteTypes={allowedNoteTypes}
+        showNoteTypeSettings={showNoteTypeSettings}
+        onToggleNoteTypeSettings={() => setShowNoteTypeSettings(!showNoteTypeSettings)}
+        noteTypeSettingsRef={noteTypeSettingsRef}
+        onToggleNoteType={toggleNoteTypeInCollab}
+        showHostActions={showHostActions}
+        onToggleHostActions={() => setShowHostActions(!showHostActions)}
+        hostActionsRef={hostActionsRef}
+        onToggleAuthorNames={handleToggleAuthorNames}
+        onEndCollaboration={handleEndCollaboration}
+        onTogglePause={handleTogglePause}
+      />
 
       {/* Two-column layout */}
       <div className={styles.collabLayout}>
@@ -359,6 +269,187 @@ export default function CollabRoute() {
           allowedNoteTypes={allowedNoteTypes}
         />
       </div>
+    </div>
+  );
+}
+
+// --- Subcomponents ---
+
+function CollabHeader({
+  collab,
+  session,
+  isHost,
+  activityTick,
+  allowedNoteTypes,
+  showNoteTypeSettings,
+  onToggleNoteTypeSettings,
+  noteTypeSettingsRef,
+  onToggleNoteType,
+  showHostActions,
+  onToggleHostActions,
+  hostActionsRef,
+  onToggleAuthorNames,
+  onEndCollaboration,
+  onTogglePause,
+}: {
+  collab: Collaboration;
+  session: { email: string };
+  isHost: boolean;
+  activityTick: number;
+  allowedNoteTypes: NoteType[];
+  showNoteTypeSettings: boolean;
+  onToggleNoteTypeSettings: () => void;
+  noteTypeSettingsRef: React.RefObject<HTMLDivElement | null>;
+  onToggleNoteType: (type: NoteType, enable: boolean) => void;
+  showHostActions: boolean;
+  onToggleHostActions: () => void;
+  hostActionsRef: React.RefObject<HTMLDivElement | null>;
+  onToggleAuthorNames: () => void;
+  onEndCollaboration: () => void;
+  onTogglePause: () => void;
+}) {
+  return (
+    <div className={styles.collabHeader}>
+      <div className={styles.collabHeaderLeft}>
+        <NotesLogo tick={collab.paused ? 0 : activityTick} />
+        <span className={styles.collabHeaderTitle}>{collab.title}</span>
+        <span className={styles.collabHeaderMeta}>
+          {isHost ? (
+            "You are the host."
+          ) : (
+            <>
+              Hosted by <b>{collab.startedByName}</b>
+            </>
+          )}
+        </span>
+      </div>
+      <div className={styles.collabHeaderActions}>
+        {!collab.active && (
+          <span className={styles.badgeStopped}>Stopped</span>
+        )}
+        {collab.paused && collab.active && (
+          <span className={styles.badgePaused}>Input paused</span>
+        )}
+        {isHost && collab.active && (
+          <>
+            <NoteTypeSettingsDropdown
+              allowedNoteTypes={allowedNoteTypes}
+              showDropdown={showNoteTypeSettings}
+              onToggleDropdown={onToggleNoteTypeSettings}
+              dropdownRef={noteTypeSettingsRef}
+              onToggleNoteType={onToggleNoteType}
+            />
+            <HostActionsDropdown
+              collab={collab}
+              showDropdown={showHostActions}
+              onToggleDropdown={onToggleHostActions}
+              dropdownRef={hostActionsRef}
+              onToggleAuthorNames={onToggleAuthorNames}
+              onEndCollaboration={onEndCollaboration}
+            />
+            <button
+              onClick={onTogglePause}
+              className={styles.buttonPause}
+              data-paused={collab.paused}
+            >
+              {collab.paused ? "Resume" : "Pause"}
+            </button>
+          </>
+        )}
+        <div className={styles.userMenu}>
+          <span className={styles.userEmail}>{session.email}</span>
+          <Link to="/logout" className={styles.buttonLogout}>Sign out</Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NoteTypeSettingsDropdown({
+  allowedNoteTypes,
+  showDropdown,
+  onToggleDropdown,
+  dropdownRef,
+  onToggleNoteType,
+}: {
+  allowedNoteTypes: NoteType[];
+  showDropdown: boolean;
+  onToggleDropdown: () => void;
+  dropdownRef: React.RefObject<HTMLDivElement | null>;
+  onToggleNoteType: (type: NoteType, enable: boolean) => void;
+}) {
+  return (
+    <div className={styles.noteTypeSettingsContainer} ref={dropdownRef}>
+      <button
+        onClick={onToggleDropdown}
+        className={styles.buttonNoteTypes}
+      >
+        Manage note types {showDropdown ? "▲" : "▼"}
+      </button>
+      {showDropdown && (
+        <div className={styles.noteTypeSettingsDropdown}>
+          <div className={styles.noteTypeSettingsHeader}>Note types:</div>
+          {NOTE_TYPES.filter((type) => type !== "Host note").map((type) => {
+            const isEnabled = allowedNoteTypes.includes(type);
+            return (
+              <label key={type} className={styles.noteTypeSettingsOption}>
+                <input
+                  type="checkbox"
+                  checked={isEnabled}
+                  onChange={() => onToggleNoteType(type, !isEnabled)}
+                />
+                <span>{type}</span>
+              </label>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function HostActionsDropdown({
+  collab,
+  showDropdown,
+  onToggleDropdown,
+  dropdownRef,
+  onToggleAuthorNames,
+  onEndCollaboration,
+}: {
+  collab: Collaboration;
+  showDropdown: boolean;
+  onToggleDropdown: () => void;
+  dropdownRef: React.RefObject<HTMLDivElement | null>;
+  onToggleAuthorNames: () => void;
+  onEndCollaboration: () => void;
+}) {
+  return (
+    <div className={styles.noteTypeSettingsContainer} ref={dropdownRef}>
+      <button
+        onClick={onToggleDropdown}
+        className={styles.buttonNoteTypes}
+      >
+        Host actions {showDropdown ? "▲" : "▼"}
+      </button>
+      {showDropdown && (
+        <div className={styles.noteTypeSettingsDropdown}>
+          <button
+            onClick={onToggleAuthorNames}
+            className={styles.noteTypeSettingsOption}
+          >
+            {collab.showAuthorNames !== false
+              ? "Hide author names"
+              : "Show author names"}
+          </button>
+          <button
+            onClick={onEndCollaboration}
+            className={styles.noteTypeSettingsOption}
+            style={{ color: "#dc2626" }}
+          >
+            End collaboration
+          </button>
+        </div>
+      )}
     </div>
   );
 }

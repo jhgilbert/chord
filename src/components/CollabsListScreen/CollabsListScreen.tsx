@@ -69,133 +69,156 @@ export default function CollabsListScreen() {
         Logged in as: <b>{session.displayName}</b>
       </p>
       {collabs.length === 0 ? (
-        <div style={{ marginTop: "32px", textAlign: "center" }}>
-          <p style={{ marginBottom: "16px" }}>
-            You haven't created any collaborations yet.
-          </p>
-          <button
-            onClick={() => navigate("/")}
-            className={styles.actionButton}
-          >
-            Create collaboration
-          </button>
-        </div>
+        <EmptyState onNavigate={() => navigate("/")} />
       ) : (
-        <div style={{ marginTop: "32px", width: "100%", maxWidth: "1000px" }}>
-          <div
-            style={{
-              marginBottom: "16px",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <h2 style={{ margin: 0, fontSize: "18px" }}>
-              Your Collaborations ({collabs.length})
-            </h2>
-            <button
-              onClick={() => navigate("/")}
-              className={styles.actionButton}
-              style={{ padding: "8px 16px", fontSize: "14px" }}
-            >
-              Create new
-            </button>
-          </div>
-          <table className={styles.collabsTable}>
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Prompt</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {collabs.map((collab) => {
-                const tempDiv = document.createElement("div");
-                tempDiv.innerHTML = collab.prompt.replace(/&nbsp;/g, " ");
-                const promptText = (
-                  tempDiv.textContent ||
-                  tempDiv.innerText ||
-                  ""
-                ).trim();
-                const truncatedPrompt =
-                  promptText.length > 100
-                    ? promptText.substring(0, 100) + "..."
-                    : promptText;
-
-                let createdDate = "Unknown";
-                if (collab.startedAt) {
-                  const time = collab.startedAt as unknown as
-                    | { toDate?: () => Date }
-                    | number;
-                  if (typeof time === "object" && time.toDate) {
-                    createdDate = time.toDate().toLocaleDateString();
-                  } else if (typeof time === "number") {
-                    createdDate = new Date(time).toLocaleDateString();
-                  }
-                }
-
-                return (
-                  <tr key={collab.id}>
-                    <td style={{ fontWeight: 600 }}>{collab.title}</td>
-                    <td style={{ fontSize: "13px", color: "#666" }}>
-                      {truncatedPrompt}
-                    </td>
-                    <td>
-                      {collab.active ? (
-                        <span style={{ color: "#16a34a", fontWeight: 600 }}>
-                          Active
-                        </span>
-                      ) : (
-                        <span style={{ color: "#9ca3af", fontWeight: 600 }}>
-                          Ended
-                        </span>
-                      )}
-                    </td>
-                    <td style={{ fontSize: "13px", color: "#666" }}>
-                      {createdDate}
-                    </td>
-                    <td style={{ display: "flex", gap: "6px" }}>
-                      <button
-                        onClick={() => navigate(`/collabs/${collab.id}`)}
-                        style={{
-                          padding: "6px 12px",
-                          fontSize: "13px",
-                          background: "#0066cc",
-                          color: "#fff",
-                          border: "none",
-                          borderRadius: "4px",
-                          cursor: "pointer",
-                          fontWeight: 600,
-                        }}
-                      >
-                        View
-                      </button>
-                      <button
-                        onClick={() => navigate(`/collabs/${collab.id}/users`)}
-                        style={{
-                          padding: "6px 12px",
-                          fontSize: "13px",
-                          background: "#374151",
-                          color: "#fff",
-                          border: "none",
-                          borderRadius: "4px",
-                          cursor: "pointer",
-                          fontWeight: 600,
-                        }}
-                      >
-                        Users
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <CollabsTable collabs={collabs} onNavigate={navigate} />
       )}
     </div>
   );
+}
+
+// --- Subcomponents ---
+
+function EmptyState({ onNavigate }: { onNavigate: () => void }) {
+  return (
+    <div style={{ marginTop: "32px", textAlign: "center" }}>
+      <p style={{ marginBottom: "16px" }}>
+        You haven't created any collaborations yet.
+      </p>
+      <button onClick={onNavigate} className={styles.actionButton}>
+        Create collaboration
+      </button>
+    </div>
+  );
+}
+
+function CollabsTable({
+  collabs,
+  onNavigate,
+}: {
+  collabs: Collaboration[];
+  onNavigate: (path: string) => void;
+}) {
+  return (
+    <div style={{ marginTop: "32px", width: "100%", maxWidth: "1000px" }}>
+      <div
+        style={{
+          marginBottom: "16px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <h2 style={{ margin: 0, fontSize: "18px" }}>
+          Your Collaborations ({collabs.length})
+        </h2>
+        <button
+          onClick={() => onNavigate("/")}
+          className={styles.actionButton}
+          style={{ padding: "8px 16px", fontSize: "14px" }}
+        >
+          Create new
+        </button>
+      </div>
+      <table className={styles.collabsTable}>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Prompt</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {collabs.map((collab) => (
+            <CollabRow
+              key={collab.id}
+              collab={collab}
+              onNavigate={onNavigate}
+            />
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function CollabRow({
+  collab,
+  onNavigate,
+}: {
+  collab: Collaboration;
+  onNavigate: (path: string) => void;
+}) {
+  const truncatedPrompt = truncateHtml(collab.prompt, 100);
+  const createdDate = formatCollabDate(collab.startedAt);
+
+  return (
+    <tr>
+      <td style={{ fontWeight: 600 }}>{collab.title}</td>
+      <td style={{ fontSize: "13px", color: "#666" }}>{truncatedPrompt}</td>
+      <td>
+        {collab.active ? (
+          <span style={{ color: "#16a34a", fontWeight: 600 }}>Active</span>
+        ) : (
+          <span style={{ color: "#9ca3af", fontWeight: 600 }}>Ended</span>
+        )}
+      </td>
+      <td style={{ fontSize: "13px", color: "#666" }}>{createdDate}</td>
+      <td style={{ display: "flex", gap: "6px" }}>
+        <button
+          onClick={() => onNavigate(`/collabs/${collab.id}`)}
+          style={{
+            padding: "6px 12px",
+            fontSize: "13px",
+            background: "#0066cc",
+            color: "#fff",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+            fontWeight: 600,
+          }}
+        >
+          View
+        </button>
+        <button
+          onClick={() => onNavigate(`/collabs/${collab.id}/users`)}
+          style={{
+            padding: "6px 12px",
+            fontSize: "13px",
+            background: "#374151",
+            color: "#fff",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+            fontWeight: 600,
+          }}
+        >
+          Users
+        </button>
+      </td>
+    </tr>
+  );
+}
+
+// --- Helper functions ---
+
+function truncateHtml(html: string, maxLength: number): string {
+  const tempDiv = document.createElement("div");
+  tempDiv.innerHTML = html.replace(/&nbsp;/g, " ");
+  const text = (tempDiv.textContent || tempDiv.innerText || "").trim();
+  return text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
+}
+
+function formatCollabDate(startedAt: unknown): string {
+  if (!startedAt) return "Unknown";
+  const time = startedAt as { toDate?: () => Date } | number;
+  if (typeof time === "object" && time.toDate) {
+    return time.toDate().toLocaleDateString();
+  }
+  if (typeof time === "number") {
+    return new Date(time).toLocaleDateString();
+  }
+  return "Unknown";
 }

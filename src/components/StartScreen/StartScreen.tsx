@@ -122,116 +122,10 @@ export default function StartScreen() {
         </div>
         <div className={styles.noteTypesSelection}>
           <label className={styles.noteTypesLabel}>Allowed note types</label>
-          <div style={{ marginBottom: "16px", display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
-            <span style={{ fontSize: "13px", color: "#666" }}>
-              Quick presets:
-            </span>
-              {(() => {
-                const discussionPreset: NoteType[] = [
-                  "Question",
-                  "Statement",
-                  "Recommendation",
-                ];
-                const retroPreset: NoteType[] = [
-                  "Positive feedback",
-                  "Constructive feedback",
-                ];
-                const qaPreset: NoteType[] = ["Question"];
-
-                const arraysMatch = (a: NoteType[], b: NoteType[]) =>
-                  a.length === b.length &&
-                  a.every((item) => b.includes(item)) &&
-                  b.every((item) => a.includes(item));
-
-                const isDiscussionActive = arraysMatch(
-                  allowedNoteTypes,
-                  discussionPreset,
-                );
-                const isRetroActive = arraysMatch(
-                  allowedNoteTypes,
-                  retroPreset,
-                );
-                const isQAActive = arraysMatch(allowedNoteTypes, qaPreset);
-
-                return (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => setAllowedNoteTypes(discussionPreset)}
-                      style={{
-                        padding: "4px 10px",
-                        fontSize: "14px",
-                        cursor: "pointer",
-                        border: isDiscussionActive
-                          ? "2px solid var(--color-sky-blue)"
-                          : "1px solid var(--color-sky-blue)",
-                        borderRadius: "6px",
-                        backgroundColor: isDiscussionActive
-                          ? "var(--color-sky-blue)"
-                          : "#e8f2fe",
-                        color: isDiscussionActive
-                          ? "#ffffff"
-                          : "var(--color-sky-blue)",
-                        fontWeight: isDiscussionActive ? "600" : "500",
-                        boxShadow: isDiscussionActive
-                          ? "0 2px 4px rgba(72,149,239,0.3)"
-                          : "none",
-                      }}
-                    >
-                      Discussion
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setAllowedNoteTypes(retroPreset)}
-                      style={{
-                        padding: "4px 10px",
-                        fontSize: "14px",
-                        cursor: "pointer",
-                        border: isRetroActive
-                          ? "2px solid var(--color-sky-blue)"
-                          : "1px solid var(--color-sky-blue)",
-                        borderRadius: "6px",
-                        backgroundColor: isRetroActive
-                          ? "var(--color-sky-blue)"
-                          : "#e8f2fe",
-                        color: isRetroActive
-                          ? "#ffffff"
-                          : "var(--color-sky-blue)",
-                        fontWeight: isRetroActive ? "600" : "500",
-                        boxShadow: isRetroActive
-                          ? "0 2px 4px rgba(72,149,239,0.3)"
-                          : "none",
-                      }}
-                    >
-                      Retro
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setAllowedNoteTypes(qaPreset)}
-                      style={{
-                        padding: "4px 10px",
-                        fontSize: "14px",
-                        cursor: "pointer",
-                        border: isQAActive
-                          ? "2px solid var(--color-sky-blue)"
-                          : "1px solid var(--color-sky-blue)",
-                        borderRadius: "6px",
-                        backgroundColor: isQAActive
-                          ? "var(--color-sky-blue)"
-                          : "#e8f2fe",
-                        color: isQAActive ? "#ffffff" : "var(--color-sky-blue)",
-                        fontWeight: isQAActive ? "600" : "500",
-                        boxShadow: isQAActive
-                          ? "0 2px 4px rgba(72,149,239,0.3)"
-                          : "none",
-                      }}
-                    >
-                      Q & A
-                    </button>
-                  </>
-                );
-              })()}
-          </div>
+          <PresetButtons
+            allowedNoteTypes={allowedNoteTypes}
+            onSelect={setAllowedNoteTypes}
+          />
           <div className={styles.noteTypesCheckboxes}>
             {NOTE_TYPES.filter((type) => type !== "Host note").map((type) => (
               <label key={type} className={styles.noteTypeCheckbox}>
@@ -253,4 +147,65 @@ export default function StartScreen() {
       </form>
     </div>
   );
+}
+
+// --- Subcomponents ---
+
+const PRESETS: { label: string; types: NoteType[] }[] = [
+  { label: "Discussion", types: ["Question", "Statement", "Recommendation"] },
+  { label: "Retro", types: ["Positive feedback", "Constructive feedback"] },
+  { label: "Q & A", types: ["Question"] },
+];
+
+function PresetButtons({
+  allowedNoteTypes,
+  onSelect,
+}: {
+  allowedNoteTypes: NoteType[];
+  onSelect: (types: NoteType[]) => void;
+}) {
+  return (
+    <div style={{ marginBottom: "16px", display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
+      <span style={{ fontSize: "13px", color: "#666" }}>Quick presets:</span>
+      {PRESETS.map((preset) => {
+        const isActive = arraysMatch(allowedNoteTypes, preset.types);
+        return (
+          <button
+            key={preset.label}
+            type="button"
+            onClick={() => onSelect(preset.types)}
+            style={getPresetButtonStyle(isActive)}
+          >
+            {preset.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// --- Helper functions ---
+
+function arraysMatch(a: NoteType[], b: NoteType[]): boolean {
+  return (
+    a.length === b.length &&
+    a.every((item) => b.includes(item)) &&
+    b.every((item) => a.includes(item))
+  );
+}
+
+function getPresetButtonStyle(isActive: boolean): React.CSSProperties {
+  return {
+    padding: "4px 10px",
+    fontSize: "14px",
+    cursor: "pointer",
+    border: isActive
+      ? "2px solid var(--color-sky-blue)"
+      : "1px solid var(--color-sky-blue)",
+    borderRadius: "6px",
+    backgroundColor: isActive ? "var(--color-sky-blue)" : "#e8f2fe",
+    color: isActive ? "#ffffff" : "var(--color-sky-blue)",
+    fontWeight: isActive ? "600" : "500",
+    boxShadow: isActive ? "0 2px 4px rgba(72,149,239,0.3)" : "none",
+  };
 }
