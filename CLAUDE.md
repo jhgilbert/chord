@@ -15,6 +15,10 @@ Examples:
 
 When such an extraction would make the code harder for robots (and maybe even humans) to read, skip it.
 
+## Linting
+
+After you finish editing code, run eslint on it and fix any errors.
+
 ## Refactoring
 
 After you update a file's code, give it a scan for.
