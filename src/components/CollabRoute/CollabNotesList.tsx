@@ -192,9 +192,9 @@ export default function CollabNotesList({
               sessionId={session.userId}
               displayName={session.displayName}
               canDelete={
+                isHost &&
                 !collab.paused &&
                 collab.active &&
-                n.createdBy === session.userId &&
                 (!n.responses || n.responses.length === 0)
               }
               canReact={

@@ -44,6 +44,12 @@ The host sees the same notes in their All view.
 
 ![Host views all notes](collaboration.spec.ts-snapshots/host-views-all-notes-chromium-darwin.png)
 
+## Editing notes
+
+Participants can edit their own notes. Here, Frank fixes a typo in his pizza recommendation. The original text is preserved in a collapsible **edit history**.
+
+![Participant edits a note](collaboration.spec.ts-snapshots/participant-frank-edits-note-chromium-darwin.png)
+
 ## Responding to notes
 
 The host can respond to any note with a threaded comment. Here, the host replies to Alfie's question: *"7 PM. Dinner is at the same time every day, Alfie."* The host also upvotes Frank's recommendation about spicy foods.

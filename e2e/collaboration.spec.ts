@@ -238,9 +238,37 @@ test("host starts a collaboration", async ({ page, browser }) => {
   // Frank adds a Recommendation (panel still open from his first post)
   const frankEditor2 = frankPage.locator(".ql-editor").first();
   await frankEditor2.click();
-  await frankEditor2.fill("We should get pizza.");
+  await frankEditor2.fill("We should get piza.");
   await frankPage.getByRole("button", { name: "Post note" }).click();
+  await expect(frankPage.getByText("We should get piza.")).toBeVisible();
+
+  // Frank edits his note to fix the typo
+  const frankPizaNote = frankPage.locator('[data-testid="note"]').filter({
+    hasText: "We should get piza.",
+  });
+  await frankPizaNote.hover();
+  await frankPizaNote.getByLabel("Edit note").click();
+  // The edit editor is inside the note, but filling it changes the note text,
+  // so we grab the Save button from the page level (only one note is in edit mode)
+  const frankEditEditor = frankPage
+    .locator('[data-testid="note"] .ql-editor')
+    .first();
+  await frankEditEditor.click();
+  await frankEditEditor.fill("We should get pizza.");
+  await frankPage.getByRole("button", { name: "Save" }).click();
+
+  // Verify the edited text and edit history
   await expect(frankPage.getByText("We should get pizza.")).toBeVisible();
+  await expect(frankPage.getByText("We should get piza.")).not.toBeVisible();
+  const frankEditedNote = frankPage.locator('[data-testid="note"]').filter({
+    hasText: "We should get pizza.",
+  });
+  await expect(
+    frankEditedNote.getByText("Show edit history (1 version)"),
+  ).toBeVisible();
+
+  // Screenshot: Frank edits his note
+  await expect(frankPage).toHaveScreenshot("participant-frank-edits-note.png");
 
   // Host adds a Recommendation via the sidebar panel
   await page.getByRole("button", { name: "Recommendation" }).click();
