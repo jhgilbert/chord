@@ -8,6 +8,8 @@ Chord performs three main tasks:
 - Allow participants to react to each other's notes.
 - Create a text artifact from that collaboration that can be copy-pasted into a Google Doc or Markdown file.
 
+Wondering how I keep Claude in line? See [Quality assurance](#quality-assurance).
+
 ## How it works: A story about dinner
 
 ### 1. The host creates a collaboration
@@ -82,6 +84,14 @@ At the bottom of the report is the full timeline of the collaboration:
 Nobody wants to sift through a collaboration app for information later.
 
 The collaboration report can be copied as Markdown or Google-Doc-friendly HTML, so the project can progress however it needs to from here.
+
+Looking for even more detail? See the [detailed demo](e2e/README.md) generated from the end-to-end tests.
+
+## Quality assurance
+
+I use Playwright for end-to-end testing that uses screenshots to compare the new UI to the old UI. These e2e tests have a corresponding demo file that walks me through the full narrative.
+
+Because the demo file uses test-generated screenshots, its images are always up to date. As long as that file looks the way it should, I can be reasonably confident that the app's features are working as intended.
 
 ## Security measures
 
