@@ -45,6 +45,11 @@
   cursor: not-allowed;
 }
 
+.logoWrapper {
+  position: relative;
+  left: -2px;
+}
+
 .loginActions {
   margin-top: 64px;
   display: flex;

@@ -30,7 +30,9 @@ export default function LoginScreen() {
 
   return (
     <div className={styles.loginScreen}>
-      <Logo />
+      <div className={styles.logoWrapper}>
+        <Logo />
+      </div>
       <div className={styles.loginActions}>
         <button
           onClick={handleSignIn}
