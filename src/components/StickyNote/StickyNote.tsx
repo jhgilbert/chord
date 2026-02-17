@@ -95,7 +95,7 @@ export default function StickyNote({
     ).catch(console.error);
   };
 
-  const getReactionOpacity = (_r: Reaction) => {
+  const getReactionOpacity = () => {
     if (paused || note.createdBy === sessionId) return 0.4;
     return 1;
   };
@@ -287,7 +287,7 @@ export default function StickyNote({
               data-active={myReaction === "agree"}
               data-paused={paused || note.createdBy === sessionId}
               title="Upvote"
-              style={{ opacity: getReactionOpacity("agree") }}
+              style={{ opacity: getReactionOpacity() }}
             >
               ➕ <span>{counts.agree}</span>
             </button>
@@ -317,7 +317,7 @@ export default function StickyNote({
             data-active={myReaction === "markRead"}
             data-paused={paused || note.createdBy === sessionId}
             title="Mark as read"
-            style={{ opacity: getReactionOpacity("markRead") }}
+            style={{ opacity: getReactionOpacity() }}
           >
             📖 <span>{counts.markRead}</span>
           </button>
@@ -600,7 +600,7 @@ export default function StickyNote({
                     responseCounts[myResponseReaction] = 1;
                   }
 
-                  const getResponseReactionOpacity = (_r: Reaction) => {
+                  const getResponseReactionOpacity = () => {
                     return 1;
                   };
 
