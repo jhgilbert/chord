@@ -204,6 +204,7 @@ export default function StickyNote({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       className={styles.stickyNote}
+      data-testid="note"
       data-own={note.createdBy === sessionId}
       data-grouped={isGrouped}
       draggable={canDrag}
@@ -451,6 +452,7 @@ function ActionBar({
           data-active={myReaction === "agree"}
           data-paused={paused || note.createdBy === sessionId}
           title="Upvote"
+          data-testid="upvote"
           style={{ opacity: reactionOpacity }}
         >
           ➕ <span>{counts.agree}</span>
