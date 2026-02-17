@@ -35,7 +35,9 @@ export default function CollabNotesList({
     new Set(NOTE_TYPES.filter((t) => t !== "Host note")),
   );
   const [showNoteTypeFilter, setShowNoteTypeFilter] = useState(false);
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc" | "upvotes">("desc");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc" | "upvotes">(
+    "desc",
+  );
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [draggedNoteId, setDraggedNoteId] = useState<string | null>(null);
   const [respondingToNoteId, setRespondingToNoteId] = useState<string | null>(
@@ -132,8 +134,12 @@ export default function CollabNotesList({
   const effectiveSortOrder = filter === "Inbox" ? "asc" : sortOrder;
   if (effectiveSortOrder === "upvotes") {
     visibleNotes = [...visibleNotes].sort((a, b) => {
-      const aCount = Object.values(a.reactions ?? {}).filter((r) => r === "agree").length;
-      const bCount = Object.values(b.reactions ?? {}).filter((r) => r === "agree").length;
+      const aCount = Object.values(a.reactions ?? {}).filter(
+        (r) => r === "agree",
+      ).length;
+      const bCount = Object.values(b.reactions ?? {}).filter(
+        (r) => r === "agree",
+      ).length;
       return bCount - aCount;
     });
   } else if (effectiveSortOrder === "desc") {
@@ -255,7 +261,9 @@ export default function CollabNotesList({
         <div className={styles.sortOrderContainer}>
           <select
             value={filter === "Inbox" ? "asc" : sortOrder}
-            onChange={(e) => setSortOrder(e.target.value as "asc" | "desc" | "upvotes")}
+            onChange={(e) =>
+              setSortOrder(e.target.value as "asc" | "desc" | "upvotes")
+            }
             className={styles.filterButton}
             data-active={sortOrder !== "desc"}
             disabled={filter === "Inbox"}
@@ -272,6 +280,21 @@ export default function CollabNotesList({
         </div>
       </div>
       <div className={styles.notesList}>
+        {filter === "Mine" && displayNotes.length === 0 && !collab.paused && (
+          <div className={styles.hintText}>
+            <p>
+              Only your notes appear here.
+              <br />
+              Use the sidebar to add your thoughts to the conversation.
+            </p>
+            <br />
+            <p>
+              When you're finished adding notes, click <strong>Inbox</strong>{" "}
+              <br />
+              to start reacting to others' notes.
+            </p>
+          </div>
+        )}
         {displayNotes.map(({ note: n, isGrouped, groupDepth, isParent }) => (
           <div
             key={n.id}
