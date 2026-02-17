@@ -8,6 +8,7 @@ import {
   setReaction,
   setResponseReaction,
   toggleArchive,
+  toggleDuplicate,
   votePoll,
   type Note,
   type NoteResponse,
@@ -251,6 +252,7 @@ export default function StickyNote({
           canDelete={canDelete}
           canReact={canReact}
           canArchive={canArchive}
+          isHost={isHost}
           myReaction={myReaction}
           counts={counts}
           reactionOpacity={reactionOpacity}
@@ -365,6 +367,7 @@ function ActionBar({
   canDelete,
   canReact,
   canArchive,
+  isHost,
   myReaction,
   counts,
   reactionOpacity,
@@ -384,6 +387,7 @@ function ActionBar({
   canDelete: boolean;
   canReact: boolean;
   canArchive?: boolean;
+  isHost?: boolean;
   myReaction: Reaction | null;
   counts: { agree: number; disagree: number; markRead: number };
   reactionOpacity: number;
@@ -439,6 +443,29 @@ function ActionBar({
           style={{ opacity: hovered ? 1 : 0 }}
         >
           {note.archived ? "📂" : "🗄️"}
+        </button>
+      )}
+      {isHost && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleDuplicate(
+              collaborationId,
+              note.id,
+              !!note.markedDuplicate,
+            ).catch(console.error);
+          }}
+          className={styles.actionButton}
+          data-active={!!note.markedDuplicate}
+          aria-label={
+            note.markedDuplicate ? "Unmark duplicate" : "Mark as duplicate"
+          }
+          title={
+            note.markedDuplicate ? "Unmark duplicate" : "Mark as duplicate"
+          }
+          style={{ opacity: hovered ? 1 : 0 }}
+        >
+          👯
         </button>
       )}
       {note.type !== "Poll" && (
@@ -511,6 +538,9 @@ function BadgeRow({
       </span>
       {note.createdBy === sessionId && !hideYouBadge && (
         <span className={styles.badgeYou}>You</span>
+      )}
+      {note.markedDuplicate && (
+        <span className={styles.badgeDuplicate}>Duplicate</span>
       )}
       {showAuthorNames !== false && (
         <span className={styles.badgeName}>{note.createdByName}</span>

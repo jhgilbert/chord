@@ -10,6 +10,7 @@ vi.mock("../../../notes", async (importOriginal) => {
     ...actual,
     setReaction: vi.fn(() => Promise.resolve()),
     toggleArchive: vi.fn(() => Promise.resolve()),
+    toggleDuplicate: vi.fn(() => Promise.resolve()),
     editNote: vi.fn(() => Promise.resolve()),
     addResponse: vi.fn(() => Promise.resolve()),
     setResponseReaction: vi.fn(() => Promise.resolve()),
@@ -192,6 +193,60 @@ describe("StickyNote", () => {
     );
     await user.click(screen.getByLabelText("Archive"));
     expect(toggleArchive).toHaveBeenCalledWith("collab-1", "note-1", false);
+  });
+
+  // --- Duplicate marking ---
+
+  it("shows DUPLICATE badge when note is marked as duplicate", () => {
+    render(
+      <StickyNote
+        {...baseProps}
+        note={makeNote({ markedDuplicate: true })}
+      />,
+    );
+    expect(screen.getByText("Duplicate")).toBeInTheDocument();
+  });
+
+  it("hides DUPLICATE badge when note is not marked as duplicate", () => {
+    render(<StickyNote {...baseProps} note={makeNote()} />);
+    expect(screen.queryByText("Duplicate")).not.toBeInTheDocument();
+  });
+
+  it("shows 'Mark as duplicate' button for host", () => {
+    render(
+      <StickyNote {...baseProps} note={makeNote()} isHost />,
+    );
+    expect(screen.getByLabelText("Mark as duplicate")).toBeInTheDocument();
+  });
+
+  it("hides 'Mark as duplicate' button for non-host", () => {
+    render(
+      <StickyNote {...baseProps} note={makeNote()} />,
+    );
+    expect(
+      screen.queryByLabelText("Mark as duplicate"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows 'Unmark duplicate' label when note is already marked", () => {
+    render(
+      <StickyNote
+        {...baseProps}
+        note={makeNote({ markedDuplicate: true })}
+        isHost
+      />,
+    );
+    expect(screen.getByLabelText("Unmark duplicate")).toBeInTheDocument();
+  });
+
+  it("calls toggleDuplicate when duplicate button is clicked", async () => {
+    const user = userEvent.setup();
+    const { toggleDuplicate } = await import("../../../notes");
+    render(
+      <StickyNote {...baseProps} note={makeNote()} isHost />,
+    );
+    await user.click(screen.getByLabelText("Mark as duplicate"));
+    expect(toggleDuplicate).toHaveBeenCalledWith("collab-1", "note-1", false);
   });
 
   // --- Reactions ---

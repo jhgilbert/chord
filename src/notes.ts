@@ -41,6 +41,7 @@ export type Note = {
   editHistory?: NoteVersion[]; // previous versions
   responses?: NoteResponse[]; // responses to this note
   archived?: boolean; // whether the note is archived
+  markedDuplicate?: boolean; // whether the host has marked this as a duplicate
   assignee?: string; // for action items
   dueDate?: string; // for action items (ISO date string)
   pollOptions?: string[]; // for polls: the available options
@@ -220,6 +221,19 @@ export async function toggleArchive(
     doc(db, "collaborations", collaborationId, "notes", noteId),
     {
       archived: archived ? deleteField() : true,
+    },
+  );
+}
+
+export async function toggleDuplicate(
+  collaborationId: string,
+  noteId: string,
+  markedDuplicate: boolean,
+) {
+  await updateDoc(
+    doc(db, "collaborations", collaborationId, "notes", noteId),
+    {
+      markedDuplicate: markedDuplicate ? deleteField() : true,
     },
   );
 }
