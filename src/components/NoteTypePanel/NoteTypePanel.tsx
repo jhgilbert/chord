@@ -34,8 +34,7 @@ export default function NoteTypePanel({
   const [pollOptions, setPollOptions] = useState<string[]>(["", ""]);
   const [pollMultipleChoice, setPollMultipleChoice] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     const isEmpty = value === "" || value === "<p><br></p>";
     if (isEmpty) return;
 
@@ -88,7 +87,7 @@ export default function NoteTypePanel({
         </button>
 
         {isOpen && !disabled && (
-          <form onSubmit={handleSubmit} className={styles.noteTypePanelForm}>
+          <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className={styles.noteTypePanelForm}>
             <ReactQuill
               theme="snow"
               value={value}
