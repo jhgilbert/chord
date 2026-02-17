@@ -65,6 +65,30 @@ export default function CollabSidebar({
         pollMultipleChoice,
       );
 
+  const handleSavePrompt = async () => {
+    try {
+      const timestamp = collab.promptUpdatedAt || collab.startedAt || Date.now();
+      await updatePrompt(collab.id, promptValue, collab.prompt, timestamp, collab.promptHistory);
+      const message = `<p>The prompt was updated to:</p>${promptValue}`;
+      await createNote(collab.id, "Host note", message, session.userId, session.displayName);
+      setEditingPrompt(false);
+      setPromptValue("");
+    } catch (error) {
+      console.error("Failed to update prompt:", error);
+      alert("Failed to update prompt. Please try again.");
+    }
+  };
+
+  const handleAdmitSelected = async () => {
+    try {
+      await approveParticipants(collab.id, Array.from(checkedIds));
+      setCheckedIds(new Set());
+    } catch (error) {
+      console.error("Failed to admit participants:", error);
+      alert("Failed to admit participants. Please try again.");
+    }
+  };
+
   return (
     <aside className={styles.collabSidebar}>
       <div className={styles.promptCard}>
@@ -102,34 +126,7 @@ export default function CollabSidebar({
                 Cancel
               </button>
               <button
-                onClick={async () => {
-                  try {
-                    const timestamp =
-                      collab.promptUpdatedAt ||
-                      collab.startedAt ||
-                      Date.now();
-                    await updatePrompt(
-                      collab.id,
-                      promptValue,
-                      collab.prompt,
-                      timestamp,
-                      collab.promptHistory,
-                    );
-                    const message = `<p>The prompt was updated to:</p>${promptValue}`;
-                    await createNote(
-                      collab.id,
-                      "Host note",
-                      message,
-                      session.userId,
-                      session.displayName,
-                    );
-                    setEditingPrompt(false);
-                    setPromptValue("");
-                  } catch (error) {
-                    console.error("Failed to update prompt:", error);
-                    alert("Failed to update prompt. Please try again.");
-                  }
-                }}
+                onClick={handleSavePrompt}
                 className={styles.promptSave}
               >
                 Save
@@ -259,18 +256,7 @@ export default function CollabSidebar({
                 <button
                   className={styles.admitButton}
                   disabled={checkedIds.size === 0}
-                  onClick={async () => {
-                    try {
-                      await approveParticipants(
-                        collab.id,
-                        Array.from(checkedIds),
-                      );
-                      setCheckedIds(new Set());
-                    } catch (error) {
-                      console.error("Failed to admit participants:", error);
-                      alert("Failed to admit participants. Please try again.");
-                    }
-                  }}
+                  onClick={handleAdmitSelected}
                 >
                   Admit selected
                 </button>

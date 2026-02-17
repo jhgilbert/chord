@@ -139,6 +139,33 @@ export default function StickyNote({
     setEditContent("");
   };
 
+  const handleSubmitVote = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const voteToSubmit =
+      Array.isArray(pendingPollSelection) && pendingPollSelection.length === 0
+        ? note.pollMultipleChoice
+          ? []
+          : 0
+        : pendingPollSelection;
+    try {
+      await votePoll(collaborationId, note.id, sessionId, voteToSubmit!);
+      setPendingPollSelection(null);
+    } catch (error) {
+      console.error("Failed to submit vote:", error);
+      alert("Failed to submit vote. Please try again.");
+    }
+  };
+
+  const handleClosePoll = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await closePoll(collaborationId, note.id);
+    } catch (error) {
+      console.error("Failed to close poll:", error);
+      alert("Failed to close poll. Please try again.");
+    }
+  };
+
   const handleAddResponse = async () => {
     const isEmpty = responseContent === "" || responseContent === "<p><br></p>";
     if (isEmpty) return;
@@ -480,28 +507,7 @@ export default function StickyNote({
                     !hasSubmittedVote &&
                     pendingPollSelection !== null && (
                       <button
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          const voteToSubmit =
-                            Array.isArray(pendingPollSelection) &&
-                            pendingPollSelection.length === 0
-                              ? note.pollMultipleChoice
-                                ? []
-                                : 0
-                              : pendingPollSelection;
-                          try {
-                            await votePoll(
-                              collaborationId,
-                              note.id,
-                              sessionId,
-                              voteToSubmit,
-                            );
-                            setPendingPollSelection(null);
-                          } catch (error) {
-                            console.error("Failed to submit vote:", error);
-                            alert("Failed to submit vote. Please try again.");
-                          }
-                        }}
+                        onClick={handleSubmitVote}
                         className={styles.pollSubmitButton}
                       >
                         Submit vote
@@ -509,15 +515,7 @@ export default function StickyNote({
                     )}
                   {isHost && paused && !note.pollClosed && (
                     <button
-                      onClick={async (e) => {
-                        e.stopPropagation();
-                        try {
-                          await closePoll(collaborationId, note.id);
-                        } catch (error) {
-                          console.error("Failed to close poll:", error);
-                          alert("Failed to close poll. Please try again.");
-                        }
-                      }}
+                      onClick={handleClosePoll}
                       className={styles.closePollButton}
                     >
                       Close poll

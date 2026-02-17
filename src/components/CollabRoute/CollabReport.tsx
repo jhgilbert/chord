@@ -1,6 +1,5 @@
 import { resumeCollaboration, type Collaboration } from "../../collaborations";
 import type { Note } from "../../notes";
-import type { Session } from "../../session";
 import {
   buildPromptTimeline,
   categorizeReactions,
@@ -15,14 +14,12 @@ import styles from "./CollabRoute.module.css";
 interface CollabReportProps {
   collab: Collaboration;
   notes: Note[];
-  session: Session;
   isHost: boolean;
 }
 
 export default function CollabReport({
   collab,
   notes,
-  session: _session,
   isHost,
 }: CollabReportProps) {
   const allPrompts = buildPromptTimeline(collab);
@@ -33,26 +30,34 @@ export default function CollabReport({
     markRead: string[];
   }) => {
     let text = "";
-    const agreedCount = reactions.agreed.length;
-    const markReadCount = reactions.markRead.length;
-
-    if (agreedCount > 0)
-      text += `Agreed (${agreedCount}): ${reactions.agreed.join(", ")} `;
-    if (markReadCount > 0)
-      text += `Marked as read (${markReadCount}): ${reactions.markRead.join(", ")}`;
+    if (reactions.agreed.length > 0)
+      text += `Agreed (${reactions.agreed.length}): ${reactions.agreed.join(", ")} `;
+    if (reactions.markRead.length > 0)
+      text += `Marked as read (${reactions.markRead.length}): ${reactions.markRead.join(", ")}`;
     return text;
+  };
+
+  const noteAuthor = (note: Note) =>
+    getAuthorName(note.createdBy, hostId, note.createdByName, note.type);
+
+  const getPollVoters = (note: Note, optionIdx: number) => {
+    const voters = Object.entries(note.pollVotes || {}).filter(([, v]) =>
+      Array.isArray(v) ? v.includes(optionIdx) : v === optionIdx,
+    );
+    return voters.map(([sessionId]) => {
+      const noteByUser = notes.find((n) => n.createdBy === sessionId);
+      if (!noteByUser) return sessionId;
+      return sessionId === hostId
+        ? `${noteByUser.createdByName} (host)`
+        : noteByUser.createdByName;
+    });
   };
 
   const generateHTML = () => {
     let html = "";
 
     const renderNoteHTML = (note: Note, idx: number) => {
-      const authorName = getAuthorName(
-        note.createdBy,
-        hostId,
-        note.createdByName,
-        note.type,
-      );
+      const authorName = noteAuthor(note);
       const timestamp = formatTimestamp(note.createdAt);
       html += `<h3>${idx + 1}. ${note.type} by ${authorName}</h3>`;
       html += `<p><em>${timestamp}</em></p>`;
@@ -62,8 +67,7 @@ export default function CollabReport({
         if (note.assignee)
           html += `<strong>Assignee:</strong> ${note.assignee}<br>`;
         if (note.dueDate) {
-          const dueDate = new Date(note.dueDate).toLocaleDateString();
-          html += `<strong>Due date:</strong> ${dueDate}<br>`;
+          html += `<strong>Due date:</strong> ${new Date(note.dueDate).toLocaleDateString()}<br>`;
         }
         html += `</p>`;
       }
@@ -77,29 +81,24 @@ export default function CollabReport({
       }
 
       if (note.responses && note.responses.length > 0) {
-        html += `<h4>Responses (${note.responses.length})</h4>`;
-        html += `<ul>`;
+        html += `<h4>Responses (${note.responses.length})</h4><ul>`;
         note.responses.forEach((response) => {
-          const timestamp = response.createdAt
+          const ts = response.createdAt
             ? new Date(response.createdAt as number).toLocaleString()
             : "Unknown time";
-          const responseAuthorName = getAuthorName(
-            response.createdBy,
-            hostId,
-            response.createdByName,
-          );
-          html += `<li><strong>${responseAuthorName}</strong> (${timestamp}): <div style="display:inline">${sanitizeHtml(response.content)}</div></li>`;
+          const name = getAuthorName(response.createdBy, hostId, response.createdByName);
+          html += `<li><strong>${name}</strong> (${ts}): <div style="display:inline">${sanitizeHtml(response.content)}</div></li>`;
         });
         html += `</ul>`;
       }
 
       if (note.editHistory && note.editHistory.length > 0) {
-        html += `<p><strong>Edit History (${note.editHistory.length} version${note.editHistory.length !== 1 ? "s" : ""}):</strong></p><ol>`;
+        html += `<p><strong>Edit History (${plural(note.editHistory.length, "version")}):</strong></p><ol>`;
         note.editHistory.forEach((version) => {
-          const timestamp = version.editedAt
+          const ts = version.editedAt
             ? new Date(version.editedAt as number).toLocaleString()
             : "Unknown time";
-          html += `<li>${timestamp}: <div style="display:inline">${sanitizeHtml(version.content)}</div></li>`;
+          html += `<li>${ts}: <div style="display:inline">${sanitizeHtml(version.content)}</div></li>`;
         });
         html += `</ol>`;
       }
@@ -107,109 +106,67 @@ export default function CollabReport({
       html += `<hr>`;
     };
 
-    // Key takeaways section
     const actionItems = notes.filter((n) => n.type === "Action item");
     const requirements = notes.filter((n) => n.type === "Requirement");
-    const constructiveFeedback = notes.filter(
-      (n) => n.type === "Constructive feedback",
-    );
+    const constructiveFeedback = notes.filter((n) => n.type === "Constructive feedback");
     const polls = notes.filter((n) => n.type === "Poll" && n.pollOptions);
 
-    if (
-      actionItems.length > 0 ||
-      requirements.length > 0 ||
-      constructiveFeedback.length > 0 ||
-      polls.length > 0
-    ) {
+    if (actionItems.length + requirements.length + constructiveFeedback.length + polls.length > 0) {
       html += `<h2>Key Takeaways</h2>`;
 
       if (actionItems.length > 0) {
         html += `<h3>Action Items</h3>`;
-        html += `<table border="1" style="width:100%; border-collapse:collapse; margin-bottom:20px;">`;
-        html += `<thead><tr><th style="padding: 8px 12px; max-width: 300px;">Prompt</th><th style="padding: 8px 12px;">Note</th><th style="padding: 8px 12px;">Author</th><th style="padding: 8px 12px;">Assignee</th><th style="padding: 8px 12px;">Due Date</th></tr></thead>`;
-        html += `<tbody>`;
-        actionItems.forEach((note) => {
-          const authorName = getAuthorName(
-            note.createdBy,
-            hostId,
-            note.createdByName,
-            note.type,
-          );
-          const assignee = note.assignee || "-";
-          const dueDate = note.dueDate
-            ? new Date(note.dueDate).toLocaleDateString()
-            : "-";
-          html += `<tr>`;
-          html += `<td style="padding: 8px 12px; max-width: 300px; overflow: hidden; text-overflow: ellipsis;">${getPromptForNote(note, allPrompts)}</td>`;
-          html += `<td style="padding: 8px 12px;">${sanitizeHtml(note.content)}</td>`;
-          html += `<td style="padding: 8px 12px;">${authorName}</td>`;
-          html += `<td style="padding: 8px 12px;">${assignee}</td>`;
-          html += `<td style="padding: 8px 12px;">${dueDate}</td>`;
-          html += `</tr>`;
-        });
-        html += `</tbody></table>`;
+        html += table(
+          tr(th("Prompt", TRUNCATE_STYLE), th("Note"), th("Author"), th("Assignee"), th("Due Date")),
+          actionItems.map((note) => {
+            const dueDate = note.dueDate ? new Date(note.dueDate).toLocaleDateString() : "-";
+            return tr(
+              td(getPromptForNote(note, allPrompts), TRUNCATE_STYLE),
+              td(sanitizeHtml(note.content)),
+              td(noteAuthor(note)),
+              td(note.assignee || "-"),
+              td(dueDate),
+            );
+          }),
+        );
       }
 
-      const renderSimpleTableHTML = (title: string, items: Note[]) => {
+      const renderSimpleTable = (title: string, items: Note[]) => {
         html += `<h3>${title}</h3>`;
-        html += `<table border="1" style="width:100%; border-collapse:collapse; margin-bottom:20px;">`;
-        html += `<thead><tr><th style="padding: 8px 12px; max-width: 300px;">Prompt</th><th style="padding: 8px 12px;">Note</th><th style="padding: 8px 12px;">Author</th></tr></thead>`;
-        html += `<tbody>`;
-        items.forEach((note) => {
-          const authorName = getAuthorName(
-            note.createdBy,
-            hostId,
-            note.createdByName,
-            note.type,
-          );
-          html += `<tr>`;
-          html += `<td style="padding: 8px 12px; max-width: 300px; overflow: hidden; text-overflow: ellipsis;">${getPromptForNote(note, allPrompts)}</td>`;
-          html += `<td style="padding: 8px 12px;">${sanitizeHtml(note.content)}</td>`;
-          html += `<td style="padding: 8px 12px;">${authorName}</td>`;
-          html += `</tr>`;
-        });
-        html += `</tbody></table>`;
+        html += table(
+          tr(th("Prompt", TRUNCATE_STYLE), th("Note"), th("Author")),
+          items.map((note) =>
+            tr(
+              td(getPromptForNote(note, allPrompts), TRUNCATE_STYLE),
+              td(sanitizeHtml(note.content)),
+              td(noteAuthor(note)),
+            ),
+          ),
+        );
       };
 
-      if (requirements.length > 0)
-        renderSimpleTableHTML("Requirements", requirements);
-      if (constructiveFeedback.length > 0)
-        renderSimpleTableHTML("Constructive Feedback", constructiveFeedback);
+      if (requirements.length > 0) renderSimpleTable("Requirements", requirements);
+      if (constructiveFeedback.length > 0) renderSimpleTable("Constructive Feedback", constructiveFeedback);
 
       if (polls.length > 0) {
         html += `<h3>Polls</h3>`;
         polls.forEach((note) => {
-          const authorName = getAuthorName(
-            note.createdBy,
-            hostId,
-            note.createdByName,
-            note.type,
-          );
           const totalVoters = Object.keys(note.pollVotes || {}).length;
           html += `<h4>${sanitizeHtml(note.content)}</h4>`;
-          html += `<p>Created by ${authorName} · ${totalVoters} vote${totalVoters !== 1 ? "s" : ""}${note.pollMultipleChoice ? " · Multiple choice" : ""}</p>`;
-          html += `<table border="1" style="width:100%; border-collapse:collapse; margin-bottom:20px;">`;
-          html += `<thead><tr><th style="padding: 8px 12px;">Option</th><th style="padding: 8px 12px;">Votes</th><th style="padding: 8px 12px;">%</th><th style="padding: 8px 12px;">Participants</th></tr></thead>`;
-          html += `<tbody>`;
-          note.pollOptions!.forEach((option, idx) => {
-            const voters = Object.entries(note.pollVotes || {}).filter(([, v]) =>
-              Array.isArray(v) ? v.includes(idx) : v === idx,
-            );
-            const voteCount = voters.length;
-            const percentage = totalVoters > 0 ? Math.round((voteCount / totalVoters) * 100) : 0;
-            const voterNames = voters.map(([sessionId]) => {
-              const noteByUser = notes.find((n) => n.createdBy === sessionId);
-              if (!noteByUser) return sessionId;
-              return sessionId === hostId ? `${noteByUser.createdByName} (host)` : noteByUser.createdByName;
-            });
-            html += `<tr>`;
-            html += `<td style="padding: 8px 12px;">${option}</td>`;
-            html += `<td style="padding: 8px 12px;">${voteCount}</td>`;
-            html += `<td style="padding: 8px 12px;">${percentage}%</td>`;
-            html += `<td style="padding: 8px 12px;">${voterNames.join(", ")}</td>`;
-            html += `</tr>`;
-          });
-          html += `</tbody></table>`;
+          html += `<p>Created by ${noteAuthor(note)} · ${plural(totalVoters, "vote")}${note.pollMultipleChoice ? " · Multiple choice" : ""}</p>`;
+          html += table(
+            tr(th("Option"), th("Votes"), th("%"), th("Participants")),
+            note.pollOptions!.map((option, idx) => {
+              const voterNames = getPollVoters(note, idx);
+              const percentage = totalVoters > 0 ? Math.round((voterNames.length / totalVoters) * 100) : 0;
+              return tr(
+                td(option),
+                td(String(voterNames.length)),
+                td(`${percentage}%`),
+                td(voterNames.join(", ")),
+              );
+            }),
+          );
         });
       }
     }
@@ -227,12 +184,7 @@ export default function CollabReport({
 
     const renderNote = (note: Note, idx: number) => {
       const noteText = stripHtml(note.content);
-      const authorName = getAuthorName(
-        note.createdBy,
-        hostId,
-        note.createdByName,
-        note.type,
-      );
+      const authorName = noteAuthor(note);
       const timestamp = formatTimestamp(note.createdAt);
       md += `### ${idx + 1}. ${note.type} by ${authorName}\n\n`;
       md += `*${timestamp}*\n\n`;
@@ -240,8 +192,7 @@ export default function CollabReport({
       if (note.type === "Action item" && (note.assignee || note.dueDate)) {
         if (note.assignee) md += `**Assignee:** ${note.assignee}  \n`;
         if (note.dueDate) {
-          const dueDate = new Date(note.dueDate).toLocaleDateString();
-          md += `**Due date:** ${dueDate}  \n`;
+          md += `**Due date:** ${new Date(note.dueDate).toLocaleDateString()}  \n`;
         }
         md += `\n`;
       }
@@ -259,27 +210,23 @@ export default function CollabReport({
         md += `#### Responses (${note.responses.length})\n\n`;
         note.responses.forEach((response) => {
           const responseText = stripHtml(response.content);
-          const timestamp = response.createdAt
+          const ts = response.createdAt
             ? new Date(response.createdAt as number).toLocaleString()
             : "Unknown time";
-          const responseAuthorName = getAuthorName(
-            response.createdBy,
-            hostId,
-            response.createdByName,
-          );
-          md += `- **${responseAuthorName}** (${timestamp}): ${responseText}\n`;
+          const name = getAuthorName(response.createdBy, hostId, response.createdByName);
+          md += `- **${name}** (${ts}): ${responseText}\n`;
         });
         md += `\n`;
       }
 
       if (note.editHistory && note.editHistory.length > 0) {
-        md += `**Edit History (${note.editHistory.length} version${note.editHistory.length !== 1 ? "s" : ""}):**\n\n`;
+        md += `**Edit History (${plural(note.editHistory.length, "version")}):**\n\n`;
         note.editHistory.forEach((version, vIdx) => {
           const versionText = stripHtml(version.content);
-          const timestamp = version.editedAt
+          const ts = version.editedAt
             ? new Date(version.editedAt as number).toLocaleString()
             : "Unknown time";
-          md += `${vIdx + 1}. ${timestamp}: ${versionText}\n`;
+          md += `${vIdx + 1}. ${ts}: ${versionText}\n`;
         });
         md += `\n`;
       }
@@ -287,20 +234,12 @@ export default function CollabReport({
       md += `---\n\n`;
     };
 
-    // Key takeaways
     const actionItems = notes.filter((n) => n.type === "Action item");
     const requirements = notes.filter((n) => n.type === "Requirement");
-    const constructiveFeedback = notes.filter(
-      (n) => n.type === "Constructive feedback",
-    );
+    const constructiveFeedback = notes.filter((n) => n.type === "Constructive feedback");
     const polls = notes.filter((n) => n.type === "Poll" && n.pollOptions);
 
-    if (
-      actionItems.length > 0 ||
-      requirements.length > 0 ||
-      constructiveFeedback.length > 0 ||
-      polls.length > 0
-    ) {
+    if (actionItems.length + requirements.length + constructiveFeedback.length + polls.length > 0) {
       md += `## Key Takeaways\n\n`;
 
       if (actionItems.length > 0) {
@@ -308,23 +247,10 @@ export default function CollabReport({
         md += `| Prompt | Note | Author | Assignee | Due Date |\n`;
         md += `|--------|------|--------|----------|----------|\n`;
         actionItems.forEach((note) => {
-          const noteText = stripHtml(note.content)
-            .replace(/\|/g, "\\|")
-            .replace(/\n/g, " ");
-          const authorName = getAuthorName(
-            note.createdBy,
-            hostId,
-            note.createdByName,
-            note.type,
-          );
-          const promptText = getPromptForNote(note, allPrompts)
-            .replace(/\|/g, "\\|")
-            .replace(/\n/g, " ");
-          const assignee = note.assignee || "-";
-          const dueDate = note.dueDate
-            ? new Date(note.dueDate).toLocaleDateString()
-            : "-";
-          md += `| ${promptText} | ${noteText} | ${authorName} | ${assignee} | ${dueDate} |\n`;
+          const noteText = mdEscape(stripHtml(note.content));
+          const promptText = mdEscape(getPromptForNote(note, allPrompts));
+          const dueDate = note.dueDate ? new Date(note.dueDate).toLocaleDateString() : "-";
+          md += `| ${promptText} | ${noteText} | ${noteAuthor(note)} | ${note.assignee || "-"} | ${dueDate} |\n`;
         });
         md += `\n`;
       }
@@ -334,56 +260,29 @@ export default function CollabReport({
         md += `| Prompt | Note | Author |\n`;
         md += `|--------|------|--------|\n`;
         items.forEach((note) => {
-          const noteText = stripHtml(note.content)
-            .replace(/\|/g, "\\|")
-            .replace(/\n/g, " ");
-          const authorName = getAuthorName(
-            note.createdBy,
-            hostId,
-            note.createdByName,
-            note.type,
-          );
-          const promptText = getPromptForNote(note, allPrompts)
-            .replace(/\|/g, "\\|")
-            .replace(/\n/g, " ");
-          md += `| ${promptText} | ${noteText} | ${authorName} |\n`;
+          const noteText = mdEscape(stripHtml(note.content));
+          const promptText = mdEscape(getPromptForNote(note, allPrompts));
+          md += `| ${promptText} | ${noteText} | ${noteAuthor(note)} |\n`;
         });
         md += `\n`;
       };
 
-      if (requirements.length > 0)
-        renderSimpleTableMd("Requirements", requirements);
-      if (constructiveFeedback.length > 0)
-        renderSimpleTableMd("Constructive Feedback", constructiveFeedback);
+      if (requirements.length > 0) renderSimpleTableMd("Requirements", requirements);
+      if (constructiveFeedback.length > 0) renderSimpleTableMd("Constructive Feedback", constructiveFeedback);
 
       if (polls.length > 0) {
         md += `### Polls\n\n`;
         polls.forEach((note) => {
-          const authorName = getAuthorName(
-            note.createdBy,
-            hostId,
-            note.createdByName,
-            note.type,
-          );
           const noteText = stripHtml(note.content).replace(/\n/g, " ");
           const totalVoters = Object.keys(note.pollVotes || {}).length;
           md += `**${noteText}**\n\n`;
-          md += `Created by ${authorName} · ${totalVoters} vote${totalVoters !== 1 ? "s" : ""}${note.pollMultipleChoice ? " · Multiple choice" : ""}\n\n`;
+          md += `Created by ${noteAuthor(note)} · ${plural(totalVoters, "vote")}${note.pollMultipleChoice ? " · Multiple choice" : ""}\n\n`;
           md += `| Option | Votes | % | Participants |\n`;
           md += `|--------|-------|---|---------------|\n`;
           note.pollOptions!.forEach((option, idx) => {
-            const voters = Object.entries(note.pollVotes || {}).filter(([, v]) =>
-              Array.isArray(v) ? v.includes(idx) : v === idx,
-            );
-            const voteCount = voters.length;
-            const percentage = totalVoters > 0 ? Math.round((voteCount / totalVoters) * 100) : 0;
-            const escapedOption = option.replace(/\|/g, "\\|").replace(/\n/g, " ");
-            const voterNames = voters.map(([sessionId]) => {
-              const noteByUser = notes.find((n) => n.createdBy === sessionId);
-              if (!noteByUser) return sessionId;
-              return sessionId === hostId ? `${noteByUser.createdByName} (host)` : noteByUser.createdByName;
-            });
-            md += `| ${escapedOption} | ${voteCount} | ${percentage}% | ${voterNames.join(", ")} |\n`;
+            const voterNames = getPollVoters(note, idx);
+            const percentage = totalVoters > 0 ? Math.round((voterNames.length / totalVoters) * 100) : 0;
+            md += `| ${mdEscape(option)} | ${voterNames.length} | ${percentage}% | ${voterNames.join(", ")} |\n`;
           });
           md += `\n`;
         });
@@ -398,6 +297,28 @@ export default function CollabReport({
     return md;
   };
 
+  const handleReopen = async () => {
+    try {
+      await resumeCollaboration(collab.id);
+    } catch (error) {
+      console.error("Failed to reopen collaboration:", error);
+      alert("Failed to reopen collaboration. Please try again.");
+    }
+  };
+
+  const handleCopyMarkdown = async () => {
+    await navigator.clipboard.writeText(generateMarkdown());
+    alert("Copied Markdown to clipboard!");
+  };
+
+  const handleCopyHTML = async () => {
+    const html = generateHTML();
+    const blob = new Blob([html], { type: "text/html" });
+    const clipboardItem = new ClipboardItem({ "text/html": blob });
+    await navigator.clipboard.write([clipboardItem]);
+    alert("Copied to clipboard! Paste into Google Docs to preserve formatting.");
+  };
+
   return (
     <div className={styles.stoppedScreen}>
       <div className={styles.stoppedHeader}>
@@ -407,17 +328,7 @@ export default function CollabReport({
           <b>{collab.startedByName}</b>.
         </p>
         {isHost && (
-          <button
-            onClick={async () => {
-              try {
-                await resumeCollaboration(collab.id);
-              } catch (error) {
-                console.error("Failed to reopen collaboration:", error);
-                alert("Failed to reopen collaboration. Please try again.");
-              }
-            }}
-            className={styles.resumeButton}
-          >
+          <button onClick={handleReopen} className={styles.resumeButton}>
             Reopen collaboration
           </button>
         )}
@@ -426,29 +337,10 @@ export default function CollabReport({
         <div className={styles.reportHeader}>
           <h2 className={styles.reportTitle}>Results</h2>
           <div className={styles.reportControls}>
-            <button
-              onClick={async () => {
-                await navigator.clipboard.writeText(generateMarkdown());
-                alert("Copied Markdown to clipboard!");
-              }}
-              className={styles.copyButton}
-            >
+            <button onClick={handleCopyMarkdown} className={styles.copyButton}>
               Copy as Markdown
             </button>
-            <button
-              onClick={async () => {
-                const html = generateHTML();
-                const blob = new Blob([html], { type: "text/html" });
-                const clipboardItem = new ClipboardItem({
-                  "text/html": blob,
-                });
-                await navigator.clipboard.write([clipboardItem]);
-                alert(
-                  "Copied to clipboard! Paste into Google Docs to preserve formatting.",
-                );
-              }}
-              className={styles.copyButton}
-            >
+            <button onClick={handleCopyHTML} className={styles.copyButton}>
               Copy for Google Docs
             </button>
           </div>
@@ -462,4 +354,34 @@ export default function CollabReport({
       </div>
     </div>
   );
+}
+
+// --- HTML templating helpers ---
+
+const TRUNCATE_STYLE = "max-width: 300px; overflow: hidden; text-overflow: ellipsis;";
+
+function th(content: string, style?: string): string {
+  const s = style ? `padding: 8px 12px; ${style}` : "padding: 8px 12px;";
+  return `<th style="${s}">${content}</th>`;
+}
+
+function td(content: string, style?: string): string {
+  const s = style ? `padding: 8px 12px; ${style}` : "padding: 8px 12px;";
+  return `<td style="${s}">${content}</td>`;
+}
+
+function tr(...cells: string[]): string {
+  return `<tr>${cells.join("")}</tr>`;
+}
+
+function table(headRow: string, bodyRows: string[]): string {
+  return `<table border="1" style="width:100%; border-collapse:collapse; margin-bottom:20px;"><thead>${headRow}</thead><tbody>${bodyRows.join("")}</tbody></table>`;
+}
+
+function plural(count: number, word: string): string {
+  return `${count} ${word}${count !== 1 ? "s" : ""}`;
+}
+
+function mdEscape(text: string): string {
+  return text.replace(/\|/g, "\\|").replace(/\n/g, " ");
 }

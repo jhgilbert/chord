@@ -2,7 +2,6 @@ import { render, screen } from "@testing-library/react";
 import CollabReport from "../../../components/CollabRoute/CollabReport";
 import type { Collaboration } from "../../../collaborations";
 import type { Note } from "../../../notes";
-import type { Session } from "../../../session";
 
 vi.mock("../../../collaborations", async (importOriginal) => {
   const actual =
@@ -12,12 +11,6 @@ vi.mock("../../../collaborations", async (importOriginal) => {
     resumeCollaboration: vi.fn(() => Promise.resolve()),
   };
 });
-
-const session: Session = {
-  userId: "host-1",
-  displayName: "Host User",
-  email: "host@example.com",
-};
 
 const baseCollab: Collaboration = {
   id: "collab-1",
@@ -47,7 +40,7 @@ describe("CollabReport", () => {
       <CollabReport
         collab={baseCollab}
         notes={[]}
-        session={session}
+
         isHost
       />,
     );
@@ -61,7 +54,7 @@ describe("CollabReport", () => {
       <CollabReport
         collab={baseCollab}
         notes={[]}
-        session={session}
+
         isHost
       />,
     );
@@ -73,7 +66,7 @@ describe("CollabReport", () => {
       <CollabReport
         collab={baseCollab}
         notes={[]}
-        session={session}
+
         isHost
       />,
     );
@@ -85,7 +78,7 @@ describe("CollabReport", () => {
       <CollabReport
         collab={baseCollab}
         notes={[]}
-        session={session}
+
         isHost={false}
       />,
     );
@@ -99,7 +92,7 @@ describe("CollabReport", () => {
       <CollabReport
         collab={baseCollab}
         notes={[]}
-        session={session}
+
         isHost
       />,
     );
@@ -117,7 +110,7 @@ describe("CollabReport", () => {
       <CollabReport
         collab={baseCollab}
         notes={notes}
-        session={session}
+
         isHost
       />,
     );
@@ -137,7 +130,7 @@ describe("CollabReport", () => {
       <CollabReport
         collab={baseCollab}
         notes={notes}
-        session={session}
+
         isHost
       />,
     );
@@ -157,7 +150,7 @@ describe("CollabReport", () => {
       <CollabReport
         collab={baseCollab}
         notes={notes}
-        session={session}
+
         isHost
       />,
     );
@@ -171,7 +164,7 @@ describe("CollabReport", () => {
       <CollabReport
         collab={baseCollab}
         notes={notes}
-        session={session}
+
         isHost
       />,
     );
@@ -194,7 +187,7 @@ describe("CollabReport", () => {
       <CollabReport
         collab={baseCollab}
         notes={notes}
-        session={session}
+
         isHost
       />,
     );
@@ -221,7 +214,7 @@ describe("CollabReport", () => {
       <CollabReport
         collab={baseCollab}
         notes={notes}
-        session={session}
+
         isHost
       />,
     );
@@ -240,7 +233,7 @@ describe("CollabReport", () => {
       <CollabReport
         collab={baseCollab}
         notes={notes}
-        session={session}
+
         isHost
       />,
     );
@@ -261,7 +254,7 @@ describe("CollabReport", () => {
       <CollabReport
         collab={baseCollab}
         notes={notes}
-        session={session}
+
         isHost
       />,
     );
@@ -287,7 +280,7 @@ describe("CollabReport", () => {
       <CollabReport
         collab={baseCollab}
         notes={notes}
-        session={session}
+
         isHost
       />,
     );

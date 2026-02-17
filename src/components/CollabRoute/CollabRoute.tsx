@@ -170,6 +170,43 @@ export default function CollabRoute() {
     }
   };
 
+  const handleToggleAuthorNames = async () => {
+    try {
+      const willShow = collab.showAuthorNames === false;
+      await updateShowAuthorNames(collab.id, willShow);
+      const message = willShow
+        ? "<p>The host set author names to 'displayed'.</p>"
+        : "<p>The host set author names to 'hidden'.</p>";
+      await createNote(collab.id, "Host note", message, session.userId, session.displayName);
+    } catch (error) {
+      console.error("Failed to update author names setting:", error);
+      alert("Failed to update setting. Please try again.");
+    }
+  };
+
+  const handleEndCollaboration = async () => {
+    try {
+      await endCollaboration(collab.id);
+    } catch (error) {
+      console.error("Failed to end collaboration:", error);
+      alert("Failed to end collaboration. Please try again.");
+    }
+  };
+
+  const handleTogglePause = async () => {
+    try {
+      const willPause = !collab.paused;
+      await pauseCollaboration(collab.id, willPause);
+      const message = willPause
+        ? "<p>Participant input was paused.</p>"
+        : "<p>Participant input was resumed.</p>";
+      await createNote(collab.id, "Host note", message, session.userId, session.displayName);
+    } catch (error) {
+      console.error("Failed to pause/resume collaboration:", error);
+      alert("Failed to update collaboration. Please try again.");
+    }
+  };
+
   // Non-host users must be approved before seeing anything
   if (!isHost && myStatus !== "approved") {
     if (!collab.active) {
@@ -190,7 +227,6 @@ export default function CollabRoute() {
       <CollabReport
         collab={collab}
         notes={notes}
-        session={session}
         isHost={isHost}
       />
     );
@@ -273,28 +309,7 @@ export default function CollabRoute() {
                 {showHostActions && (
                   <div className={styles.noteTypeSettingsDropdown}>
                     <button
-                      onClick={async () => {
-                        try {
-                          const willShow = collab.showAuthorNames === false;
-                          await updateShowAuthorNames(collab.id, willShow);
-                          const message = willShow
-                            ? "<p>The host set author names to 'displayed'.</p>"
-                            : "<p>The host set author names to 'hidden'.</p>";
-                          await createNote(
-                            collab.id,
-                            "Host note",
-                            message,
-                            session.userId,
-                            session.displayName,
-                          );
-                        } catch (error) {
-                          console.error(
-                            "Failed to update author names setting:",
-                            error,
-                          );
-                          alert("Failed to update setting. Please try again.");
-                        }
-                      }}
+                      onClick={handleToggleAuthorNames}
                       className={styles.noteTypeSettingsOption}
                     >
                       {collab.showAuthorNames !== false
@@ -302,16 +317,7 @@ export default function CollabRoute() {
                         : "Show author names"}
                     </button>
                     <button
-                      onClick={async () => {
-                        try {
-                          await endCollaboration(collab.id);
-                        } catch (error) {
-                          console.error("Failed to end collaboration:", error);
-                          alert(
-                            "Failed to end collaboration. Please try again.",
-                          );
-                        }
-                      }}
+                      onClick={handleEndCollaboration}
                       className={styles.noteTypeSettingsOption}
                       style={{ color: "#dc2626" }}
                     >
@@ -321,28 +327,7 @@ export default function CollabRoute() {
                 )}
               </div>
               <button
-                onClick={async () => {
-                  try {
-                    const willPause = !collab.paused;
-                    await pauseCollaboration(collab.id, willPause);
-                    const message = willPause
-                      ? "<p>Participant input was paused.</p>"
-                      : "<p>Participant input was resumed.</p>";
-                    await createNote(
-                      collab.id,
-                      "Host note",
-                      message,
-                      session.userId,
-                      session.displayName,
-                    );
-                  } catch (error) {
-                    console.error(
-                      "Failed to pause/resume collaboration:",
-                      error,
-                    );
-                    alert("Failed to update collaboration. Please try again.");
-                  }
-                }}
+                onClick={handleTogglePause}
                 className={styles.buttonPause}
                 data-paused={collab.paused}
               >
