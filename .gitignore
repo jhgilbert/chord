@@ -30,3 +30,7 @@ dist-ssr
 
 # Firebase cache
 .firebase/
+
+# Playwright
+test-results/
+playwright-report/
